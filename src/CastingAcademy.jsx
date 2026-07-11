@@ -506,14 +506,11 @@ export default function CastingAcademy() {
           <Reveal><div className="ca-label" style={{ marginBottom: 60, textAlign: 'center' }}>Mot de la Présidente</div></Reveal>
           <div className="ca-grid-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1.4fr', gap: 80, alignItems: 'center' }}>
             <Reveal>
-              <div style={{ position: 'relative' }}>
-                <img src="/jenny.png" alt="Jennifer — Présidente de la Casting Academy" style={{ width: '100%', objectFit: 'cover', aspectRatio: '3/4', display: 'block', filter: 'grayscale(20%)' }} onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }} />
-                <div style={{ display: 'none', width: '100%', aspectRatio: '3/4', background: '#111', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(255,255,255,0.1)' }}>
-                  <p style={{ color: 'rgba(255,255,255,0.4)', fontFamily: 'Inter, sans-serif', fontSize: 12, letterSpacing: 2, textTransform: 'uppercase' }}>Jennifer</p>
-                </div>
-                <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '60px 28px 28px', background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%)' }}>
+              <div style={{ position: 'relative', border: '1px solid rgba(255,255,255,0.1)' }}>
+                <video controls playsInline preload="metadata" poster="/jennifer-poster.jpg" src="/jennifer-message.mp4" style={{ width: '100%', objectFit: 'cover', aspectRatio: '3/4', display: 'block', background: '#000' }} />
+                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, padding: '28px', background: 'linear-gradient(to bottom, rgba(0,0,0,0.85) 0%, transparent 100%)', pointerEvents: 'none' }}>
                   <p style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 22, fontWeight: 600, color: '#fff', margin: '0 0 4px' }}>Jennifer</p>
-                  <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, fontWeight: 600, letterSpacing: 3, textTransform: 'uppercase', color: 'rgba(255,255,255,0.45)', margin: 0 }}>Présidente · Casting Academy</p>
+                  <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, fontWeight: 600, letterSpacing: 3, textTransform: 'uppercase', color: 'rgba(255,255,255,0.55)', margin: 0 }}>Présidente · Casting Academy</p>
                 </div>
               </div>
             </Reveal>
