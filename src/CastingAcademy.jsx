@@ -507,10 +507,10 @@ export default function CastingAcademy() {
           <div className="ca-grid-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1.4fr', gap: 80, alignItems: 'center' }}>
             <Reveal>
               <div style={{ position: 'relative', border: '1px solid rgba(255,255,255,0.1)' }}>
-                <video controls playsInline preload="metadata" poster="/jennifer-poster.jpg" src="/jennifer-message.mp4" style={{ width: '100%', objectFit: 'cover', aspectRatio: '3/4', display: 'block', background: '#000' }} />
-                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, padding: '28px', background: 'linear-gradient(to bottom, rgba(0,0,0,0.85) 0%, transparent 100%)', pointerEvents: 'none' }}>
+                <img src="/jenny.jpg" alt="Jennifer — Présidente de la Casting Academy" style={{ width: '100%', objectFit: 'cover', aspectRatio: '3/4', display: 'block', filter: 'grayscale(15%)' }} />
+                <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '60px 28px 28px', background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%)' }}>
                   <p style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 22, fontWeight: 600, color: '#fff', margin: '0 0 4px' }}>Jennifer</p>
-                  <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, fontWeight: 600, letterSpacing: 3, textTransform: 'uppercase', color: 'rgba(255,255,255,0.55)', margin: 0 }}>Présidente · Casting Academy</p>
+                  <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, fontWeight: 600, letterSpacing: 3, textTransform: 'uppercase', color: 'rgba(255,255,255,0.45)', margin: 0 }}>Présidente · Casting Academy</p>
                 </div>
               </div>
             </Reveal>
@@ -554,28 +554,6 @@ export default function CastingAcademy() {
                   ))}
                 </div>
                 <p className="ca-body" style={{ maxWidth: 700 }}>Fondateur du <strong style={{ color: '#fff', fontWeight: 400 }}>Salon du Casting</strong> et de la <strong style={{ color: '#fff', fontWeight: 400 }}>Models House</strong>, Lionel Fundéré est l'un des acteurs majeurs de l'industrie du mannequinat et du casting en France. Fort d'une expérience sur <strong style={{ color: '#fff', fontWeight: 400 }}>plus de 100 fashion weeks</strong>, il transmet ses techniques de catwalk et ses méthodes de développement business artistique directement aux participants.</p>
-              </div>
-            </div>
-          </Reveal>
-          <Reveal delay={200}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '0 60px', alignItems: 'start', borderTop: '1px solid rgba(255,255,255,0.12)', paddingTop: 60 }}>
-              <div style={{ width: 100, height: 100, flexShrink: 0, overflow: 'hidden', position: 'relative' }}>
-                <img src="/mohammed.jpg" alt="Mohammed — Responsable Image" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top', filter: 'grayscale(15%)' }} onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }} />
-                <div style={{ display: 'none', width: '100%', height: '100%', background: '#111', border: '1px solid rgba(255,255,255,0.12)', alignItems: 'center', justifyContent: 'center' }}>
-                  <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 32, fontWeight: 700, color: '#fff' }}>M</span>
-                </div>
-              </div>
-              <div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, alignItems: 'baseline', marginBottom: 16 }}>
-                  <h3 className="ca-serif-h3" style={{ margin: 0 }}>Mohammed</h3>
-                  <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, fontWeight: 600, letterSpacing: 3, textTransform: 'uppercase', color: 'rgba(255,255,255,0.6)', border: '1px solid rgba(255,255,255,0.25)', padding: '5px 14px' }}>Responsable Image</span>
-                </div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 28 }}>
-                  {["Vidéos & Books Photo", "Design en Ligne", "Agence d'Influenceurs", "Digitalisation des Profils"].map(tag => (
-                    <span key={tag} style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, fontWeight: 600, letterSpacing: 2, textTransform: 'uppercase', color: 'rgba(255,255,255,0.55)' }}>· {tag}</span>
-                  ))}
-                </div>
-                <p className="ca-body" style={{ maxWidth: 700 }}>À la tête d'une <strong style={{ color: '#fff', fontWeight: 400 }}>agence d'influenceurs</strong>, Mohammed est expert en image des modèles — vidéos professionnelles, créations de books photo et design en ligne.</p>
               </div>
             </div>
           </Reveal>
@@ -640,16 +618,11 @@ export default function CastingAcademy() {
             </Reveal>
             <Reveal delay={100}>
               <div style={{ border: '1px solid rgba(255,255,255,0.25)', padding: '48px 40px', textAlign: 'left' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: 16, marginBottom: 24 }}>
-                  <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, letterSpacing: 1, color: '#fff', margin: 0 }}>Adhésion annuelle 2026/2027</p>
-                  <p style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 40, fontWeight: 700, color: '#fff', margin: 0 }}>599 € <span style={{ fontSize: 14, fontWeight: 400, color: 'rgba(255,255,255,0.5)' }}>/an</span></p>
-                </div>
+                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, letterSpacing: 1, color: '#fff', margin: '0 0 24px' }}>Adhésion annuelle 2026/2027</p>
                 <div className="ca-hairline" style={{ marginBottom: 24 }} />
-                <p className="ca-body" style={{ marginBottom: 8 }}><strong style={{ color: '#fff', fontWeight: 400 }}>Acompte de 149 €</strong> pour bloquer ta place (obligatoire)</p>
-                <p className="ca-body" style={{ marginBottom: 8 }}>Puis le solde (450 €) en 1, 2 ou 3 fois sans frais, à ton rythme :</p>
-                <p className="ca-body" style={{ marginBottom: 24 }}>1x : 450 € · 2x : 225 € + 225 € · 3x : 150 € + 150 € + 150 €</p>
+                <p className="ca-body" style={{ marginBottom: 24 }}>Paiement flexible en plusieurs fois sans frais, à ton rythme.</p>
                 <p className="ca-body" style={{ marginBottom: 24 }}>Inclus : 2 sessions/mois à la Casting Academy + suivi hebdomadaire individuel + audit d'entrée + module Business de l'artiste + communauté &amp; événements.</p>
-                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, letterSpacing: 1, color: 'rgba(255,255,255,0.4)', margin: 0 }}>Offre de lancement réservée aux 20 premiers talents sélectionnés · cadre associatif.</p>
+                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, letterSpacing: 1, color: 'rgba(255,255,255,0.4)', margin: 0 }}>Tarifs communiqués lors de l'échange · offre de lancement réservée aux 20 premiers talents sélectionnés · cadre associatif.</p>
               </div>
             </Reveal>
             <Reveal delay={200}>
@@ -672,7 +645,7 @@ export default function CastingAcademy() {
             <div style={{ borderTop: '1px solid rgba(255,255,255,0.12)' }}>
               {[
                 { q: 'Et si je débute totalement ?', a: "C'est fait pour toi : audit d'entrée, progression par étapes, suivi personnel chaque semaine." },
-                { q: 'Je peux payer en plusieurs fois ?', a: "Oui : un acompte de 149 € bloque ta place, puis tu choisis 1, 2 ou 3 fois sans frais pour le solde." },
+                { q: 'Je peux payer en plusieurs fois ?', a: "Oui : un acompte bloque ta place, puis tu choisis 1, 2 ou 3 fois sans frais pour le solde. Les montants sont détaillés lors de l'échange." },
                 { q: 'Et si je ne peux pas venir à une session ?', a: 'Le suivi hebdomadaire individuel maintient ta progression, et les sessions sont rattrapables sur l\'année.' },
                 { q: "Qu'est-ce qui vous différencie des écoles en ligne ?", a: 'Du présentiel réel, un suivi humain, et surtout : de vrais castings à la clé — pas seulement des vidéos.' },
                 { q: 'Qui sont les coachs ?', a: "Lionel Fundéré — directeur, fondateur du Salon du Casting et de la Models House, ancien mannequin (100+ fashion weeks). Et Jennifer, Présidente de la Casting Academy." },
