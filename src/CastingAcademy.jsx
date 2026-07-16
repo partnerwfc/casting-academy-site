@@ -395,7 +395,7 @@ export default function CastingAcademy() {
             <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', padding: '48px 40px', textAlign: 'left' }}>
               <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, fontWeight: 600, letterSpacing: 3, textTransform: 'uppercase', color: 'rgba(255,255,255,0.5)', margin: '0 0 28px' }}>Tu accèdes notamment à :</p>
               <div className="ca-grid-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 40px' }}>
-                {['Des shootings professionnels', 'Une bande démo', 'Des ateliers en présentiel', 'Une préparation aux castings', 'Des coachings personnalisés', 'Des conseils image', 'Des rencontres pros', 'Les événements Salon Du Casting', "L'écosystème iCastt", 'Une communauté de dizaines de milliers de talents', 'Un accompagnement humain'].map(t => (
+                {['Des shootings professionnels', 'Une bande démo', 'Des ateliers en présentiel', 'Une préparation aux castings', 'Des coachings personnalisés', 'Des conseils image', 'Des rencontres pros', 'Les événements Salon Du Casting', 'Une plateforme de castings dédiée','Une communauté de dizaines de milliers de talents', 'Un accompagnement humain'].map(t => (
                   <p key={t} className="ca-body" style={{ margin: 0 }}>— {t}</p>
                 ))}
               </div>
@@ -423,7 +423,7 @@ export default function CastingAcademy() {
             {[
               { period: 'SEPT — OCT', title: '1. Fondations', desc: "Audit d'entrée, posture, démarche, présence. Tu apprends les codes." },
               { period: 'NOV — JAN', title: '2. Ton image pro', desc: 'Shooting professionnel, book, bande démo, réseaux : ta vitrine se construit.' },
-              { period: 'FÉV — AVR', title: '3. Castings réels', desc: 'Tu postules via iCastt, préparé(e) et suivi(e). Figuration rémunérée possible.' },
+              { period: 'FÉV — AVR', title: '3. Castings réels', desc: 'Tu postules aux castings, préparé(e) et suivi(e). Figuration rémunérée possible.' },
               { period: 'MAI — JUIN', title: '4. Révélation', desc: 'Défilés, événements Salon Du Casting, mises en relation agences. Tu es lancé(e).' },
             ].map((p, i) => (
               <Reveal key={p.title} delay={i * 100}>
@@ -696,9 +696,6 @@ export default function CastingAcademy() {
               </div>
             ))}
           </div>
-          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: 'rgba(255,255,255,0.4)', margin: 0, borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 20 }}>
-            Candidatures &amp; sélection avec <strong style={{ color: 'rgba(255,255,255,0.6)', fontWeight: 500 }}>iCastt</strong>, partenaire de l'association.
-          </p>
         </div>
       </section>
     </div>
