@@ -6,11 +6,12 @@ function doPost(e) {
   var data = JSON.parse(e.postData.contents);
 
   if (sheet.getLastRow() === 0) {
-    sheet.appendRow(['Date', 'Nom', 'Prénom', 'Âge', 'Instagram', 'Téléphone', 'Ville', 'Motivation']);
+    sheet.appendRow(['Date', 'Billet', 'Nom', 'Prénom', 'Âge', 'Instagram', 'Téléphone', 'Ville', 'Motivation']);
   }
 
   sheet.appendRow([
     new Date(),
+    data.ticketId || '',
     data.nom || '',
     data.prenom || '',
     data.age || '',

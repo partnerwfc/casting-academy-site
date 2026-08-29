@@ -1,6 +1,77 @@
 import React, { useEffect, useRef, useState } from 'react';
+import QRCode from 'qrcode';
 
 const APPLY_SCRIPT_URL = import.meta.env.VITE_APPLY_SCRIPT_URL;
+
+const EVENT = {
+  title: 'Casting Academy — Casting de sélection',
+  dateLabel: '11 Septembre 2026',
+  icsDate: '20260911',
+  venue: 'Le Nida',
+  address: '11 Prom. Cœur de Ville, Issy-les-Moulineaux',
+};
+
+function generateTicketId() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  return `CA26-${code}`;
+}
+
+function icsTimestamp(d) {
+  return d.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+}
+
+function buildIcsUrl(ticketId, attendeeName) {
+  const ics = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Casting Academy//FR',
+    'BEGIN:VEVENT',
+    `UID:${ticketId}@casting-academy.fr`,
+    `DTSTAMP:${icsTimestamp(new Date())}`,
+    `DTSTART;VALUE=DATE:${EVENT.icsDate}`,
+    `DTEND;VALUE=DATE:${EVENT.icsDate}`,
+    `SUMMARY:${EVENT.title}`,
+    `LOCATION:${EVENT.venue}\\, ${EVENT.address}`,
+    `DESCRIPTION:Billet ${ticketId} — ${attendeeName}. Heure communiquée avant l'événement.`,
+    'END:VEVENT',
+    'END:VCALENDAR',
+  ].join('\r\n');
+  return URL.createObjectURL(new Blob([ics], { type: 'text/calendar;charset=utf-8' }));
+}
+
+function Ticket({ form, ticketId, qrDataUrl }) {
+  const rowStyle = { display: 'grid', gridTemplateColumns: '110px 1fr', gap: 12, marginBottom: 14 };
+  const rowLabel = { fontFamily: 'Inter, sans-serif', fontSize: 10, fontWeight: 600, letterSpacing: 2, textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)' };
+  const rowVal = { fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 16, fontWeight: 400, color: '#fff' };
+  const notchStyle = { position: 'absolute', left: '75%', transform: 'translateX(-50%)', width: 22, height: 22, borderRadius: '50%', background: '#050505', border: '1px solid rgba(255,255,255,0.1)' };
+  return (
+    <div>
+      <div className="ca-ticket" style={{ position: 'relative', border: '1px solid rgba(255,255,255,0.25)', background: '#0a0a0a' }}>
+        <div style={{ ...notchStyle, top: -12 }} />
+        <div style={{ ...notchStyle, bottom: -12 }} />
+        <div style={{ flex: 1, padding: '36px 32px' }}>
+          <CastingAcademyLogo height={18} opacity={0.85} />
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, fontWeight: 600, letterSpacing: 3, textTransform: 'uppercase', color: 'rgba(255,255,255,0.45)', margin: '20px 0 6px' }}>Billet · Casting de sélection</p>
+          <h3 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 28, fontWeight: 700, color: '#fff', margin: '0 0 24px' }}>{form.prenom} {form.nom}</h3>
+          <div className="ca-hairline" style={{ marginBottom: 24 }} />
+          <div style={rowStyle}><span style={rowLabel}>Date</span><span style={rowVal}>{EVENT.dateLabel}</span></div>
+          <div style={rowStyle}><span style={rowLabel}>Lieu</span><span style={rowVal}>{EVENT.venue}, {EVENT.address}</span></div>
+          <div style={rowStyle}><span style={rowLabel}>Heure</span><span style={rowVal}>Communiquée avant l'événement</span></div>
+        </div>
+        <div className="ca-ticket-stub" style={{ width: 180, flexShrink: 0, borderLeft: '2px dashed rgba(255,255,255,0.25)', padding: 24, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14 }}>
+          {qrDataUrl && <img src={qrDataUrl} alt="QR code du billet" style={{ width: 110, height: 110, display: 'block', background: '#fff', padding: 6 }} />}
+          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 700, letterSpacing: 2, color: '#fff' }}>{ticketId}</span>
+        </div>
+      </div>
+      <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginTop: 28, justifyContent: 'center' }}>
+        <a href={buildIcsUrl(ticketId, `${form.prenom} ${form.nom}`)} download={`casting-academy-${ticketId}.ics`} className="ca-btn-ghost">Ajouter à mon calendrier</a>
+      </div>
+      <p style={{ marginTop: 24, textAlign: 'center', fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'rgba(255,255,255,0.4)' }}>Présente ce billet (écran ou imprimé) à l'accueil le jour J. Garde une capture d'écran par sécurité.</p>
+    </div>
+  );
+}
 
 // ── Logo Casting Academy ───────────────────────────────────────────────────
 function CastingAcademyLogo({ height = 56, opacity = 1 }) {
@@ -59,6 +130,7 @@ function FaqItem({ q, a, index }) {
 function ApplicationForm() {
   const [form, setForm] = useState({ nom: '', prenom: '', age: '', insta: '', tel: '', ville: '', motivation: '' });
   const [status, setStatus] = useState('idle'); // idle | sending | done | error
+  const [ticket, setTicket] = useState(null);
 
   const set = key => e => setForm(f => ({ ...f, [key]: e.target.value }));
 
@@ -73,24 +145,30 @@ function ApplicationForm() {
     e.preventDefault();
     if (!APPLY_SCRIPT_URL) { setStatus('error'); return; }
     setStatus('sending');
+    const ticketId = generateTicketId();
     try {
+      const qrDataUrl = await QRCode.toDataURL(`CASTING-ACADEMY|${ticketId}|${form.prenom} ${form.nom}|2026-09-11`, { margin: 0, width: 220 });
       await fetch(APPLY_SCRIPT_URL, {
         method: 'POST',
         mode: 'no-cors',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, ticketId }),
       });
+      setTicket({ form, ticketId, qrDataUrl });
       setStatus('done');
     } catch {
       setStatus('error');
     }
   }
 
-  if (status === 'done') {
+  if (status === 'done' && ticket) {
     return (
-      <div style={{ border: '1px solid rgba(255,255,255,0.2)', padding: '60px 40px', textAlign: 'center' }}>
-        <h3 className="ca-serif-h3" style={{ marginBottom: 16 }}>Candidature envoyée.</h3>
-        <p className="ca-body">Nous revenons vers toi sous 48h pour un échange de 5 minutes.</p>
+      <div>
+        <div style={{ textAlign: 'center', marginBottom: 32 }}>
+          <h3 className="ca-serif-h3" style={{ marginBottom: 16 }}>Ta place est réservée.</h3>
+          <p className="ca-body">Voici ton billet pour le casting du 11 septembre.</p>
+        </div>
+        <Ticket form={ticket.form} ticketId={ticket.ticketId} qrDataUrl={ticket.qrDataUrl} />
       </div>
     );
   }
@@ -127,7 +205,7 @@ function ApplicationForm() {
       </div>
       <div style={{ gridColumn: '1 / -1' }}>
         <button type="submit" disabled={status === 'sending'} className="ca-btn-primary" style={{ width: '100%', justifyContent: 'center', border: 'none', cursor: status === 'sending' ? 'wait' : 'pointer', opacity: status === 'sending' ? 0.6 : 1 }}>
-          {status === 'sending' ? 'Envoi en cours…' : 'Envoyer ma candidature →'}
+          {status === 'sending' ? 'Génération du billet…' : 'Réserver ma place →'}
         </button>
         {status === 'error' && (
           <p style={{ marginTop: 16, color: 'rgba(255,120,120,0.9)', fontFamily: 'Inter, sans-serif', fontSize: 13 }}>
@@ -176,7 +254,12 @@ export default function CastingAcademy() {
         .ca-ticker-track { display: flex; white-space: nowrap; animation: ca-ticker 20s linear infinite; }
         .ca-video-portrait { position: relative; width: 100%; aspect-ratio: 9/16; max-width: 380px; overflow: hidden; background: #111; }
         .ca-compare-col { padding: 40px; }
+        .ca-ticket { display: flex; }
         input:focus, textarea:focus { border-color: rgba(255,255,255,0.6) !important; }
+        @media (max-width: 640px) {
+          .ca-ticket { flex-direction: column; }
+          .ca-ticket-stub { width: 100% !important; border-left: none !important; border-top: 2px dashed rgba(255,255,255,0.25) !important; flex-direction: row !important; }
+        }
         @media (max-width: 768px) {
           .ca-hero-text { padding: 0 24px !important; }
           .ca-grid-2col { grid-template-columns: 1fr !important; gap: 48px !important; }
@@ -662,9 +745,9 @@ export default function CastingAcademy() {
         <div style={{ maxWidth: 720, margin: '0 auto' }}>
           <Reveal>
             <div style={{ textAlign: 'center', marginBottom: 56 }}>
-              <div className="ca-label" style={{ marginBottom: 20 }}>3 étapes pour démarrer</div>
-              <h2 className="ca-serif-h2" style={{ marginBottom: 24 }}>Dépose ta<br /><em style={{ fontStyle: 'italic', fontWeight: 400 }}>candidature.</em></h2>
-              <p className="ca-body" style={{ maxWidth: 480, margin: '0 auto' }}>Remplis le formulaire. Tu seras invité(e) au casting du 11 septembre au Nida (Issy-les-Moulineaux). Tu rejoins les 20 talents sélectionnés pour la saison 2026/2027.</p>
+              <div className="ca-label" style={{ marginBottom: 20 }}>Billetterie</div>
+              <h2 className="ca-serif-h2" style={{ marginBottom: 24 }}>Réserve ta place<br /><em style={{ fontStyle: 'italic', fontWeight: 400 }}>au casting.</em></h2>
+              <p className="ca-body" style={{ maxWidth: 480, margin: '0 auto' }}>Remplis le formulaire, reçois ton billet pour le casting du 11 septembre au Nida (Issy-les-Moulineaux). Tu rejoins les 20 talents sélectionnés pour la saison 2026/2027.</p>
             </div>
           </Reveal>
           <Reveal delay={100}>
