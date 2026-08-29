@@ -202,7 +202,7 @@ export default function CastingAcademy() {
       <div className={`ca-sticky-bar${scrolled ? ' visible' : ''}`}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
           <CastingAcademyLogo height={22} opacity={0.9} />
-          <span className="sticky-label" style={{ fontSize: 11, letterSpacing: 3, textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', fontFamily: 'Inter, sans-serif' }}>Saison 2026/2027 — 20 places</span>
+          <span className="sticky-label" style={{ fontSize: 11, letterSpacing: 3, textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', fontFamily: 'Inter, sans-serif' }}>Casting du 11 Septembre — 20 places</span>
         </div>
         <a href="#candidature" className="ca-btn-primary" style={{ padding: '10px 24px', fontSize: 11 }}>Candidater →</a>
       </div>
@@ -219,7 +219,7 @@ export default function CastingAcademy() {
           <div className="ca-label" style={{ marginBottom: 20 }}>Ouverture Officielle · Issy-les-Moulineaux</div>
           <h1 className="ca-serif-h1" style={{ margin: '0 0 8px', maxWidth: 900 }}>La mode a décidé<br />qui avait le droit<br /><em style={{ fontStyle: 'italic', fontWeight: 400 }}>de rêver.</em></h1>
           <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontSize: 'clamp(16px, 2vw, 22px)', fontWeight: 300, color: 'rgba(255,255,255,0.7)', margin: '20px 0 36px', maxWidth: 540, lineHeight: 1.6, letterSpacing: 0.3 }}>
-            Nous avons décidé de changer les règles. 20 places, candidatures ouvertes pour la saison 2026/2027.
+            Nous avons décidé de changer les règles. Casting le 11 septembre — 20 places, candidatures ouvertes pour la saison 2026/2027.
           </p>
           <div className="ca-hero-btns" style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
             <a href="#candidature" className="ca-btn-primary">Je candidate →</a>
@@ -235,7 +235,7 @@ export default function CastingAcademy() {
       {/* TICKER */}
       <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', borderBottom: '1px solid rgba(255,255,255,0.1)', padding: '14px 0', overflow: 'hidden', background: '#000' }}>
         <div className="ca-ticker-track">
-          {Array(4).fill(['CASTING ACADEMY', 'CANDIDATURES OUVERTES', '20 PLACES', 'PARIS', 'CATWALK', 'CASTINGS', 'SAISON 2026/2027', 'PERSONAL BRANDING', 'ISSY-LES-MOULINEAUX']).flat().map((item, i) => (
+          {Array(4).fill(['CASTING ACADEMY', 'CASTING DU 11 SEPTEMBRE', '20 PLACES', 'PARIS', 'CATWALK', 'CASTINGS', 'CANDIDATURES OUVERTES', 'PERSONAL BRANDING', 'ISSY-LES-MOULINEAUX']).flat().map((item, i) => (
             <span key={i} style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, fontWeight: 600, letterSpacing: 4, textTransform: 'uppercase', color: 'rgba(255,255,255,0.3)', paddingRight: 48 }}>
               {item} <span style={{ color: 'rgba(255,255,255,0.15)', marginLeft: 48 }}>·</span>
             </span>
@@ -481,6 +481,7 @@ export default function CastingAcademy() {
             </Reveal>
             <div>
               {[
+                { label: 'Casting', val: '11 septembre 2026\nLe Nida, Issy-les-Moulineaux' },
                 { label: 'Lieu', val: 'Le Nida\n11 Prom. Cœur de Ville, Issy-les-Moulineaux' },
                 { label: 'Places', val: '20 talents · sélection sur candidature' },
                 { label: 'Rythme', val: '2 sessions par mois\n+ 1 suivi individuel chaque semaine' },
@@ -586,7 +587,7 @@ export default function CastingAcademy() {
               <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, fontWeight: 600, letterSpacing: 3, textTransform: 'uppercase', color: 'rgba(255,255,255,0.5)', margin: '0 0 28px' }}>Comment rejoindre la Casting Academy ?</p>
               {[
                 ['01', 'Tu déposes ta candidature', 'remplis le formulaire ci-dessous.'],
-                ['02', 'Nous échangeons avec toi', 'pour comprendre ton projet, tes ambitions, ton état d\'esprit.'],
+                ['02', 'Tu viens au casting du 11 septembre', 'Le Nida, Issy-les-Moulineaux · heure communiquée après inscription.'],
                 ['03', 'Si nous pensons pouvoir t\'aider', 'nous t\'invitons à rejoindre la prochaine promotion.'],
               ].map(([n, t, d]) => (
                 <div key={n} style={{ display: 'flex', gap: 20, marginBottom: 20 }}>
@@ -644,6 +645,7 @@ export default function CastingAcademy() {
           <Reveal delay={100}>
             <div style={{ borderTop: '1px solid rgba(255,255,255,0.12)' }}>
               {[
+                { q: "C'est quoi le casting du 11 septembre ?", a: "C'est l'étape qui suit ta candidature : une rencontre au Nida (Issy-les-Moulineaux) pour te découvrir, comprendre ton projet et confirmer ta place parmi les 20 talents de la saison. L'heure exacte te sera communiquée après ton inscription." },
                 { q: 'Et si je débute totalement ?', a: "C'est fait pour toi : audit d'entrée, progression par étapes, suivi personnel chaque semaine." },
                 { q: 'Je peux payer en plusieurs fois ?', a: "Oui : un acompte bloque ta place, puis tu choisis 1, 2 ou 3 fois sans frais pour le solde. Les montants sont détaillés lors de l'échange." },
                 { q: 'Et si je ne peux pas venir à une session ?', a: 'Le suivi hebdomadaire individuel maintient ta progression, et les sessions sont rattrapables sur l\'année.' },
@@ -662,7 +664,7 @@ export default function CastingAcademy() {
             <div style={{ textAlign: 'center', marginBottom: 56 }}>
               <div className="ca-label" style={{ marginBottom: 20 }}>3 étapes pour démarrer</div>
               <h2 className="ca-serif-h2" style={{ marginBottom: 24 }}>Dépose ta<br /><em style={{ fontStyle: 'italic', fontWeight: 400 }}>candidature.</em></h2>
-              <p className="ca-body" style={{ maxWidth: 480, margin: '0 auto' }}>Remplis le formulaire. Nous échangeons 5 minutes pour confirmer que c'est fait pour toi. Tu rejoins les 20 talents sélectionnés pour la saison 2026/2027.</p>
+              <p className="ca-body" style={{ maxWidth: 480, margin: '0 auto' }}>Remplis le formulaire. Tu seras invité(e) au casting du 11 septembre au Nida (Issy-les-Moulineaux). Tu rejoins les 20 talents sélectionnés pour la saison 2026/2027.</p>
             </div>
           </Reveal>
           <Reveal delay={100}>
@@ -675,7 +677,7 @@ export default function CastingAcademy() {
       <section className="ca-section-pad" style={{ padding: '120px 60px', textAlign: 'center' }}>
         <Reveal>
           <h2 className="ca-serif-h2" style={{ margin: '0 0 20px' }}>Il ne reste que 20 places.<br /><em style={{ fontStyle: 'italic', fontWeight: 400 }}>Dépose ta candidature.</em></h2>
-          <p className="ca-body" style={{ maxWidth: 480, margin: '0 auto 48px' }}>Sélection sur candidature pour la saison 2026/2027. Réponse sous 48h.</p>
+          <p className="ca-body" style={{ maxWidth: 480, margin: '0 auto 48px' }}>Casting du 11 septembre. Sélection sur candidature pour la saison 2026/2027. Réponse sous 48h.</p>
           <a href="#candidature" className="ca-btn-primary" style={{ fontSize: 13 }}>Je candidate maintenant →</a>
         </Reveal>
       </section>
