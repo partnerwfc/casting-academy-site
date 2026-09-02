@@ -772,8 +772,8 @@ export default function CastingAcademy() {
             {[
               { label: 'Forme juridique', val: 'Association loi 1901' },
               { label: 'Siège social', val: 'Issy-les-Moulineaux (92130)' },
-              { label: 'Numéro RNA', val: "En cours d'attribution" },
-              { label: 'Contact', val: 'contact@casting-academy.fr' },
+              { label: 'Numéro RNA', val: 'W923012522' },
+              { label: 'Contact', val: 'castingacademy.92@gmail.com' },
             ].map(({ label, val }) => (
               <div key={label}>
                 <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 9, fontWeight: 600, letterSpacing: 3, textTransform: 'uppercase', color: 'rgba(255,255,255,0.45)', margin: '0 0 6px' }}>{label}</p>
