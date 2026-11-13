@@ -1,0 +1,20 @@
+{
+  "name": "community-safe",
+  "private": true,
+  "packageManager": "pnpm@10.28.0",
+  "scripts": {
+    "sync:functions": "node scripts/sync-functions-shared.mjs",
+    "test": "pnpm sync:functions --check && vitest run",
+    "test:db": "bash supabase/tests/run.sh",
+    "typecheck": "pnpm -r typecheck",
+    "dev:web": "pnpm --filter @community-safe/web dev",
+    "dev:mobile": "pnpm --filter @community-safe/mobile start",
+    "build:web": "pnpm --filter @community-safe/web build",
+    "test:e2e": "node e2e/sos-flow.mjs"
+  },
+  "devDependencies": {
+    "typescript": "~6.0.3",
+    "vitest": "^5.1.0",
+    "@supabase/supabase-js": "^2.119.0"
+  }
+}

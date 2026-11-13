@@ -1,0 +1,46 @@
+{
+  "expo": {
+    "name": "Community Safe",
+    "slug": "community-safe",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "communitysafe",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "bundleIdentifier": "com.communitysafe.app",
+      "supportsTablet": false,
+      "usesAppleSignIn": true,
+      "associatedDomains": ["applinks:communitysafe.com"],
+      "infoPlist": { "ITSAppUsesNonExemptEncryption": false }
+    },
+    "android": {
+      "package": "com.communitysafe.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#EFF6FF",
+        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+      },
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [{ "scheme": "https", "host": "communitysafe.com", "pathPrefix": "/@" }],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "expo-localization",
+      "expo-apple-authentication",
+      ["expo-notifications", { "color": "#2563EB" }],
+      ["expo-splash-screen", { "backgroundColor": "#FFFFFF", "image": "./assets/images/splash-icon.png", "imageWidth": 76 }]
+    ],
+    "experiments": { "reactCompiler": true },
+    "extra": {
+      "eas": { "projectId": "" }
+    }
+  }
+}
