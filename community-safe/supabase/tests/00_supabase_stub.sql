@@ -10,6 +10,7 @@ create table auth.users (
   email text unique,
   raw_user_meta_data jsonb not null default '{}'
 );
+create table auth.mfa_factors (id uuid primary key default gen_random_uuid(), user_id uuid not null, factor_type text not null, status text not null);
 create function auth.jwt() returns jsonb language sql stable as
   $$ select coalesce(nullif(current_setting('request.jwt.claims', true), ''), '{}')::jsonb $$;
 create function auth.uid() returns uuid language sql stable as

@@ -39,8 +39,8 @@ grant select on all tables in schema public to authenticated;
 grant update (display_name, locale, timezone, age_confirmed_at) on public.users to authenticated;
 -- Un créateur ne peut modifier ni son badge, ni son statut, ni son forfait, ni son compteur.
 grant update (display_name, bio, avatar_url, category) on public.creator_profiles to authenticated;
-grant insert (creator_id, platform, handle, url), update (platform, handle, url), delete
-  on public.social_accounts to authenticated;
+-- Les comptes sociaux s'ajoutent par add_social_account (URL validée) ; supprimer un compte certifié impose une nouvelle vérification.
+grant delete on public.social_accounts to authenticated;
 grant delete on public.community_memberships to authenticated;
 grant update (sos_enabled, announcements_enabled) on public.notification_preferences to authenticated;
 grant insert (user_id, kind, subject_id, version, granted) on public.consent_records to authenticated;
@@ -93,10 +93,6 @@ create policy creators_update on public.creator_profiles for update to authentic
   using (owner_user_id = auth.uid()) with check (owner_user_id = auth.uid());
 
 create policy social_select on public.social_accounts for select to anon, authenticated using (true);
-create policy social_insert on public.social_accounts for insert to authenticated
-  with check (public.owns_creator(creator_id));
-create policy social_update on public.social_accounts for update to authenticated
-  using (public.owns_creator(creator_id)) with check (public.owns_creator(creator_id));
 create policy social_delete on public.social_accounts for delete to authenticated
   using (public.owns_creator(creator_id));
 

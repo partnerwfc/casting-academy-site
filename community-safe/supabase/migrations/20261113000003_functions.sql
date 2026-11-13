@@ -233,26 +233,6 @@ begin
   return v_row;
 end $$;
 
-create or replace function public.request_verification(p_method text, p_evidence jsonb default '{}')
-returns uuid language plpgsql security definer set search_path = public, extensions as $$
-declare
-  v_user uuid := public.require_user();
-  v_creator creator_profiles;
-  v_id uuid;
-begin
-  select * into v_creator from creator_profiles where owner_user_id = v_user;
-  if v_creator.id is null then raise exception 'creator_not_found' using errcode = 'P0002'; end if;
-  if v_creator.verification_status = 'verified' then raise exception 'already_verified'; end if;
-  if exists (select 1 from creator_verifications where creator_id = v_creator.id and status = 'pending') then
-    raise exception 'verification_already_pending' using errcode = '23505';
-  end if;
-  insert into creator_verifications (creator_id, method, evidence)
-  values (v_creator.id, p_method, coalesce(p_evidence, '{}')) returning id into v_id;
-  update creator_profiles set verification_status = 'pending' where id = v_creator.id;
-  perform audit('verification.request', 'creator', v_creator.id::text, jsonb_build_object('method', p_method));
-  return v_id;
-end $$;
-
 -- ───────────────────────────── SOS / annonces ─────────────────────────────
 -- Seul point d'entrée pour créer une alerte. Le client ne peut jamais écrire dans `alerts`.
 create or replace function public.create_alert(
@@ -302,7 +282,7 @@ begin
     if v_creator.verification_status <> 'verified' then
       raise exception 'creator_not_verified' using errcode = '42501';
     end if;
-    if not public.has_recent_auth() then
+    if not public.has_strong_recent_auth() then
       raise exception 'stepup_required' using errcode = '42501';
     end if;
 
@@ -608,25 +588,8 @@ begin
     'alerts_blocked', (select count(*) from alerts where status = 'blocked'),
     'delivery_errors', (select count(*) from delivery_attempts where not accepted or receipt_status = 'error'),
     'reports_open', (select count(*) from abuse_reports where status = 'open'),
-    'verifications_pending', (select count(*) from creator_verifications where status = 'pending')
+    'verifications_pending', (select count(*) from creator_verifications where status = 'in_review')
   );
-end $$;
-
-create or replace function public.admin_review_verification(p_verification_id uuid, p_approve boolean, p_notes text default null)
-returns void language plpgsql security definer set search_path = public, extensions as $$
-declare v_creator uuid;
-begin
-  perform public.require_admin();
-  update creator_verifications
-     set status = case when p_approve then 'approved' else 'rejected' end,
-         notes = p_notes, reviewer_id = auth.uid(), reviewed_at = now()
-   where id = p_verification_id and status = 'pending'
-  returning creator_id into v_creator;
-  if v_creator is null then raise exception 'verification_not_found' using errcode = 'P0002'; end if;
-  update creator_profiles
-     set verification_status = case when p_approve then 'verified' else 'rejected' end::verification_status
-   where id = v_creator;
-  perform audit('verification.review', 'creator', v_creator::text, jsonb_build_object('approved', p_approve));
 end $$;
 
 create or replace function public.admin_set_creator_status(p_creator_id uuid, p_status public.creator_status, p_reason text default null)
@@ -725,7 +688,6 @@ grant execute on function
   public.register_device(text, text, public.push_permission, text, text, text),
   public.unregister_device(text),
   public.create_creator_profile(text, text, text, text),
-  public.request_verification(text, jsonb),
   public.create_alert(public.alert_kind, text, text, text, text),
   public.mark_alert_opened(uuid, boolean),
   public.has_recent_auth(),
@@ -733,7 +695,6 @@ grant execute on function
   public.creator_dashboard_stats(),
   public.alert_delivery_stats(uuid),
   public.admin_stats(),
-  public.admin_review_verification(uuid, boolean, text),
   public.admin_set_creator_status(uuid, public.creator_status, text),
   public.admin_block_alert(uuid, text),
   public.admin_set_creator_plan(uuid, text),

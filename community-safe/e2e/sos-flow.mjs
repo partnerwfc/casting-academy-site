@@ -84,19 +84,24 @@ try {
   assert.ifError(profileError);
   assert.equal(profile.handle, handle);
   await expectError(creator.db.rpc('create_alert', { p_kind: 'sos', p_message: 'x', p_idempotency_key: randomUUID(), p_reason: 'hacked' }), 'creator_not_verified');
-  const { data: verificationId, error: requestError } = await creator.db.rpc('request_verification', { p_method: 'social_control', p_evidence: { note: 'instagram @julie' } });
+  const { data: account, error: accountError } = await creator.db.rpc('add_social_account', { p_platform: 'instagram', p_url: `https://instagram.com/${handle.replace(/_/g, '.')}` });
+  assert.ifError(accountError);
+  const { data: started, error: requestError } = await creator.db.rpc('start_certification', { p_social_account_id: account.id });
   assert.ifError(requestError);
+  assert.match(started.code, /^CS-[A-HJKMNP-Z2-9]{4}-[A-HJKMNP-Z2-9]{4}$/);
+  const verificationId = started.id;
+  assert.ifError((await creator.db.rpc('request_certification_review', { p_verification_id: verificationId })).error);
   step('créateur : profil créé, SOS refusé tant que non vérifié, vérification demandée');
 
   // 2. L'administrateur (MFA obligatoire) valide l'identité.
   const admin = await signIn('admin');
   await service.from('admin_roles').insert({ user_id: admin.user.id, role: 'admin' });
-  await expectError(admin.db.rpc('admin_review_verification', { p_verification_id: verificationId, p_approve: true }), 'forbidden');
+  await expectError(admin.db.rpc('admin_review_certification', { p_verification_id: verificationId, p_approve: true, p_reason: 'code présent sur le profil public' }), 'forbidden');
   const { data: factor, error: enrollError } = await admin.db.auth.mfa.enroll({ factorType: 'totp' });
   assert.ifError(enrollError);
   const { error: mfaError } = await admin.db.auth.mfa.challengeAndVerify({ factorId: factor.id, code: totp(factor.totp.secret) });
   assert.ifError(mfaError);
-  const { error: reviewError } = await admin.db.rpc('admin_review_verification', { p_verification_id: verificationId, p_approve: true });
+  const { error: reviewError } = await admin.db.rpc('admin_review_certification', { p_verification_id: verificationId, p_approve: true, p_reason: 'code présent sur le profil public' });
   assert.ifError(reviewError);
   step('admin : refusé sans MFA, vérification approuvée avec MFA');
 

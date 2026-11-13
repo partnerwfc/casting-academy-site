@@ -22,3 +22,11 @@ begin
     where exists (select 1 from vault.decrypted_secrets where name = 'dispatch_url');
   $job$);
 end $outer$;
+
+-- Minimisation RGPD : codes de certification expirés effacés chaque nuit.
+do $outer$
+begin
+  if exists (select 1 from pg_extension where extname = 'pg_cron') then
+    perform cron.schedule('purge-certification', '17 3 * * *', 'select public.purge_certification_data()');
+  end if;
+end $outer$;

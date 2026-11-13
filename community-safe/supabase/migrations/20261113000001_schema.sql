@@ -7,7 +7,9 @@ create extension if not exists pg_trgm with schema extensions;
 create extension if not exists pgcrypto with schema extensions;
 
 -- ───────────────────────────── Types ─────────────────────────────
-create type public.verification_status as enum ('unverified', 'pending', 'verified', 'rejected');
+-- unverified : jamais certifié · pending : demande en cours · verified : « Créateur certifié »
+-- rejected : refusé · suspended : badge retiré temporairement · revoked : certification retirée
+create type public.verification_status as enum ('unverified', 'pending', 'verified', 'rejected', 'suspended', 'revoked');
 create type public.creator_status as enum ('active', 'suspended');
 create type public.alert_kind as enum ('sos', 'announcement', 'test');
 create type public.alert_status as enum ('queued', 'sending', 'sent', 'blocked', 'failed');
@@ -120,26 +122,41 @@ create table public.social_accounts (
   id uuid primary key default gen_random_uuid(),
   creator_id uuid not null references public.creator_profiles (id) on delete cascade,
   platform text not null check (platform in
-    ('instagram', 'tiktok', 'youtube', 'x', 'twitch', 'facebook', 'telegram', 'whatsapp', 'discord', 'website', 'other')),
+    ('instagram', 'tiktok', 'youtube', 'x', 'twitch', 'facebook', 'snapchat', 'telegram', 'whatsapp', 'discord', 'website', 'other')),
   handle text not null check (char_length(handle) between 1 and 100),
   url text check (url ~ '^https://'),
-  verified_at timestamptz,                -- renseigné uniquement par l'administration
+  verified_at timestamptz,                -- renseigné uniquement par une certification validée
+  verified_method text,
   created_at timestamptz not null default now(),
   unique (creator_id, platform, handle)
 );
+-- Un compte social ne peut être certifié que pour un seul créateur.
+create unique index social_accounts_verified_unique on public.social_accounts (platform, lower(handle)) where verified_at is not null;
 
+-- Demandes de certification « Créateur certifié ». Aucune capture d'écran ni pièce d'identité n'est
+-- stockée ici : seulement le code temporaire, le résultat des contrôles et la décision.
 create table public.creator_verifications (
   id uuid primary key default gen_random_uuid(),
   creator_id uuid not null references public.creator_profiles (id) on delete cascade,
-  method text not null check (method in ('email_domain', 'domain', 'social_control', 'document', 'manual')),
-  status text not null default 'pending' check (status in ('pending', 'approved', 'rejected')),
-  evidence jsonb not null default '{}',
-  notes text,
+  social_account_id uuid references public.social_accounts (id) on delete set null,
+  method text not null check (method in ('auto_domain', 'auto_youtube', 'auto_twitch', 'manual_social', 'manual_alt')),
+  status text not null default 'awaiting_proof'
+    check (status in ('awaiting_proof', 'in_review', 'approved', 'rejected', 'expired', 'failed', 'revoked', 'cancelled')),
+  code text,                              -- effacé dès que la demande est décidée ou expirée
+  code_expires_at timestamptz,
+  attempts integer not null default 0,
+  max_attempts integer not null default 5,
+  last_checked_at timestamptz,
+  risk_flags text[] not null default '{}',-- ex. similar_name : impose un examen humain
+  evidence jsonb not null default '{}',   -- source et date du contrôle, rien de personnel
+  note text check (char_length(note) <= 500),
+  decision_reason text,
   reviewer_id uuid references public.users (id) on delete set null,
-  reviewed_at timestamptz,
+  decided_at timestamptz,
   created_at timestamptz not null default now()
 );
 create index creator_verifications_queue_idx on public.creator_verifications (status, created_at);
+create unique index creator_verifications_one_open on public.creator_verifications (creator_id) where status in ('awaiting_proof', 'in_review');
 
 -- ───────────────────────────── Community Transfer ─────────────────────────────
 create table public.transfer_links (

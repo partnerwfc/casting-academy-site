@@ -39,3 +39,6 @@ verify_jwt = false          # appelée par Stripe, authentifiée par signature
 
 [functions.delete-account]
 verify_jwt = false
+
+[functions.certify]
+verify_jwt = false          # l'utilisateur est authentifié dans la fonction

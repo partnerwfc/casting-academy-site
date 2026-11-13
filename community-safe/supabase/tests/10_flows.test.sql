@@ -109,18 +109,36 @@ select t.eq((creator_dashboard_stats() ->> 'members_notifications_allowed')::int
 select t.eq((creator_dashboard_stats() ->> 'devices_with_valid_token')::int, 2, 'stats: jetons valides');
 select t.eq((creator_dashboard_stats() ->> 'link_clicks')::int, 2, 'stats: clics');
 select t.expect_error($$select create_alert('sos', 'Compte piraté', 'key-sos-00001', 'hacked')$$, 'creator_not_verified');
-select request_verification('social_control', '{"platform":"instagram"}') as verif_id \gset
-select t.expect_error($$select request_verification('manual')$$, 'verification_already_pending');
+-- Certification : URL validée, code unique, examen humain (Instagram n'a pas de contrôle automatique).
+select t.expect_error($$select add_social_account('instagram', 'http://instagram.com/julie')$$, 'invalid_social_url');
+select t.expect_error($$select add_social_account('instagram', 'https://evil.example/instagram.com/julie')$$, 'invalid_social_url');
+select t.expect_error($$select add_social_account('tiktok', 'https://instagram.com/julie')$$, 'invalid_social_url');
+select (add_social_account('instagram', 'https://www.instagram.com/julie.officiel/')).id as acct_id \gset
+select t.eq((select handle from social_accounts where id = :'acct_id'), 'julie.officiel', 'identifiant extrait de l''URL');
+select t.expect_error($$update social_accounts set verified_at = now()$$, 'permission denied%');
+select t.expect_error($$insert into social_accounts (creator_id, platform, handle) select id, 'x', 'julie' from creator_profiles$$, 'permission denied%');
+select (start_certification(:'acct_id')).id as verif_id \gset
+select t.eq((select code ~ '^CS-[A-HJKMNP-Z2-9]{4}-[A-HJKMNP-Z2-9]{4}$' from creator_verifications where id = :'verif_id'), true, 'code unique lisible');
+select t.eq((select method from creator_verifications where id = :'verif_id'), 'manual_social', 'Instagram : contrôle manuel');
+select t.eq((select verification_status::text from creator_profiles where handle = 'julie'), 'pending', 'demande en cours');
+select t.expect_error(format($$select request_alternative_certification(%L, 'court')$$, :'verif_id'), 'note_required');
+select request_certification_review(:'verif_id');
+select t.eq((select status from creator_verifications where id = :'verif_id'), 'in_review', 'envoyée à l''examen');
+select t.expect_error($$select start_certification(gen_random_uuid())$$, 'social_account_not_found');
 -- Alerte de test possible avant vérification, vers soi uniquement.
 select (create_alert('test', 'Ceci est un test', 'key-test-0001')).recipients_total as n \gset
 select t.eq(:n, 1, 'test: destinataire unique');
-select t.expect_error(format($$select admin_review_verification(%L, true)$$, :'verif_id'), 'forbidden');
+select t.expect_error(format($$select admin_review_certification(%L, true)$$, :'verif_id'), 'forbidden');
 
 -- Admin : MFA obligatoire.
 select t.login('00000000-0000-0000-0000-0000000000ad', 0, 'aal1');
 select t.expect_error($$select admin_stats()$$, 'forbidden');
 select t.login('00000000-0000-0000-0000-0000000000ad', 0, 'aal2');
-select admin_review_verification(:'verif_id', true);
+select t.expect_error(format($$select admin_review_certification(%L, false)$$, :'verif_id'), 'reason_required');
+select admin_review_certification(:'verif_id', true, 'profil public consulté, code présent dans la bio');
+select t.eq((select code is null from creator_verifications where id = :'verif_id'), true, 'code effacé après décision');
+select t.eq((select verified_at is not null from social_accounts where id = :'acct_id'), true, 'compte social certifié');
+select t.eq((select count(*) from certification_events where action in ('code_issued','sent_to_review','approved')), 3::bigint, 'décisions journalisées');
 select t.eq((admin_stats() ->> 'creators_verified')::int, 1, 'admin: créateurs vérifiés');
 
 -- Session trop ancienne → vérification renforcée exigée.
@@ -255,4 +273,54 @@ select t.logout();
 select t.login('00000000-0000-0000-0000-00000000000a', 30);
 select set_free_plan();
 select t.eq((select status from subscriptions where creator_id = :'julie_id'), 'active', 'abonnement gratuit actif');
+select t.logout();
+
+-- ── Certification : usurpation, changement sensible, suspension, révocation ──
+select t.logout();
+insert into auth.users (id, email) values ('00000000-0000-0000-0000-0000000000c1', 'imposteur@example.com');
+select t.login('00000000-0000-0000-0000-0000000000c1');
+select create_creator_profile('julie_officielle', 'Julie') is not null as ok \gset
+select (add_social_account('instagram', 'https://instagram.com/julie.officiel')).id as acct2 \gset
+select t.expect_error(format($$select start_certification(%L)$$, :'acct2'), 'social_account_taken');   -- compte déjà certifié ailleurs
+select (add_social_account('instagram', 'https://instagram.com/julie.fan')).id as acct3 \gset
+select (start_certification(:'acct3')).id as v3 \gset
+select request_certification_review(:'v3');
+select t.eq((select 'similar_name' = any(risk_flags) from creator_verifications where id = :'v3'), true, 'nom proche d''un créateur certifié signalé');
+select t.logout();
+select t.login('00000000-0000-0000-0000-0000000000ad', 0, 'aal2');
+select t.expect_error(format($$select admin_review_certification(%L, true)$$, :'v3'), 'reason_required');   -- justification obligatoire
+select admin_review_certification(:'v3', false, 'usurpation probable');
+select t.eq((select verification_status::text from creator_profiles where handle = 'julie_officielle'), 'rejected', 'refus');
+select t.logout();
+-- Changement du nom public d'un profil certifié → nouvelle vérification
+select t.login('00000000-0000-0000-0000-00000000000a', 30);
+update creator_profiles set bio = 'Nouvelle bio' where handle = 'julie';
+select t.eq((select verification_status::text from creator_profiles where handle = 'julie'), 'verified', 'la bio ne change pas la certification');
+update creator_profiles set display_name = 'Julie M.' where handle = 'julie';
+select t.eq((select verification_status::text from creator_profiles where handle = 'julie'), 'unverified', 'nom modifié : nouvelle certification requise');
+select t.expect_error($$select create_alert('sos', 'x', 'key-after-rename', 'hacked')$$, 'creator_not_verified');
+select t.eq((select verified_at is null from social_accounts where id = :'acct_id'), true, 'preuve de compte retirée');
+select t.logout();
+-- Re-certification, puis suspension, réhabilitation et révocation par l'administration
+select t.login('00000000-0000-0000-0000-00000000000a', 30);
+select (start_certification(:'acct_id')).id as v4 \gset
+select request_certification_review(:'v4');
+select t.logout();
+select t.login('00000000-0000-0000-0000-0000000000ad', 0, 'aal2');
+select admin_review_certification(:'v4', true);
+select admin_suspend_certification(:'julie_id', 'signalement en cours');
+select t.eq((select verification_status::text from creator_profiles where id = :'julie_id'), 'suspended', 'certification suspendue');
+select admin_reinstate_certification(:'julie_id', 'signalement classé');
+select admin_revoke_certification(:'julie_id', 'usurpation avérée');
+select t.eq((select verification_status::text from creator_profiles where id = :'julie_id'), 'revoked', 'certification révoquée');
+select t.expect_error($$select admin_revoke_certification(gen_random_uuid(), 'x')$$, 'reason_required');
+select t.eq((select count(*) >= 8 from certification_events where creator_id = :'julie_id'), true, 'journal complet');
+select t.logout();
+-- Authentification renforcée : avec TOTP activé, un simple code e-mail ne suffit plus pour le SOS
+select t.login('00000000-0000-0000-0000-00000000000a', 30);
+select t.eq(has_totp_factor(), false, 'pas de TOTP');
+select t.logout();
+insert into auth.mfa_factors (user_id, factor_type, status) values ('00000000-0000-0000-0000-00000000000a', 'totp', 'verified');
+select t.login('00000000-0000-0000-0000-00000000000a', 30);
+select t.eq(has_strong_recent_auth(), false, 'TOTP exigé : le code e-mail seul est refusé');
 select t.logout();
