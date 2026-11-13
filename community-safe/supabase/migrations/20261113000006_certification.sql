@@ -21,7 +21,7 @@ create table public.certification_events (
   actor_user_id uuid,                       -- null = le système
   action text not null check (action in (
     'requested', 'code_issued', 'auto_check_passed', 'auto_check_failed', 'sent_to_review', 'alternative_requested',
-    'approved', 'rejected', 'suspended', 'reinstated', 'revoked', 'expired', 'reverification_required', 'owner_transferred')),
+    'presence_passed', 'presence_failed', 'approved', 'rejected', 'suspended', 'reinstated', 'revoked', 'expired', 'reverification_required', 'owner_transferred')),
   reason text,
   metadata jsonb not null default '{}',
   created_at timestamptz not null default now()
@@ -192,6 +192,37 @@ begin
   return v_row;
 end $$;
 
+-- La présence (contrôle vidéo du vivant) doit avoir réussi, et être récente, avant toute preuve d'identité.
+create or replace function public.cert_presence_ok(p_verification_id uuid)
+returns boolean language sql stable security definer set search_path = public, extensions as $$
+  select coalesce((select presence_status = 'passed' and presence_expires_at > now() from creator_verifications where id = p_verification_id), false);
+$$;
+
+-- Résultat du contrôle vidéo, envoyé par le prestataire (webhook signé, service_role uniquement).
+create or replace function public.record_presence_result(p_verification_id uuid, p_passed boolean, p_provider text, p_ref text)
+returns text language plpgsql security definer set search_path = public, extensions as $$
+declare v_row creator_verifications;
+begin
+  select * into v_row from creator_verifications where id = p_verification_id for update;
+  if v_row.id is null or v_row.status <> 'awaiting_proof' or v_row.presence_status = 'passed' then
+    return coalesce(v_row.presence_status, 'not_found');
+  end if;
+  update creator_verifications
+     set presence_attempts = presence_attempts + 1, presence_provider = left(p_provider, 40), presence_ref = left(p_ref, 120),
+         presence_checked_at = now(),
+         presence_status = case when p_passed then 'passed' else 'failed' end,
+         presence_expires_at = case when p_passed then now() + interval '24 hours' end
+   where id = v_row.id returning * into v_row;
+  perform public.cert_event(v_row.creator_id, v_row.id, case when p_passed then 'presence_passed' else 'presence_failed' end,
+    null, jsonb_build_object('provider', p_provider, 'attempt', v_row.presence_attempts));
+  if not p_passed and v_row.presence_attempts >= 3 then
+    update creator_verifications set status = 'failed', code = null, decided_at = now() where id = v_row.id;
+    update creator_profiles set verification_status = 'unverified' where id = v_row.creator_id and verification_status = 'pending';
+    return 'failed';
+  end if;
+  return case when p_passed then 'passed' else 'failed' end;
+end $$;
+
 -- « J'ai publié le code » pour les plateformes sans contrôle automatique → examen humain.
 create or replace function public.request_certification_review(p_verification_id uuid)
 returns void language plpgsql security definer set search_path = public, extensions as $$
@@ -202,6 +233,7 @@ begin
   if v_row.id is null then raise exception 'verification_not_found' using errcode = 'P0002'; end if;
   if v_row.status <> 'awaiting_proof' then raise exception 'verification_not_open' using errcode = '22023'; end if;
   if v_row.code_expires_at < now() then raise exception 'code_expired' using errcode = '22023'; end if;
+  if not public.cert_presence_ok(v_row.id) then raise exception 'presence_required' using errcode = '22023'; end if;
   if v_row.method not in ('manual_social', 'manual_alt') then raise exception 'use_automatic_check' using errcode = '22023'; end if;
   update creator_verifications set status = 'in_review',
          risk_flags = public.cert_risk_flags(v_row.creator_id, v_row.social_account_id) where id = v_row.id;
@@ -219,6 +251,7 @@ begin
   if v_row.id is null then raise exception 'verification_not_found' using errcode = 'P0002'; end if;
   if v_row.status not in ('awaiting_proof', 'failed', 'expired') then raise exception 'verification_not_open' using errcode = '22023'; end if;
   if char_length(trim(coalesce(p_note, ''))) < 10 then raise exception 'note_required' using errcode = '22023'; end if;
+  if not public.cert_presence_ok(v_row.id) then raise exception 'presence_required' using errcode = '22023'; end if;
   update creator_verifications set method = 'manual_alt', status = 'in_review', note = left(trim(p_note), 500),
          risk_flags = public.cert_risk_flags(v_row.creator_id, v_row.social_account_id) where id = v_row.id;
   perform public.cert_event(v_row.creator_id, v_row.id, 'alternative_requested');
@@ -254,6 +287,7 @@ declare
 begin
   select * into v_row from creator_verifications where id = p_verification_id for update;
   if v_row.id is null or v_row.status <> 'awaiting_proof' or v_row.method not like 'auto_%' then return coalesce(v_row.status, 'not_found'); end if;
+  if not public.cert_presence_ok(v_row.id) then return 'presence_required'; end if;
   if v_row.code_expires_at < now() then
     update creator_verifications set status = 'expired', code = null, decided_at = now() where id = v_row.id;
     perform public.cert_event(v_row.creator_id, v_row.id, 'expired');
@@ -292,6 +326,8 @@ create or replace function public.cert_approve(p_verification_id uuid, p_reviewe
 returns void language plpgsql security definer set search_path = public, extensions as $$
 declare v_row creator_verifications;
 begin
+  -- Le badge exige les DEUX validations : présence vérifiée ET identité reliée. Jamais l'une sans l'autre.
+  if not public.cert_presence_ok(p_verification_id) then raise exception 'presence_required' using errcode = '22023'; end if;
   update creator_verifications
      set status = 'approved', code = null, reviewer_id = p_reviewer, decided_at = now(), decision_reason = left(p_reason, 500),
          evidence = evidence || jsonb_build_object('approved_at', now())
@@ -413,7 +449,7 @@ revoke execute on function
   public.require_reverification(uuid, text), public.guard_certified_profile(), public.guard_social_account(),
   public.cert_alphabet_code(), public.start_certification(uuid), public.request_certification_review(uuid),
   public.request_alternative_certification(uuid, text), public.cert_risk_flags(uuid, uuid),
-  public.record_auto_check(uuid, boolean, text), public.cert_approve(uuid, uuid, text),
+  public.record_auto_check(uuid, boolean, text), public.cert_approve(uuid, uuid, text), public.cert_presence_ok(uuid), public.record_presence_result(uuid, boolean, text, text),
   public.admin_review_certification(uuid, boolean, text), public.admin_suspend_certification(uuid, text),
   public.admin_reinstate_certification(uuid, text), public.admin_revoke_certification(uuid, text),
   public.admin_transfer_owner(uuid, uuid, text), public.has_strong_recent_auth(), public.has_totp_factor(),
@@ -424,4 +460,4 @@ grant execute on function
   public.admin_review_certification(uuid, boolean, text), public.admin_suspend_certification(uuid, text),
   public.admin_reinstate_certification(uuid, text), public.admin_revoke_certification(uuid, text),
   public.admin_transfer_owner(uuid, uuid, text), public.has_strong_recent_auth(), public.has_totp_factor() to authenticated;
-grant execute on function public.record_auto_check(uuid, boolean, text), public.purge_certification_data() to service_role;
+grant execute on function public.record_auto_check(uuid, boolean, text), public.record_presence_result(uuid, boolean, text, text), public.purge_certification_data() to service_role;

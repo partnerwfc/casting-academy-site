@@ -29,6 +29,8 @@ begin
   end;
   raise exception 'TEST: aurait dû échouer (%): %', p_like, p_sql;
 end $$;
+create function t.presence(p_id uuid, p_passed boolean default true) returns text language sql security definer as
+  $$ select public.record_presence_result(p_id, p_passed, 'test-provider', 'ref-' || p_id) $$;
 create function t.eq(p_got anycompatible, p_want anycompatible, p_label text) returns void language plpgsql as $$
 begin
   if p_got is distinct from p_want then
@@ -122,6 +124,10 @@ select t.eq((select code ~ '^CS-[A-HJKMNP-Z2-9]{4}-[A-HJKMNP-Z2-9]{4}$' from cre
 select t.eq((select method from creator_verifications where id = :'verif_id'), 'manual_social', 'Instagram : contrôle manuel');
 select t.eq((select verification_status::text from creator_profiles where handle = 'julie'), 'pending', 'demande en cours');
 select t.expect_error(format($$select request_alternative_certification(%L, 'court')$$, :'verif_id'), 'note_required');
+select t.expect_error(format($$select request_certification_review(%L)$$, :'verif_id'), 'presence_required');   -- pas d'examen sans contrôle vidéo
+select t.eq(t.presence(:'verif_id', false), 'failed', 'contrôle vidéo échoué');
+select t.expect_error(format($$select request_certification_review(%L)$$, :'verif_id'), 'presence_required');
+select t.eq(t.presence(:'verif_id'), 'passed', 'présence vérifiée');
 select request_certification_review(:'verif_id');
 select t.eq((select status from creator_verifications where id = :'verif_id'), 'in_review', 'envoyée à l''examen');
 select t.expect_error($$select start_certification(gen_random_uuid())$$, 'social_account_not_found');
@@ -138,7 +144,7 @@ select t.expect_error(format($$select admin_review_certification(%L, false)$$, :
 select admin_review_certification(:'verif_id', true, 'profil public consulté, code présent dans la bio');
 select t.eq((select code is null from creator_verifications where id = :'verif_id'), true, 'code effacé après décision');
 select t.eq((select verified_at is not null from social_accounts where id = :'acct_id'), true, 'compte social certifié');
-select t.eq((select count(*) from certification_events where action in ('code_issued','sent_to_review','approved')), 3::bigint, 'décisions journalisées');
+select t.eq((select count(*) from certification_events where action in ('code_issued','presence_failed','presence_passed','sent_to_review','approved')), 5::bigint, 'décisions journalisées');
 select t.eq((admin_stats() ->> 'creators_verified')::int, 1, 'admin: créateurs vérifiés');
 
 -- Session trop ancienne → vérification renforcée exigée.
@@ -284,6 +290,7 @@ select (add_social_account('instagram', 'https://instagram.com/julie.officiel'))
 select t.expect_error(format($$select start_certification(%L)$$, :'acct2'), 'social_account_taken');   -- compte déjà certifié ailleurs
 select (add_social_account('instagram', 'https://instagram.com/julie.fan')).id as acct3 \gset
 select (start_certification(:'acct3')).id as v3 \gset
+select t.presence(:'v3');
 select request_certification_review(:'v3');
 select t.eq((select 'similar_name' = any(risk_flags) from creator_verifications where id = :'v3'), true, 'nom proche d''un créateur certifié signalé');
 select t.logout();
@@ -304,6 +311,7 @@ select t.logout();
 -- Re-certification, puis suspension, réhabilitation et révocation par l'administration
 select t.login('00000000-0000-0000-0000-00000000000a', 30);
 select (start_certification(:'acct_id')).id as v4 \gset
+select t.presence(:'v4');
 select request_certification_review(:'v4');
 select t.logout();
 select t.login('00000000-0000-0000-0000-0000000000ad', 0, 'aal2');

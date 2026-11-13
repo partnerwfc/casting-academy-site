@@ -40,6 +40,13 @@ async function signIn(name) {
   const { data, error } = await db.auth.verifyOtp({ email, token: await otpFor(email), type: 'email' }); assert.ifError(error);
   return { db, user: data.user, token: data.session.access_token };
 }
+const presence = async (id, status = 'passed') => {   // le prestataire de vérification appelle notre webhook signé
+  const { createHmac } = await import('node:crypto');
+  const body = JSON.stringify({ verification_id: id, status, provider: 'test-provider', session_ref: `sess_${id}` });
+  const t = Math.floor(Date.now() / 1000);
+  const sig = createHmac('sha256', process.env.PRESENCE_WEBHOOK_SECRET ?? 'whsec_presence_local').update(`${t}.${body}`).digest('hex');
+  return fetch(`${API}/functions/v1/presence-webhook`, { method: 'POST', headers: { 'x-presence-signature': `t=${t},v1=${sig}` }, body });
+};
 const certify = (who, id) => fetch(`${API}/functions/v1/certify`, { method: 'POST', headers: { authorization: `Bearer ${who.token}` }, body: JSON.stringify({ verification_id: id }) });
 const expectError = async (p, m) => assert.equal((await p).error?.message, m);
 
@@ -64,6 +71,13 @@ try {
   assert.equal(req1.method, 'auto_domain'); assert.equal(req1.status, 'awaiting_proof');
   step(`code unique généré : ${req1.code} (expire dans 7 jours)`);
 
+  // 1b. Sans contrôle vidéo de présence, aucune preuve d'identité n'est examinée ; webhook non signé refusé.
+  assert.equal((await fetch(`${API}/functions/v1/presence-webhook`, { method: 'POST', body: '{}' })).status, 400);
+  const rp = await (await certify(julie, req1.id)).json(); assert.equal(rp.status, 'presence_required');
+  assert.equal((await presence(req1.id, 'failed')).status, 200);
+  assert.equal((await presence(req1.id, 'passed')).status, 200);
+  step('présence : preuve d\'identité refusée tant que le contrôle vidéo n\'a pas réussi ; webhook signé');
+
   // 2. Sans preuve publiée : refus ; avec le mauvais code : refus ; un client ne peut pas tricher.
   await expectError(julie.db.rpc('request_certification_review', { p_verification_id: req1.id }), 'use_automatic_check');
   const r0 = await (await certify(julie, req1.id)).json(); assert.equal(r0.status, 'awaiting_proof');
@@ -86,14 +100,15 @@ try {
   const { data: certified } = await julie.db.from('creator_profiles').select('verification_status').eq('id', profile.id).single();
   assert.equal(certified.verification_status, 'verified');
   const { data: events } = await julie.db.from('certification_events').select('action').eq('creator_id', profile.id).order('id');
-  assert.deepEqual(events.map((e) => e.action), ['code_issued', 'auto_check_failed', 'auto_check_failed', 'auto_check_passed', 'approved']);
-  step('preuve DNS valide : « Créateur certifié » accordé, code effacé, 5 événements journalisés');
+  assert.deepEqual(events.map((e) => e.action), ['code_issued', 'presence_failed', 'presence_passed', 'auto_check_failed', 'auto_check_failed', 'auto_check_passed', 'approved']);
+  step('preuve DNS valide : « Créateur certifié » accordé, code effacé, 7 événements journalisés');
 
   // 4. Usurpation : même nom, même preuve technique → jamais automatique, examen humain obligatoire.
   const fake = await signIn('certfake'); const fakeHandle = `cf_${run}`; const fakeDomain = `julie-fan-${run}.com`;
   const { data: fp } = await fake.db.rpc('create_creator_profile', { p_handle: fakeHandle, p_display_name: `Studio ${run}` });
   const { data: fa } = await fake.db.rpc('add_social_account', { p_platform: 'website', p_url: `https://${fakeDomain}` });
   const { data: freq } = await fake.db.rpc('start_certification', { p_social_account_id: fa.id });
+  assert.equal((await presence(freq.id)).status, 200);
   txt.set(`_communitysafe.${fakeDomain}`, [freq.code]);
   const rf = await (await certify(fake, freq.id)).json(); assert.equal(rf.status, 'in_review');
   const { data: flagged } = await service.from('creator_verifications').select('risk_flags').eq('id', freq.id).single();
@@ -115,6 +130,8 @@ try {
   await sleep(1000);
   await julie.db.from('creator_profiles').update({ display_name: `Studio ${run}` }).eq('id', profile.id);
   const { data: again } = await julie.db.rpc('start_certification', { p_social_account_id: account.id });
+  assert.equal((await presence(again.id)).status, 200);
+  txt.set(`_communitysafe.${domain}`, [again.code]);
   await sleep(16000);
   assert.equal((await (await certify(julie, again.id)).json()).status, 'approved');
   await expectError(julie.db.rpc('admin_revoke_certification', { p_creator_id: profile.id, p_reason: 'x' }), 'forbidden');

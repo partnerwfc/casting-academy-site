@@ -142,6 +142,17 @@ create table public.creator_verifications (
   method text not null check (method in ('auto_domain', 'auto_youtube', 'auto_twitch', 'manual_social', 'manual_alt')),
   status text not null default 'awaiting_proof'
     check (status in ('awaiting_proof', 'in_review', 'approved', 'rejected', 'expired', 'failed', 'revoked', 'cancelled')),
+  -- Validation 1 — PRÉSENCE : un contrôle vidéo de personne vivante (prestataire spécialisé, détection du
+  -- vivant et des deepfakes). Aucune vidéo ni donnée biométrique n'est stockée chez nous : seulement le
+  -- résultat et la référence du prestataire. Elle prouve qu'une personne réelle est là, pas qui elle est.
+  presence_status text not null default 'pending' check (presence_status in ('pending', 'passed', 'failed', 'expired')),
+  presence_attempts integer not null default 0,
+  presence_provider text,
+  presence_ref text,
+  presence_checked_at timestamptz,
+  presence_expires_at timestamptz,
+  -- Validation 2 — IDENTITÉ : preuve indépendante reliant cette personne à l'identité publique revendiquée
+  -- (code publié sur un compte officiel, documents professionnels ou examen humain confidentiel).
   code text,                              -- effacé dès que la demande est décidée ou expirée
   code_expires_at timestamptz,
   attempts integer not null default 0,

@@ -42,3 +42,6 @@ verify_jwt = false
 
 [functions.certify]
 verify_jwt = false          # l'utilisateur est authentifié dans la fonction
+
+[functions.presence-webhook]
+verify_jwt = false          # appelée par le prestataire, authentifiée par signature

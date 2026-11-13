@@ -90,6 +90,8 @@ try {
   assert.ifError(requestError);
   assert.match(started.code, /^CS-[A-HJKMNP-Z2-9]{4}-[A-HJKMNP-Z2-9]{4}$/);
   const verificationId = started.id;
+  assert.equal((await creator.db.rpc('request_certification_review', { p_verification_id: verificationId })).error?.message, 'presence_required');
+  assert.ifError((await service.rpc('record_presence_result', { p_verification_id: verificationId, p_passed: true, p_provider: 'test', p_ref: 'ref' })).error);
   assert.ifError((await creator.db.rpc('request_certification_review', { p_verification_id: verificationId })).error);
   step('créateur : profil créé, SOS refusé tant que non vérifié, vérification demandée');
 
