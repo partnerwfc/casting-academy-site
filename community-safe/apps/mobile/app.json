@@ -17,8 +17,9 @@
     "android": {
       "package": "com.communitysafe.app",
       "adaptiveIcon": {
-        "backgroundColor": "#EFF6FF",
+        "backgroundColor": "#315BFF",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "backgroundColor": "#315BFF",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "intentFilters": [
@@ -35,8 +36,8 @@
       "expo-secure-store",
       "expo-localization",
       "expo-apple-authentication",
-      ["expo-notifications", { "color": "#2563EB" }],
-      ["expo-splash-screen", { "backgroundColor": "#FFFFFF", "image": "./assets/images/splash-icon.png", "imageWidth": 76 }]
+      ["expo-notifications", { "color": "#0755FF" }],
+      ["expo-splash-screen", { "backgroundColor": "#0D1635", "image": "./assets/images/splash-icon.png", "imageWidth": 76 }]
     ],
     "experiments": { "reactCompiler": true },
     "extra": {

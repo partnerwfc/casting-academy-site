@@ -1,6 +1,6 @@
 :root {
-  --bg: #ffffff; --surface: #f9fafb; --card: #ffffff; --text: #111827; --muted: #6b7280; --border: #e5e7eb;
-  --primary: #2563eb; --primary-soft: #eff6ff; --success: #16a34a; --sos: #dc2626; --sos-soft: #fef2f2;
+  --bg: #ffffff; --surface: #f5f7fb; --card: #ffffff; --text: #0D1635; --muted: #70788b; --border: #e9ecf0;
+  --primary: #0755ff; --primary-soft: #eef3ff; --success: #16a34a; --sos: #f52235; --sos-soft: #fff0f1;
   --radius: 16px;
   color-scheme: light dark;
 }

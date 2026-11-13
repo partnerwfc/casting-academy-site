@@ -147,11 +147,8 @@ export function Loading() {
 }
 
 export function Logo({ size = 56 }: { size?: number }) {
-  const c = useColors();
   return (
-    <View style={{ width: size, height: size, borderRadius: size * 0.28, backgroundColor: c.primary, alignItems: 'center', justifyContent: 'center' }}>
-      <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: size * 0.36, letterSpacing: -1 }}>CS</Text>
-    </View>
+    <Image source={require('../../assets/images/icon.png')} style={{ width: size, height: size, borderRadius: size * 0.225 }} accessibilityLabel="Community Safe" />
   );
 }
 
