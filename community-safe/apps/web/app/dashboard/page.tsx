@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 import {
   CATEGORIES, HANDLE_PATTERN, errorMessage, formatCount, formatDate, normalizeHandle,
@@ -163,6 +164,7 @@ export default function Dashboard() {
               {limit !== null ? <span className="small">{t('dash.capacity', { count: formatCount(locale, stats.members_total), limit: formatCount(locale, limit) })}</span> : null}
             </div>
             {over ? <p className="error">{t('dash.overCapacity')}</p> : null}
+            <Link className="btn secondary" href="/dashboard/plan">{t('plan.title')}</Link>
             <button className="btn secondary" onClick={() => setComposing('announcement')}
               disabled={!verified || over || (quota !== null && stats.announcements_this_month >= quota)}>
               {t('dash.announce')}{quota !== null ? ` · ${t('dash.announceQuota', { used: stats.announcements_this_month, limit: quota })}` : ''}

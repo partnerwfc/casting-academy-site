@@ -107,15 +107,50 @@ Sur un iPhone et un Android réels :
 - [ ] Refuser les notifications → message clair, aucun jeton en base.
 - [ ] Exporter puis supprimer un compte.
 
-## 7. Phase 2 — paiements
+## 7. Paiements (Stripe)
 
-- Web : Stripe Checkout + portail client + webhook (Edge Function) qui met à jour
-  `subscriptions` et `payments`. Renseigner `plans.stripe_price_id`.
-- iOS / Android : l'abonnement créateur est un service numérique consommé dans
-  l'app ; les règles des stores imposent en principe l'achat intégré s'il est
-  vendu **dans** l'app. Option la plus simple au départ : souscription sur le web
-  uniquement, sans lien ni incitation d'achat dans l'app, puis achats intégrés
-  (RevenueCat) si nécessaire. À valider au moment de la soumission, les règles évoluent.
+Le code est écrit et testé de bout en bout avec des événements Stripe signés. Il reste à
+brancher votre compte Stripe : rien ne peut être testé ni encaissé sans lui.
+
+1. Créer un compte Stripe, puis **un produit par formule payante** (Creator, Pro, Premium) avec un
+   **prix annuel** récurrent (29,99 €, 49,99 €, 99,99 €).
+2. Copier l'identifiant de chaque prix (`price_...`) dans `plans.stripe_price_id` :
+
+```sql
+update plans set stripe_price_id = 'price_...' where id = 'creator';
+update plans set stripe_price_id = 'price_...' where id = 'pro';
+update plans set stripe_price_id = 'price_...' where id = 'premium';
+```
+
+3. Portail client (Paramètres → Facturation → Portail client) : autoriser **changer de formule**
+   (ajouter les trois produits), **résilier à la fin de la période**, factures et moyen de paiement.
+4. Webhook : endpoint `https://<ref>.supabase.co/functions/v1/stripe-webhook`, événements
+   `customer.subscription.created`, `.updated`, `.deleted`, `invoice.paid`, `invoice.payment_failed`.
+5. Secrets et déploiement :
+
+```bash
+npx supabase secrets set STRIPE_SECRET_KEY=sk_live_... STRIPE_WEBHOOK_SECRET=whsec_... SITE_URL=https://communitysafe.com
+```
+
+```bash
+npx supabase functions deploy billing stripe-webhook delete-account
+```
+
+6. TVA : activer Stripe Tax, puis `STRIPE_AUTOMATIC_TAX=true` dans les secrets.
+7. Tester d'abord en mode test avec la carte `4242 4242 4242 4242` : souscription, changement de
+   formule, résiliation, échec de paiement, suppression de compte.
+
+**Règles de fonctionnement**
+- Aucun client ne peut s'attribuer un forfait payant : seul le webhook signé le fait.
+- Résilier : l'abonnement reste actif jusqu'à la fin de la période payée, puis retombe à Discovery.
+  La communauté n'est jamais supprimée.
+- Communauté plus grande que la formule : personne n'est retiré, le SOS continue, les annonces sont suspendues.
+- Supprimer son compte : l'abonnement est résilié immédiatement chez Stripe, puis toutes les données sont effacées.
+  Un créateur doit retaper son pseudo.
+
+**Apple et Google.** L'app mobile n'affiche pas de bouton d'achat : elle renvoie vers le site. Les règles des
+stores sur la vente d'abonnements numériques dépendent du pays et évoluent ; à faire valider avant la soumission
+(sinon, passer aux achats intégrés avec RevenueCat). Les formules payantes ne sont donc pas vendables dans l'app.
 
 ## 8. Supervision
 

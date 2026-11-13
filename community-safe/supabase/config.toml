@@ -30,3 +30,12 @@ content_path = "./supabase/templates/otp.html"
 
 [auth.rate_limit]
 email_sent = 1000
+
+[functions.billing]
+verify_jwt = false          # l'utilisateur est authentifié dans la fonction
+
+[functions.stripe-webhook]
+verify_jwt = false          # appelée par Stripe, authentifiée par signature
+
+[functions.delete-account]
+verify_jwt = false

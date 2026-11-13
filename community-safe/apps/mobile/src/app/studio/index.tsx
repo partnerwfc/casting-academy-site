@@ -126,6 +126,7 @@ export default function Studio() {
           disabled={!verified || over || (quota !== null && stats.announcements_this_month >= quota)}
           onPress={() => router.push({ pathname: '/studio/compose', params: { kind: 'announcement' } })}
         />
+        <Button label={t('plan.title')} kind="ghost" onPress={() => router.push('/studio/plan')} />
         <Button label={t('dash.test')} kind="ghost" loading={testing} onPress={sendTest} />
       </Card>
 

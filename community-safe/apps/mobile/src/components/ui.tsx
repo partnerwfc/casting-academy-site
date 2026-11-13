@@ -4,7 +4,7 @@ import {
   type StyleProp, type TextInputProps, type TextStyle, type ViewStyle,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { radius, space, useColors } from '@/lib/theme';
+import { fontFor, radius, space, useColors } from '@/lib/theme';
 
 export function Screen({ children, scroll = true, padded = true }: { children: ReactNode; scroll?: boolean; padded?: boolean }) {
   const c = useColors();
@@ -33,7 +33,9 @@ export function T({ v = 'body', style, children, center }: { v?: Variant; style?
     muted: { fontSize: 15, color: c.muted, lineHeight: 21 },
     small: { fontSize: 13, color: c.muted, lineHeight: 18 },
   };
-  return <Text style={[base[v], center && { textAlign: 'center' }, style]}>{children}</Text>;
+  const merged = StyleSheet.flatten([base[v], center && { textAlign: 'center' }, style]) as TextStyle;
+  const { fontWeight, ...rest } = merged;
+  return <Text style={[rest, { fontFamily: fontFor(fontWeight) }]}>{children}</Text>;
 }
 
 export function Button({
@@ -53,7 +55,7 @@ export function Button({
       disabled={off}
       onPress={onPress}
       style={({ pressed }) => [styles.button, { backgroundColor: bg, opacity: off ? 0.5 : pressed ? 0.85 : 1 }, style]}>
-      {loading ? <ActivityIndicator color={fg} /> : <Text style={{ color: fg, fontSize: 16, fontWeight: '600' }}>{label}</Text>}
+      {loading ? <ActivityIndicator color={fg} /> : <Text style={{ color: fg, fontSize: 16, fontFamily: fontFor(700) }}>{label}</Text>}
     </Pressable>
   );
 }
@@ -87,7 +89,7 @@ export function Avatar({ name, url, size = 48 }: { name: string; url?: string | 
   if (url) return <Image source={{ uri: url }} style={{ width: size, height: size, borderRadius: size / 2 }} accessibilityIgnoresInvertColors />;
   return (
     <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: c.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
-      <Text style={{ color: c.primary, fontWeight: '700', fontSize: size * 0.4 }}>{name.trim().charAt(0).toUpperCase()}</Text>
+      <Text style={{ color: c.primary, fontFamily: fontFor(700), fontSize: size * 0.4 }}>{name.trim().charAt(0).toUpperCase()}</Text>
     </View>
   );
 }
@@ -98,7 +100,7 @@ export function Pill({ label, tone = 'neutral' }: { label: string; tone?: 'neutr
   const bg = { neutral: c.surface, primary: c.primarySoft, success: c.primarySoft, sos: c.sosSoft }[tone];
   return (
     <View style={{ backgroundColor: bg, paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.pill, alignSelf: 'flex-start' }}>
-      <Text style={{ color: fg, fontSize: 12, fontWeight: '600' }}>{label}</Text>
+      <Text style={{ color: fg, fontSize: 12, fontFamily: fontFor(700) }}>{label}</Text>
     </View>
   );
 }
@@ -114,7 +116,7 @@ export function Chip({ label, selected, onPress }: { label: string; selected: bo
         paddingHorizontal: 14, paddingVertical: 8, borderRadius: radius.pill, borderWidth: 1,
         borderColor: selected ? c.primary : c.border, backgroundColor: selected ? c.primarySoft : c.bg,
       }}>
-      <Text style={{ color: selected ? c.primary : c.text, fontSize: 14, fontWeight: '500' }}>{label}</Text>
+      <Text style={{ color: selected ? c.primary : c.text, fontSize: 14, fontFamily: fontFor(500) }}>{label}</Text>
     </Pressable>
   );
 }
@@ -153,7 +155,7 @@ export function Logo({ size = 56 }: { size?: number }) {
 }
 
 const styles = StyleSheet.create({
-  button: { minHeight: 52, borderRadius: radius.lg, alignItems: 'center', justifyContent: 'center', paddingHorizontal: space.lg },
+  button: { minHeight: 54, borderRadius: 15, alignItems: 'center', justifyContent: 'center', paddingHorizontal: space.lg },
   card: { borderRadius: radius.lg, borderWidth: StyleSheet.hairlineWidth, padding: space.lg, gap: space.md },
-  input: { borderWidth: 1, borderRadius: radius.md, paddingHorizontal: 14, paddingVertical: 12, fontSize: 16 },
+  input: { borderWidth: 1, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, fontSize: 16, fontFamily: 'Inter_400Regular' },
 });

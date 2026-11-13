@@ -60,11 +60,15 @@ create table public.plans (
   updated_at timestamptz not null default now()
 );
 
+-- Prix en centimes d'euro, facturation annuelle. Modifiables depuis l'administration.
+-- Au-delà de la capacité d'un forfait, personne n'est supprimé : le SOS reste actif,
+-- seules les annonces sont suspendues jusqu'au changement de forfait.
 insert into public.plans (id, name, price_cents, member_limit, announcements_per_month, features, sort_order) values
-  ('starter', 'Starter', 4900, 1000, 1, '["link","qr","dashboard","sos"]', 1),
-  ('creator', 'Creator', 9900, 10000, 2, '["link","qr","dashboard_advanced","transfer","sos"]', 2),
-  ('pro', 'Pro', 24900, 100000, 4, '["link","qr","stats_advanced","customization","transfer_advanced","sos"]', 3),
-  ('business', 'Business', null, null, null, '["multi_admin","priority_support","stats_advanced","organization"]', 4);
+  ('discovery',  'Discovery',  0,    100,    1, '["link","qr","dashboard","sos"]', 1),
+  ('creator',    'Creator',    2999, 10000,  2, '["link","qr","dashboard_advanced","transfer","sos"]', 2),
+  ('pro',        'Pro',        4999, 100000, 4, '["link","qr","stats_advanced","customization","transfer_advanced","sos"]', 3),
+  ('premium',    'Premium',    9999, 500000, 8, '["link","qr","stats_advanced","customization","transfer_advanced","sos","priority_support"]', 4),
+  ('enterprise', 'Enterprise', null, null, null, '["multi_admin","priority_support","stats_advanced","organization"]', 5);
 
 -- ───────────────────────────── Utilisateurs ─────────────────────────────
 create table public.users (
@@ -101,7 +105,7 @@ create table public.creator_profiles (
   category text not null default 'creator',
   verification_status public.verification_status not null default 'unverified',
   status public.creator_status not null default 'active',
-  plan_id text not null default 'starter' references public.plans (id),
+  plan_id text not null default 'discovery' references public.plans (id),
   member_count integer not null default 0,
   created_at timestamptz not null default now()
 );
@@ -284,9 +288,10 @@ create table public.subscriptions (
   id uuid primary key default gen_random_uuid(),
   creator_id uuid not null unique references public.creator_profiles (id) on delete cascade,
   plan_id text not null references public.plans (id),
-  status text not null default 'trialing'
+  status text not null default 'active'
     check (status in ('trialing', 'active', 'past_due', 'canceled', 'expired')),
   provider text check (provider in ('stripe', 'app_store', 'play_store', 'manual')),
+  provider_customer_id text unique,
   provider_subscription_id text,
   current_period_end timestamptz,
   cancel_at_period_end boolean not null default false,

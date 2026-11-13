@@ -10,7 +10,7 @@
     "dev:web": "pnpm --filter @community-safe/web dev",
     "dev:mobile": "pnpm --filter @community-safe/mobile start",
     "build:web": "pnpm --filter @community-safe/web build",
-    "test:e2e": "node e2e/sos-flow.mjs"
+    "test:e2e": "node e2e/sos-flow.mjs && node e2e/billing-flow.mjs"
   },
   "devDependencies": {
     "typescript": "~6.0.3",

@@ -30,15 +30,16 @@ export default function Profile() {
     if (data) await Share.share({ title: 'community-safe-data.json', message: JSON.stringify(data, null, 2) });
   };
 
+  // Créateur : la suppression emporte sa communauté, elle se fait sur l'écran Formule avec confirmation du pseudo.
   const deleteAccount = () => {
-    const message = creator ? `${t('profile.deleteConfirm')}\n\n${t('profile.deleteCreatorWarning')}` : t('profile.deleteConfirm');
-    Alert.alert(t('profile.deleteAccount'), message, [
+    if (creator) return router.push('/studio/plan');
+    Alert.alert(t('profile.deleteAccount'), t('profile.deleteConfirm'), [
       { text: t('common.cancel'), style: 'cancel' },
       {
         text: t('profile.deleteAccount'), style: 'destructive',
         onPress: async () => {
-          const { error } = await supabase.rpc('delete_my_account');
-          if (error) return Alert.alert(t('common.error'));
+          const { data, error } = await supabase.functions.invoke('delete-account', { body: {} });
+          if (error || data?.ok !== true) return Alert.alert(t('account.deleteFail'));
           await supabase.auth.signOut({ scope: 'local' });
           router.replace('/');
         },

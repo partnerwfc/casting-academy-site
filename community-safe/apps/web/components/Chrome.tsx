@@ -11,7 +11,7 @@ export function Header({ children }: { children?: ReactNode }) {
   const session = useSession();
   return (
     <header className="header container">
-      <Link href="/" className="brand"><span className="logo">CS</span>Community Safe</Link>
+      <Link href="/" className="brand">{/* eslint-disable-next-line @next/next/no-img-element */}<img className="logo" src="/logo.png" alt="" width={36} height={36} /><span>Community <span className="grad">Safe</span></span></Link>
       <nav className="row">
         {children}
         {session ? <Link className="btn sm secondary" href="/dashboard">{t('profile.creatorSpace')}</Link>

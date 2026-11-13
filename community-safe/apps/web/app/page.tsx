@@ -68,7 +68,7 @@ export default async function Landing() {
             <div className="grid">
               {plans.map((plan) => (
                 <div className="card" key={plan.id}>
-                  <h3>{plan.name}</h3>
+                  <h3>{translate(locale, `plan.name.${plan.id}` as Parameters<typeof translate>[1]) === `plan.name.${plan.id}` ? plan.name : translate(locale, `plan.name.${plan.id}` as Parameters<typeof translate>[1])}</h3>
                   <p className="stat-value">
                     {plan.price_cents === null ? copy.quote
                       : `${new Intl.NumberFormat(locale, { style: 'currency', currency: plan.currency, maximumFractionDigits: 0 }).format(plan.price_cents / 100)} ${copy.perYear}`}

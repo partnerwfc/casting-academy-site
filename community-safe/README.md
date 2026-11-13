@@ -82,7 +82,8 @@ universels, Community Transfer (lien, QR, textes, visuels, plan 7 jours, convers
 SOS sécurisé, annonces avec quotas, file d'envoi push, historique et suivi d'envoi,
 administration, export/suppression RGPD, 4 langues.
 
-Préparé, pas encore branché : paiements Stripe / achats intégrés (tables `plans`,
-`subscriptions`, `payments` en place), envoi de photos de profil, passkeys.
+Fait mais non testé avec un vrai compte Stripe : abonnements annuels (Discovery gratuit,
+Creator 29,99 €, Pro 49,99 €, Premium 99,99 €, Enterprise sur devis), changement, résiliation,
+suppression de compte. Pas encore fait : achats intégrés iOS/Android, photos de profil, passkeys.
 
 Voir `docs/DEPLOYMENT.md` pour ce qu'il reste à configurer avant un lancement.

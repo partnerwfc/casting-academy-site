@@ -226,7 +226,7 @@ begin
   values (v_user, v_handle, trim(p_display_name), coalesce(nullif(p_category, ''), 'creator'), nullif(trim(p_bio), ''))
   returning * into v_row;
 
-  insert into subscriptions (creator_id, plan_id, status) values (v_row.id, v_row.plan_id, 'trialing');
+  insert into subscriptions (creator_id, plan_id, status) values (v_row.id, v_row.plan_id, 'active');
   insert into transfer_links (creator_id, source)
   select v_row.id, s from unnest(array['instagram', 'tiktok', 'youtube', 'x', 'whatsapp', 'newsletter', 'qr']) s;
   perform audit('creator.create', 'creator', v_row.id::text, jsonb_build_object('handle', v_handle));
@@ -697,6 +697,13 @@ create or replace function public.delete_my_account()
 returns void language plpgsql security definer set search_path = public, extensions as $$
 declare v_user uuid := public.require_user();
 begin
+  -- Un abonnement payant doit d'abord être résilié chez le prestataire de paiement
+  -- (la fonction `delete-account` s'en charge), sinon la facturation continuerait.
+  if exists (select 1 from subscriptions s join creator_profiles c on c.id = s.creator_id
+              where c.owner_user_id = v_user and s.provider is not null and s.provider <> 'manual'
+                and s.status in ('active', 'past_due')) then
+    raise exception 'cancel_subscription_first' using errcode = '42501';
+  end if;
   insert into audit_logs (actor_user_id, action, target_type, target_id)
   values (null, 'user.delete', 'user', md5(v_user::text));  -- trace sans identifiant réutilisable
   delete from auth.users where id = v_user;

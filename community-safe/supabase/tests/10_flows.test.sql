@@ -222,3 +222,37 @@ select delete_my_account();
 select t.logout();
 select t.eq((select count(*) from public.users where id = '00000000-0000-0000-0000-000000000001'), 0::bigint, 'compte supprimé');
 select t.eq((select member_count from creator_profiles where handle = 'julie'), 2, 'compteur après départs');
+
+select t.login('00000000-0000-0000-0000-00000000000a', 30);
+select t.eq((select plan_id from creator_profiles where handle = 'julie'), 'discovery', 'forfait gratuit par défaut');
+select t.expect_error($$update creator_profiles set plan_id = 'premium'$$, 'permission denied%');
+select t.expect_error($$update subscriptions set plan_id = 'premium'$$, 'permission denied%');
+select t.expect_error($$select apply_subscription_event('{"status":"active","plan_id":"premium"}')$$, 'permission denied%');
+select request_quote('Plus de 500 000 membres') is not null as ok \gset
+select t.expect_error($$select request_quote()$$, 'quote_already_requested');
+select t.logout();
+set role service_role;
+select t.eq(apply_subscription_event(jsonb_build_object('creator_id', :'julie_id', 'customer_id', 'cus_1', 'subscription_id', 'sub_1',
+  'plan_id', 'creator', 'status', 'active', 'current_period_end', '2027-11-13T00:00:00Z',
+  'payment', jsonb_build_object('id', 'in_1', 'amount_cents', 2999, 'tax_cents', 500, 'currency', 'eur', 'status', 'succeeded'))), 'applied', 'abonnement activé');
+select apply_subscription_event(jsonb_build_object('customer_id', 'cus_1', 'payment', jsonb_build_object('id', 'in_1', 'amount_cents', 2999, 'currency', 'eur', 'status', 'succeeded')));
+select t.eq((select count(*) from payments), 1::bigint, 'paiement non dupliqué');
+select t.eq((select plan_id from creator_profiles where id = :'julie_id'), 'creator', 'forfait Creator appliqué');
+select t.eq(apply_subscription_event('{"customer_id":"cus_inconnu","status":"active","plan_id":"pro"}'), 'ignored', 'client inconnu ignoré');
+select t.eq(apply_subscription_event(jsonb_build_object('customer_id', 'cus_1', 'status', 'active', 'plan_id', 'inexistant')), 'ignored', 'forfait inconnu ignoré');
+select t.logout();
+select t.login('00000000-0000-0000-0000-00000000000a', 30);
+select t.expect_error($$select set_free_plan()$$, 'use_billing_portal');
+select t.expect_error($$select delete_my_account()$$, 'cancel_subscription_first');
+select t.eq((creator_dashboard_stats() -> 'plan' ->> 'member_limit')::int, 10000, 'capacité Creator');
+select t.logout();
+set role service_role;
+-- Résiliation chez le prestataire : la communauté reste, le forfait retombe à Discovery.
+select apply_subscription_event(jsonb_build_object('customer_id', 'cus_1', 'status', 'canceled', 'plan_id', 'creator'));
+select t.eq((select plan_id from creator_profiles where id = :'julie_id'), 'discovery', 'retour à Discovery');
+select t.eq((select member_count from creator_profiles where id = :'julie_id'), 2, 'la communauté est conservée');
+select t.logout();
+select t.login('00000000-0000-0000-0000-00000000000a', 30);
+select set_free_plan();
+select t.eq((select status from subscriptions where creator_id = :'julie_id'), 'active', 'abonnement gratuit actif');
+select t.logout();

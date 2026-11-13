@@ -5,7 +5,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const files = ['push.ts', 'link-safety.ts'];
+const files = ['push.ts', 'link-safety.ts', 'billing.ts'];
 const header = '// ⚠️ Fichier généré depuis packages/shared/src — ne pas modifier (pnpm sync:functions).\n';
 const check = process.argv.includes('--check');
 let stale = false;
