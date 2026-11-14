@@ -7,6 +7,7 @@ import { PushPrompt } from '@/components/PushPrompt';
 import { Button, Card, Chip, Screen, T } from '@/components/ui';
 import { useAuth } from '@/lib/auth';
 import { useI18n } from '@/lib/i18n';
+import { runOAuth } from '@/lib/oauth';
 import { supabase, WEB_URL } from '@/lib/supabase';
 import { space } from '@/lib/theme';
 
@@ -53,7 +54,15 @@ export default function Profile() {
 
       {session ? (
         <>
-          <T v="muted">{session.user.email}</T>
+          <T v="muted">{session.user.is_anonymous ? t('auth.anonymousUser') : (session.user.email ?? session.user.app_metadata?.provider)}</T>
+          {session.user.is_anonymous ? (
+            <Card tone="soft">
+              <T v="heading">{t('auth.saveAccount')}</T>
+              <T v="muted">{t('auth.saveAccountBody')}</T>
+              <Button label={t('auth.google')} kind="secondary" onPress={() => runOAuth('google', true)} />
+              <Button label={t('auth.apple')} kind="secondary" onPress={() => runOAuth('apple', true)} />
+            </Card>
+          ) : null}
           <Card>
             <T v="heading">{t('prefs.title')}</T>
             <PushPrompt showEnabled />

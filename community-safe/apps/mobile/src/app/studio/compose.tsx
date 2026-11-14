@@ -8,6 +8,7 @@ import { NotificationPreview } from '@/components/NotificationPreview';
 import { Button, Card, Chip, Input, Screen, SwitchRow, T } from '@/components/ui';
 import { useAuth } from '@/lib/auth';
 import { useI18n } from '@/lib/i18n';
+import { signInWith, type Provider } from '@/lib/oauth';
 import { supabase } from '@/lib/supabase';
 import { space, useColors } from '@/lib/theme';
 
@@ -26,7 +27,7 @@ export default function Compose() {
   const [maxLength, setMaxLength] = useState(280);
   const [checkedMessage, setCheckedMessage] = useState(false);
   const [checkedLink, setCheckedLink] = useState(false);
-  const [codeSent, setCodeSent] = useState(false);
+  const [hasTotp, setHasTotp] = useState(false);
   const [code, setCode] = useState('');
   const [fresh, setFresh] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -37,11 +38,11 @@ export default function Compose() {
   useEffect(() => {
     supabase.from('app_settings').select('value').eq('key', 'alert_message_max_length').maybeSingle()
       .then(({ data }) => { if (typeof data?.value === 'number') setMaxLength(data.value); });
-    supabase.rpc('has_recent_auth').then(({ data }) => setFresh(data === true));
+    supabase.rpc('has_strong_recent_auth').then(({ data }) => setFresh(data === true));
+    supabase.rpc('has_totp_factor').then(({ data }) => setHasTotp(data === true));
   }, []);
 
   if (!creator || !session) return null;
-  const email = session.user.email ?? '';
   const trimmedLink = link.trim();
   const linkError = trimmedLink ? checkLink(trimmedLink) : null;
   const steps: Step[] = kind === 'sos' ? ['reason', 'message', 'preview', 'confirm'] : ['message', 'preview', 'confirm'];
@@ -49,19 +50,24 @@ export default function Compose() {
 
   const fail = (e: unknown) => setError(errorMessage(locale, e));
 
-  // Vérification renforcée : un nouveau code prouve que le créateur contrôle toujours son e-mail.
-  const sendCode = async () => {
+  // Vérification renforcée sans e-mail : application d'authentification si elle est activée, sinon nouvelle connexion Apple/Google.
+  const provider = (session.user.app_metadata?.provider === 'apple' ? 'apple' : 'google') as Provider;
+  const reauth = async () => {
     setBusy(true);
     setError(null);
-    const { error: err } = await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: false } });
+    try {
+      await signInWith(provider);
+      const { data } = await supabase.rpc('has_strong_recent_auth');
+      if (data === true) setFresh(true);
+    } catch (e) { fail(e); }
     setBusy(false);
-    if (err) return fail(err);
-    setCodeSent(true);
   };
-  const verifyCode = async () => {
+  const verifyTotp = async () => {
     setBusy(true);
     setError(null);
-    const { error: err } = await supabase.auth.verifyOtp({ email, token: code.trim(), type: 'email' });
+    const { data: factors } = await supabase.auth.mfa.listFactors();
+    const factor = factors?.totp.find((f) => f.status === 'verified');
+    const { error: err } = factor ? await supabase.auth.mfa.challengeAndVerify({ factorId: factor.id, code: code.trim() }) : { error: new Error('no_factor') };
     setBusy(false);
     if (err) return fail('invalid_code');
     setFresh(true);
@@ -76,7 +82,7 @@ export default function Compose() {
     });
     if (err) {
       setBusy(false);
-      if (err.message === 'stepup_required') { setFresh(false); setCodeSent(false); setCode(''); }
+      if (err.message === 'stepup_required') { setFresh(false); setCode(''); }
       return fail(err);
     }
     // Réveille le worker tout de suite ; s'il échoue, la planification serveur prend le relais.
@@ -138,13 +144,13 @@ export default function Compose() {
           {fresh ? null : (
             <Card tone="soft">
               <T v="muted">{t('compose.stepup')}</T>
-              {codeSent ? (
+              {hasTotp ? (
                 <>
-                  <T v="small">{t('auth.codeSent', { email })}</T>
-                  <Input value={code} onChangeText={setCode} keyboardType="number-pad" maxLength={6} autoComplete="one-time-code" textContentType="oneTimeCode" placeholder={t('auth.codePlaceholder')} />
-                  <Button label={t('auth.verify')} onPress={verifyCode} loading={busy} disabled={code.trim().length < 6} />
+                  <T v="small">{t('compose.stepupTotp')}</T>
+                  <Input value={code} onChangeText={setCode} keyboardType="number-pad" maxLength={6} placeholder={t('auth.codePlaceholder')} />
+                  <Button label={t('auth.verify')} onPress={verifyTotp} loading={busy} disabled={code.trim().length < 6} />
                 </>
-              ) : <Button label={t('compose.stepupSend')} kind="secondary" onPress={sendCode} loading={busy} />}
+              ) : <Button label={t('compose.reauth', { provider: provider === 'apple' ? 'Apple' : 'Google' })} kind="secondary" onPress={reauth} loading={busy} />}
             </Card>
           )}
           <T v="small">{t('compose.recipients')} {t('compose.noGuarantee')}</T>

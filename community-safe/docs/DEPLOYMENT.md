@@ -16,13 +16,16 @@ npx supabase link --project-ref <ref>
 npx supabase db push
 ```
 
-3. Authentification → Email : longueur du code OTP = 6. Remplacer le contenu des deux
-   modèles **Confirm signup** et **Magic Link** par `supabase/templates/otp.html`
-   (ils doivent afficher `{{ .Token }}` : l'app attend un code, pas un lien).
-4. Authentification → URL : `https://communitysafe.com` et le schéma `communitysafe://auth-callback`.
-5. Fournisseurs Apple et Google (identifiants obtenus aux étapes 3 et 4).
-6. Brancher un vrai service d'e-mail (SMTP) : l'envoi intégré est limité à quelques
-   messages par heure.
+3. **Authentification sans e-mail** (Authentification → Fournisseurs) :
+   - activer **Anonymous sign-ins** (abonnés sans compte) et **Manual linking** (relier plus tard Apple/Google) ;
+   - activer **Apple** et **Google** (identifiants obtenus aux étapes 3 et 4) ;
+   - **désactiver le fournisseur Email** : aucun e-mail n'est envoyé, aucun SMTP n'est nécessaire ;
+   - activer un **CAPTCHA** (Cloudflare Turnstile ou hCaptcha) : les connexions anonymes sont sinon exposées aux robots
+     qui gonfleraient les compteurs.
+4. URL du site : `https://<votre domaine>` et schéma `communitysafe://auth-callback`.
+5. Les alertes passent **uniquement par notification push** (Expo → APNs/FCM). Aucun e-mail de notification n'existe.
+6. Récupération de compte : un créateur retrouve son compte via Apple/Google ; un abonné anonyme perd ses suivis s'il
+   perd son téléphone sans avoir relié un compte (l'app le propose dans Profil → Sauvegarder mon compte).
 7. Déployer le worker et ses secrets :
 
 ```bash
@@ -53,7 +56,8 @@ select id, 'admin' from auth.users where email = 'vous@exemple.com';
 ## 2. Site web (Vercel)
 
 Nouveau projet Vercel, **Root Directory** : `community-safe/apps/web`.
-Variables : voir `apps/web/.env.example`. Domaine : `communitysafe.com`.
+Variables : voir `apps/web/.env.example`. Domaine : celui que vous aurez acheté (à vérifier chez un registrar ; j'ai écrit `communitysafe.com` par défaut,
+à remplacer dans `EXPO_PUBLIC_WEB_URL`, `NEXT_PUBLIC_SITE_URL`, `SITE_URL`, `associatedDomains` et `intentFilters` de `apps/mobile/app.json`).
 
 ## 3. iOS
 
@@ -112,7 +116,7 @@ Sur un iPhone et un Android réels :
 Le code est écrit et testé de bout en bout avec des événements Stripe signés. Il reste à
 brancher votre compte Stripe : rien ne peut être testé ni encaissé sans lui.
 
-1. Créer un compte Stripe, puis **un produit par formule payante** (Creator, Pro, Premium) avec un
+1. Utiliser votre compte Stripe (si c'est celui d'iCastt : voir la note ci-dessous), puis **un produit par formule payante** (Creator, Pro, Premium) avec un
    **prix annuel** récurrent (29,99 €, 49,99 €, 99,99 €).
 2. Copier l'identifiant de chaque prix (`price_...`) dans `plans.stripe_price_id` :
 
@@ -139,6 +143,11 @@ npx supabase functions deploy billing stripe-webhook delete-account
 6. TVA : activer Stripe Tax, puis `STRIPE_AUTOMATIC_TAX=true` dans les secrets.
 7. Tester d'abord en mode test avec la carte `4242 4242 4242 4242` : souscription, changement de
    formule, résiliation, échec de paiement, suppression de compte.
+
+**Compte Stripe partagé avec iCastt.** Techniquement possible (produits et prix distincts), mais un compte Stripe correspond
+à une entité juridique : les paiements, la TVA, les remboursements, le relevé bancaire et les litiges des deux activités se
+mélangent, et un litige sur l'une peut geler l'autre. Si les deux activités relèvent de la même entreprise, créez au moins un
+second compte Stripe dans la même organisation et utilisez un libellé de relevé distinct (`Community Safe`).
 
 **Règles de fonctionnement**
 - Aucun client ne peut s'attribuer un forfait payant : seul le webhook signé le fait.

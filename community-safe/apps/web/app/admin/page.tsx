@@ -210,7 +210,7 @@ export default function Admin() {
       <main className="container stack" style={{ paddingTop: 16 }}>
         <h2>Administration</h2>
         {session === undefined ? <p className="small">Loading…</p>
-          : !session ? <div className="narrow card"><AuthForm hideOAuth /></div>
+          : !session ? <div className="narrow card"><AuthForm /></div>
           : state === 'forbidden' ? <p className="muted">This account has no administrator role.</p>
           : state === 'mfa' ? <MfaGate onVerified={check} />
           : state === 'ok' ? <Console /> : <p className="small">Loading…</p>}

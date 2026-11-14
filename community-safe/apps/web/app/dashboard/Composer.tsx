@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import {
   SOS_REASONS, checkLink, errorMessage, notificationTitle, type Alert, type CreatorProfile, type SosReason,
 } from '@community-safe/shared';
-import { AuthForm } from '@/components/AuthForm';
+import { TotpStepUp } from '@/components/TotpStepUp';
 import { useI18n } from '@/lib/i18n';
 import { supabase } from '@/lib/supabase';
 
@@ -27,7 +27,7 @@ export function Composer({ kind, creator, email, onClose, onSent }: {
   useEffect(() => {
     supabase().from('app_settings').select('value').eq('key', 'alert_message_max_length').maybeSingle()
       .then(({ data }) => { if (typeof data?.value === 'number') setMaxLength(data.value); });
-    supabase().rpc('has_recent_auth').then(({ data }) => setFresh(data === true));
+    supabase().rpc('has_strong_recent_auth').then(({ data }) => setFresh(data === true));
   }, []);
 
   const trimmedLink = link.trim();
@@ -95,7 +95,7 @@ export function Composer({ kind, creator, email, onClose, onSent }: {
         {fresh ? null : (
           <div className="card">
             <p className="muted">{t('compose.stepup')}</p>
-            <AuthForm fixedEmail={email} onDone={() => setFresh(true)} />
+            <TotpStepUp onDone={() => setFresh(true)} />
           </div>
         )}
       </div>

@@ -1,6 +1,8 @@
 project_id = "community-safe"
 
 [auth]
+enable_anonymous_sign_ins = true      # abonné sans compte : rien à saisir, aucun e-mail
+enable_manual_linking = true            # il peut relier plus tard son compte à Apple ou Google
 site_url = "http://localhost:3000"
 additional_redirect_urls = ["http://localhost:3000/auth/callback", "communitysafe://auth-callback"]
 enable_signup = true

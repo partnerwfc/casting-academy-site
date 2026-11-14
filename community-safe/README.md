@@ -76,7 +76,7 @@ pnpm typecheck
 
 ## État d'avancement
 
-Fait (MVP, phase 1) : authentification sans mot de passe, profils créateurs, annuaire,
+Fait (MVP, phase 1) : connexion Apple/Google ou abonné sans aucun compte (ni e-mail, ni saisie), profils créateurs, annuaire,
 suivi, préférences SOS/annonces, tableau de bord et compteur temps réel, liens
 universels, Community Transfer (lien, QR, textes, visuels, plan 7 jours, conversion),
 SOS sécurisé, annonces avec quotas, file d'envoi push, historique et suivi d'envoi,

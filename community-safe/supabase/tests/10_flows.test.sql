@@ -349,3 +349,12 @@ select t.logout();
 update app_settings set value = '"off"' where key = 'certification_presence_mode';
 select t.eq(cert_presence_ok(gen_random_uuid()), true, 'mode off : aucun contrôle de présence');
 update app_settings set value = '"manual"' where key = 'certification_presence_mode';
+
+-- ── Abonné anonyme : peut suivre, ne peut pas devenir créateur ──
+insert into auth.users (id, email, is_anonymous) values ('00000000-0000-0000-0000-0000000000a1', null, true);
+select set_config('role', 'authenticated', false);
+select set_config('request.jwt.claims', json_build_object('sub', '00000000-0000-0000-0000-0000000000a1', 'role', 'authenticated', 'is_anonymous', true)::text, false);
+select follow_creator('julie') is not null as ok \gset
+select t.expect_error($$select create_creator_profile('anonyme_createur', 'X')$$, 'account_required');
+select t.logout();
+select t.eq((select purge_anonymous_users()), 0, 'comptes anonymes récents conservés');

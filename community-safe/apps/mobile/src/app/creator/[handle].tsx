@@ -9,7 +9,7 @@ import { PushPrompt } from '@/components/PushPrompt';
 import { Avatar, Button, Card, Loading, Pill, Screen, SwitchRow, T } from '@/components/ui';
 import { useAuth } from '@/lib/auth';
 import { useI18n } from '@/lib/i18n';
-import { setPendingFollow } from '@/lib/pending-follow';
+import { continueAnonymously } from '@/lib/oauth';
 import { supabase } from '@/lib/supabase';
 import { space } from '@/lib/theme';
 
@@ -54,11 +54,11 @@ export default function CreatorScreen() {
   const verified = creator.verification_status === 'verified';
 
   const follow = async () => {
-    if (!session) {
-      await setPendingFollow({ handle, source: params.s });
-      return router.push({ pathname: '/sign-in', params: { name: creator.display_name } });
-    }
     setBusy(true);
+    // Aucun compte, aucune saisie : un compte anonyme est créé au premier suivi.
+    if (!session) {
+      try { await continueAnonymously(); } catch { setBusy(false); return; }
+    }
     await supabase.rpc('follow_creator', { p_handle: handle, p_source: params.s ?? null });
     await load();
     setBusy(false);

@@ -207,6 +207,10 @@ declare
   v_handle text := lower(trim(leading '@' from trim(p_handle)));
   v_row creator_profiles;
 begin
+  -- Un abonné peut rester anonyme ; un créateur doit être relié à un compte Apple ou Google (récupération, confiance).
+  if coalesce((auth.jwt() ->> 'is_anonymous')::boolean, false) then
+    raise exception 'account_required' using errcode = '42501';
+  end if;
   if v_handle !~ '^[a-z0-9_.]{3,30}$' then
     raise exception 'invalid_handle' using errcode = '22023';
   end if;
