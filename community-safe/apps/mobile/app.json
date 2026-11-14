@@ -17,9 +17,9 @@
     "android": {
       "package": "com.communitysafe.app",
       "adaptiveIcon": {
-        "backgroundColor": "#315BFF",
+        "backgroundColor": "#2A2CE8",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundColor": "#315BFF",
+        "backgroundColor": "#2A2CE8",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "intentFilters": [
