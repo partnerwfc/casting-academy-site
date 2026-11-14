@@ -332,3 +332,20 @@ insert into auth.mfa_factors (user_id, factor_type, status) values ('00000000-00
 select t.login('00000000-0000-0000-0000-00000000000a', 30);
 select t.eq(has_strong_recent_auth(), false, 'TOTP exigé : le code e-mail seul est refusé');
 select t.logout();
+
+-- ── Présence sans prestataire : appel vidéo mené par l'équipe, ou désactivée ──
+select t.login('00000000-0000-0000-0000-0000000000c1');
+select (start_certification((select id from social_accounts where creator_id = (select id from creator_profiles where handle = 'julie_officielle') limit 1))).id as v5 \gset
+select t.expect_error(format($$select request_certification_review(%L)$$, :'v5'), 'presence_required');
+select t.expect_error(format($$select admin_confirm_presence(%L, true)$$, :'v5'), 'forbidden');   -- seul l'administrateur confirme
+select t.logout();
+select t.login('00000000-0000-0000-0000-0000000000ad', 0, 'aal2');
+select admin_confirm_presence(:'v5', true, 'appel vidéo en direct, 3 mouvements demandés');
+select t.eq((select presence_provider from creator_verifications where id = :'v5'), 'manual_call', 'présence confirmée par appel');
+select t.logout();
+select t.login('00000000-0000-0000-0000-0000000000c1');
+select request_certification_review(:'v5');
+select t.logout();
+update app_settings set value = '"off"' where key = 'certification_presence_mode';
+select t.eq(cert_presence_ok(gen_random_uuid()), true, 'mode off : aucun contrôle de présence');
+update app_settings set value = '"manual"' where key = 'certification_presence_mode';

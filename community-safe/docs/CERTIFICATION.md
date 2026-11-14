@@ -32,9 +32,24 @@ Aucun badge n'est donné sur un pseudo, une capture d'écran ou une pièce d'ide
   authentification renforcée récente, et une application TOTP si le créateur en a activé une.
 - Minimisation : codes expirés effacés chaque nuit, demandes closes purgées après 12 mois, notes après 90 jours.
 
+## Lancer sans prestataire (mode actuel)
+
+Réglage `certification_presence_mode` dans `app_settings` :
+
+| Mode | Fonctionnement | Quand |
+| --- | --- | --- |
+| `manual` (défaut) | L'équipe mène un **appel vidéo en direct** (face, gauche, droite), puis confirme (`admin_confirm_presence`). Rien n'est enregistré. | Premiers créateurs, volume faible. |
+| `off` | Pas de contrôle de présence : seule la **preuve d'identité** compte (code sur compte officiel, domaine, YouTube/Twitch, examen humain). | Tout début, créateurs peu exposés. |
+| `provider` | Contrôle vidéo automatisé par un prestataire. | Quand le volume ou le risque le justifie. |
+
+Limites à connaître : un humain en visio ne détecte pas à coup sûr un deepfake en temps réel, et ce mode ne tient pas la
+charge au-delà de quelques dizaines de demandes par semaine. La vraie protection reste la **preuve de contrôle du compte
+officiel** et la révision humaine des profils à risque. Pour les gros comptes ou les personnalités, garder l'appel vidéo
+même quand le prestataire sera en place.
+
 ## Ce qui n'est PAS construit
 
-1. **Le contrôle vidéo lui-même.** Détecter le vivant et les deepfakes ne se développe pas soi-même de façon fiable :
+1. **Le contrôle vidéo automatisé.** Détecter le vivant et les deepfakes ne se développe pas soi-même de façon fiable :
    il faut un prestataire (choix à faire : Persona, Veriff, Onfido, Sumsub, Jumio, iProov, Yoti, Stripe Identity…).
    À comparer sur : sélfie/vivant **sans document**, détection d'attaques par injection et deepfake, SDK iOS/Android/web,
    prix par contrôle, hébergement dans l'UE, durée de conservation réglable, et réutilisation d'un contrôle de référence.

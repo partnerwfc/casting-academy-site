@@ -10,6 +10,9 @@ insert into public.app_settings (key, value) values
   ('certification_code_ttl_days', '7'),
   ('certification_max_attempts', '5'),
   ('certification_max_per_day', '3'),
+  -- Contrôle de présence : 'provider' (prestataire vidéo), 'manual' (appel vidéo en direct mené par l'équipe),
+  -- 'off' (aucun contrôle de présence : seule la preuve d'identité compte).
+  ('certification_presence_mode', '"manual"'),
   ('certification_similarity_x100', '55')
 on conflict (key) do nothing;
 
@@ -195,8 +198,29 @@ end $$;
 -- La présence (contrôle vidéo du vivant) doit avoir réussi, et être récente, avant toute preuve d'identité.
 create or replace function public.cert_presence_ok(p_verification_id uuid)
 returns boolean language sql stable security definer set search_path = public, extensions as $$
-  select coalesce((select presence_status = 'passed' and presence_expires_at > now() from creator_verifications where id = p_verification_id), false);
+  select case
+    when coalesce((select value #>> '{}' from app_settings where key = 'certification_presence_mode'), 'provider') = 'off' then true
+    else coalesce((select presence_status = 'passed' and presence_expires_at > now() from creator_verifications where id = p_verification_id), false)
+  end;
 $$;
+
+-- Mode « manual » : l'équipe mène un court appel vidéo en direct (face, gauche, droite) puis confirme ici.
+-- Aucune vidéo n'est enregistrée ni conservée ; seule la décision est journalisée.
+create or replace function public.admin_confirm_presence(p_verification_id uuid, p_passed boolean, p_note text default null)
+returns void language plpgsql security definer set search_path = public, extensions as $$
+declare v_row creator_verifications;
+begin
+  perform public.require_admin();
+  select * into v_row from creator_verifications where id = p_verification_id for update;
+  if v_row.id is null or v_row.status <> 'awaiting_proof' then raise exception 'verification_not_found' using errcode = 'P0002'; end if;
+  update creator_verifications set presence_status = case when p_passed then 'passed' else 'failed' end,
+         presence_provider = 'manual_call', presence_ref = auth.uid()::text, presence_checked_at = now(),
+         presence_attempts = presence_attempts + 1,
+         presence_expires_at = case when p_passed then now() + interval '7 days' end
+   where id = v_row.id;
+  perform public.cert_event(v_row.creator_id, v_row.id, case when p_passed then 'presence_passed' else 'presence_failed' end, p_note,
+    jsonb_build_object('provider', 'manual_call'));
+end $$;
 
 -- Résultat du contrôle vidéo, envoyé par le prestataire (webhook signé, service_role uniquement).
 create or replace function public.record_presence_result(p_verification_id uuid, p_passed boolean, p_provider text, p_ref text)
@@ -449,7 +473,7 @@ revoke execute on function
   public.require_reverification(uuid, text), public.guard_certified_profile(), public.guard_social_account(),
   public.cert_alphabet_code(), public.start_certification(uuid), public.request_certification_review(uuid),
   public.request_alternative_certification(uuid, text), public.cert_risk_flags(uuid, uuid),
-  public.record_auto_check(uuid, boolean, text), public.cert_approve(uuid, uuid, text), public.cert_presence_ok(uuid), public.record_presence_result(uuid, boolean, text, text),
+  public.record_auto_check(uuid, boolean, text), public.cert_approve(uuid, uuid, text), public.cert_presence_ok(uuid), public.record_presence_result(uuid, boolean, text, text), public.admin_confirm_presence(uuid, boolean, text),
   public.admin_review_certification(uuid, boolean, text), public.admin_suspend_certification(uuid, text),
   public.admin_reinstate_certification(uuid, text), public.admin_revoke_certification(uuid, text),
   public.admin_transfer_owner(uuid, uuid, text), public.has_strong_recent_auth(), public.has_totp_factor(),
@@ -459,5 +483,5 @@ grant execute on function
   public.request_certification_review(uuid), public.request_alternative_certification(uuid, text),
   public.admin_review_certification(uuid, boolean, text), public.admin_suspend_certification(uuid, text),
   public.admin_reinstate_certification(uuid, text), public.admin_revoke_certification(uuid, text),
-  public.admin_transfer_owner(uuid, uuid, text), public.has_strong_recent_auth(), public.has_totp_factor() to authenticated;
+  public.admin_transfer_owner(uuid, uuid, text), public.admin_confirm_presence(uuid, boolean, text), public.has_strong_recent_auth(), public.has_totp_factor() to authenticated;
 grant execute on function public.record_auto_check(uuid, boolean, text), public.record_presence_result(uuid, boolean, text, text), public.purge_certification_data() to service_role;
