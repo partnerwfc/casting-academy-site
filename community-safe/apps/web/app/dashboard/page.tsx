@@ -44,7 +44,7 @@ function Setup({ onCreated }: { onCreated: () => void }) {
       </label>
       <label className="field">{t('setup.handle')}
         <input className="input" value={handle} maxLength={31} required autoCapitalize="none" placeholder="@" onChange={(e) => setHandle(e.target.value)} />
-        <span className="small">{clean ? `communitysafe.com/@${clean} · ` : ''}{t('setup.handleHint')}</span>
+        <span className="small">{clean ? `savemycommunity.com/@${clean} · ` : ''}{t('setup.handleHint')}</span>
       </label>
       <label className="field">{t('setup.category')}
         <select className="input" value={category} onChange={(e) => setCategory(e.target.value)}>

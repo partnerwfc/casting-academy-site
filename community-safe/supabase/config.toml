@@ -4,7 +4,7 @@ project_id = "community-safe"
 enable_anonymous_sign_ins = true      # abonné sans compte : rien à saisir, aucun e-mail
 enable_manual_linking = true            # il peut relier plus tard son compte à Apple ou Google
 site_url = "http://localhost:3000"
-additional_redirect_urls = ["http://localhost:3000/auth/callback", "communitysafe://auth-callback"]
+additional_redirect_urls = ["http://localhost:3000/auth/callback", "savemycommunity://auth-callback"]
 enable_signup = true
 
 [auth.email]
@@ -23,11 +23,11 @@ verify_jwt = false
 
 # Les deux e-mails de connexion affichent un code à 6 chiffres (pas de lien à cliquer).
 [auth.email.template.confirmation]
-subject = "Community Safe — {{ .Token }}"
+subject = "SaveMyCommunity — {{ .Token }}"
 content_path = "./supabase/templates/otp.html"
 
 [auth.email.template.magic_link]
-subject = "Community Safe — {{ .Token }}"
+subject = "SaveMyCommunity — {{ .Token }}"
 content_path = "./supabase/templates/otp.html"
 
 [auth.rate_limit]

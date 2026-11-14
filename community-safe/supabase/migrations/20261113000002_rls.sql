@@ -1,4 +1,4 @@
--- Community Safe — Row Level Security.
+-- SaveMyCommunity — Row Level Security.
 -- Principe : tout est fermé par défaut ; les écritures sensibles passent par des RPC (0003).
 
 -- ───────────────────────────── Helpers ─────────────────────────────

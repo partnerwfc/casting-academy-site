@@ -2,7 +2,7 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   transpilePackages: ['@community-safe/shared'],
-  // Lien universel : communitysafe.com/@julien → page du créateur.
+  // Lien universel : savemycommunity.com/@julien → page du créateur.
   async rewrites() {
     return [{ source: '/@:handle', destination: '/c/:handle' }];
   },

@@ -6,8 +6,8 @@ export const metadata: Metadata = { title: 'Privacy Policy' };
 export default function Privacy() {
   return (
     <LegalPage title="Privacy Policy">
-      <h2>What Community Safe does</h2>
-      <p>Community Safe lets you follow creators and receive the alerts you allow: SOS alerts (hacked, suspended or deleted account) and, if you opt in, rare important announcements.</p>
+      <h2>What SaveMyCommunity does</h2>
+      <p>SaveMyCommunity lets you follow creators and receive the alerts you allow: SOS alerts (hacked, suspended or deleted account) and, if you opt in, rare important announcements.</p>
       <h2>Data we process</h2>
       <p><strong>Account:</strong> your email address, an optional display name, your language.</p>
       <p><strong>Communities:</strong> the creators you follow and your notification preferences for each of them.</p>
@@ -23,7 +23,7 @@ export default function Privacy() {
       <h2>Your rights</h2>
       <p>You can access, export and delete your data from the app (Profile → Export my data / Delete my account), change your preferences, and lodge a complaint with your data protection authority.</p>
       <h2>Children</h2>
-      <p>Community Safe is not intended for people under 16.</p>
+      <p>SaveMyCommunity is not intended for people under 16.</p>
       <h2>Processors</h2>
       <p>Hosting and database: Supabase. Push delivery: Expo, Apple (APNs) and Google (FCM). Payments for creators: Stripe. The full list, locations and safeguards will be published here before launch.</p>
     </LegalPage>

@@ -81,7 +81,7 @@ try {
   // 2. Sans preuve publiée : refus ; avec le mauvais code : refus ; un client ne peut pas tricher.
   await expectError(julie.db.rpc('request_certification_review', { p_verification_id: req1.id }), 'use_automatic_check');
   const r0 = await (await certify(julie, req1.id)).json(); assert.equal(r0.status, 'awaiting_proof');
-  txt.set(`_communitysafe.${domain}`, ['CS-AAAA-BBBB']);
+  txt.set(`_savemycommunity.${domain}`, ['CS-AAAA-BBBB']);
   await sleep(16000);
   const r1 = await (await certify(julie, req1.id)).json(); assert.equal(r1.status, 'awaiting_proof');
   assert.equal((await certify(julie, req1.id)).status, 429);
@@ -92,7 +92,7 @@ try {
   step('refus : aucune preuve, mauvais code, cadence limitée, badge impossible à s\'attribuer, SOS bloqué');
 
   // 3. Le code est publié dans le DNS : validation automatique, code effacé, badge, journal.
-  txt.set(`_communitysafe.${domain}`, [req1.code]);
+  txt.set(`_savemycommunity.${domain}`, [req1.code]);
   await sleep(16000);
   const r2 = await (await certify(julie, req1.id)).json(); assert.equal(r2.status, 'approved');
   const { data: done } = await julie.db.from('creator_verifications').select('status, code').eq('id', req1.id).single();
@@ -109,7 +109,7 @@ try {
   const { data: fa } = await fake.db.rpc('add_social_account', { p_platform: 'website', p_url: `https://${fakeDomain}` });
   const { data: freq } = await fake.db.rpc('start_certification', { p_social_account_id: fa.id });
   assert.equal((await presence(freq.id)).status, 200);
-  txt.set(`_communitysafe.${fakeDomain}`, [freq.code]);
+  txt.set(`_savemycommunity.${fakeDomain}`, [freq.code]);
   const rf = await (await certify(fake, freq.id)).json(); assert.equal(rf.status, 'in_review');
   const { data: flagged } = await service.from('creator_verifications').select('risk_flags').eq('id', freq.id).single();
   assert.deepEqual(flagged.risk_flags, ['similar_name']);
@@ -131,7 +131,7 @@ try {
   await julie.db.from('creator_profiles').update({ display_name: `Studio ${run}` }).eq('id', profile.id);
   const { data: again } = await julie.db.rpc('start_certification', { p_social_account_id: account.id });
   assert.equal((await presence(again.id)).status, 200);
-  txt.set(`_communitysafe.${domain}`, [again.code]);
+  txt.set(`_savemycommunity.${domain}`, [again.code]);
   await sleep(16000);
   assert.equal((await (await certify(julie, again.id)).json()).status, 'approved');
   await expectError(julie.db.rpc('admin_revoke_certification', { p_creator_id: profile.id, p_reason: 'x' }), 'forbidden');

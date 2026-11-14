@@ -63,7 +63,7 @@ même quand le prestataire sera en place.
 Un visage comparé à une référence est une **donnée biométrique** (catégorie particulière, article 9) :
 - consentement explicite, séparé et révocable avant le contrôle ;
 - analyse d'impact (AIPD) avant lancement ;
-- **ni vidéo ni gabarit biométrique stockés chez Community Safe** : le prestataire fait le contrôle, nous ne gardons que le
+- **ni vidéo ni gabarit biométrique stockés chez SaveMyCommunity** : le prestataire fait le contrôle, nous ne gardons que le
   résultat, sa date et la référence de session ;
 - durée de conservation côté prestataire la plus courte possible, contractuellement encadrée ;
 - alternative non biométrique proposée (examen humain) pour ceux qui refusent ;

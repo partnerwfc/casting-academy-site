@@ -1,4 +1,4 @@
-# Community Safe
+# SaveMyCommunity
 
 **Never lose your community.** — « Ton compte peut disparaître. Pas ta communauté. »
 

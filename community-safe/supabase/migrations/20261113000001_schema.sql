@@ -1,4 +1,4 @@
--- Community Safe — schéma initial (tables, contraintes, index).
+-- SaveMyCommunity — schéma initial (tables, contraintes, index).
 -- Les règles d'accès (RLS) sont dans 0002, la logique métier (RPC) dans 0003.
 
 create schema if not exists extensions;

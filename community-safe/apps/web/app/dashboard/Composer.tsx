@@ -80,7 +80,7 @@ export function Composer({ kind, creator, email, onClose, onSent }: {
         <div className="preview">
           <img className="logo" src="/logo.png" alt="" width={36} height={36} />
           <div>
-            <div className="small" style={{ letterSpacing: '0.06em' }}>COMMUNITY SAFE</div>
+            <div className="small" style={{ letterSpacing: '0.06em' }}>SAVEMYCOMMUNITY</div>
             <strong>{notificationTitle(kind, creator.display_name, locale)}</strong>
             <div>{message.trim() || '…'}</div>
           </div>

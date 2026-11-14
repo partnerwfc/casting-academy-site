@@ -15,7 +15,7 @@ export default function Welcome() {
     <Screen scroll={false}>
       <View style={{ flex: 1, justifyContent: 'center', gap: space.lg }}>
         <Logo size={64} />
-        <T v="small" style={{ letterSpacing: 1.2, fontWeight: '700' }}>COMMUNITY SAFE</T>
+        <T v="small" style={{ letterSpacing: 1.2, fontWeight: '700' }}>SAVEMYCOMMUNITY</T>
         <T v="hero">{t('app.promise')}</T>
         <T v="muted" style={{ fontSize: 17, lineHeight: 25 }}>{t('welcome.subtitle')}</T>
         {isConfigured ? null : <T v="small" style={{ color: '#DC2626' }}>Configuration manquante : EXPO_PUBLIC_SUPABASE_URL / EXPO_PUBLIC_SUPABASE_ANON_KEY.</T>}

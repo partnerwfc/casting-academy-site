@@ -78,7 +78,7 @@ export function FollowPanel({ creator }: { creator: { id: string; handle: string
           <h3>✓ {t('creator.following')}</h3>
           <p className="muted">{t('creator.followedWeb', { name: creator.display_name })}</p>
           <div className="row">
-            <a className="btn sm" href={`communitysafe://creator/${creator.handle}`}>Community Safe ↗</a>
+            <a className="btn sm" href={`savemycommunity://creator/${creator.handle}`}>SaveMyCommunity ↗</a>
             {APP_STORE ? <a className="btn sm secondary" href={APP_STORE}>App Store</a> : null}
             {PLAY_STORE ? <a className="btn sm secondary" href={PLAY_STORE}>Google Play</a> : null}
           </div>

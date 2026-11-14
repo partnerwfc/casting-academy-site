@@ -1,4 +1,4 @@
--- Community Safe — logique métier côté serveur.
+-- SaveMyCommunity — logique métier côté serveur.
 -- Toute écriture sensible (suivi, alertes, appareils, administration) passe par ces fonctions.
 
 -- ───────────────────────────── Utilitaires ─────────────────────────────
@@ -215,7 +215,7 @@ begin
     raise exception 'invalid_handle' using errcode = '22023';
   end if;
   if v_handle = any (array['admin', 'support', 'help', 'api', 'www', 'app', 'login', 'dashboard', 'official',
-                           'communitysafe', 'community_safe', 'community.safe', 'sos', 'security', 'legal',
+                           'communitysafe', 'community_safe', 'community.safe', 'savemycommunity', 'save_my_community', 'save.my.community', 'sos', 'security', 'legal',
                            'privacy', 'terms', 'about', 'pricing', 'null', 'undefined']) then
     raise exception 'handle_reserved' using errcode = '23505';
   end if;

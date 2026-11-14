@@ -22,7 +22,7 @@ npx supabase db push
    - **désactiver le fournisseur Email** : aucun e-mail n'est envoyé, aucun SMTP n'est nécessaire ;
    - activer un **CAPTCHA** (Cloudflare Turnstile ou hCaptcha) : les connexions anonymes sont sinon exposées aux robots
      qui gonfleraient les compteurs.
-4. URL du site : `https://<votre domaine>` et schéma `communitysafe://auth-callback`.
+4. URL du site : `https://<votre domaine>` et schéma `savemycommunity://auth-callback`.
 5. Les alertes passent **uniquement par notification push** (Expo → APNs/FCM). Aucun e-mail de notification n'existe.
 6. Récupération de compte : un créateur retrouve son compte via Apple/Google ; un abonné anonyme perd ses suivis s'il
    perd son téléphone sans avoir relié un compte (l'app le propose dans Profil → Sauvegarder mon compte).
@@ -56,13 +56,13 @@ select id, 'admin' from auth.users where email = 'vous@exemple.com';
 ## 2. Site web (Vercel)
 
 Nouveau projet Vercel, **Root Directory** : `community-safe/apps/web`.
-Variables : voir `apps/web/.env.example`. Domaine : celui que vous aurez acheté (à vérifier chez un registrar ; j'ai écrit `communitysafe.com` par défaut,
+Variables : voir `apps/web/.env.example`. Domaine : celui que vous aurez acheté (à vérifier chez un registrar ; j'ai écrit `savemycommunity.com` par défaut,
 à remplacer dans `EXPO_PUBLIC_WEB_URL`, `NEXT_PUBLIC_SITE_URL`, `SITE_URL`, `associatedDomains` et `intentFilters` de `apps/mobile/app.json`).
 
 ## 3. iOS
 
 1. Compte Apple Developer (99 $/an).
-2. Identifiant d'app `com.communitysafe.app` avec *Push Notifications*,
+2. Identifiant d'app `com.savemycommunity.app` avec *Push Notifications*,
    *Sign in with Apple* et *Associated Domains*.
 3. Renseigner `APPLE_TEAM_ID` sur Vercel (active les Universal Links).
 
@@ -102,7 +102,7 @@ npx eas-cli@latest submit --platform all
 
 Sur un iPhone et un Android réels :
 
-- [ ] Ouvrir `communitysafe.com/@test` sans l'app → suivre → installer → se connecter → la communauté est là.
+- [ ] Ouvrir `savemycommunity.com/@test` sans l'app → suivre → installer → se connecter → la communauté est là.
 - [ ] Même lien avec l'app installée → ouvre directement le profil.
 - [ ] Autoriser les notifications → « M'envoyer une alerte de test » → la notification arrive, app fermée.
 - [ ] Appui sur la notification → détail de l'alerte, pas le lien.
@@ -133,7 +133,7 @@ update plans set stripe_price_id = 'price_...' where id = 'premium';
 5. Secrets et déploiement :
 
 ```bash
-npx supabase secrets set STRIPE_SECRET_KEY=sk_live_... STRIPE_WEBHOOK_SECRET=whsec_... SITE_URL=https://communitysafe.com
+npx supabase secrets set STRIPE_SECRET_KEY=sk_live_... STRIPE_WEBHOOK_SECRET=whsec_... SITE_URL=https://savemycommunity.com
 ```
 
 ```bash
@@ -147,7 +147,7 @@ npx supabase functions deploy billing stripe-webhook delete-account
 **Compte Stripe partagé avec iCastt.** Techniquement possible (produits et prix distincts), mais un compte Stripe correspond
 à une entité juridique : les paiements, la TVA, les remboursements, le relevé bancaire et les litiges des deux activités se
 mélangent, et un litige sur l'une peut geler l'autre. Si les deux activités relèvent de la même entreprise, créez au moins un
-second compte Stripe dans la même organisation et utilisez un libellé de relevé distinct (`Community Safe`).
+second compte Stripe dans la même organisation et utilisez un libellé de relevé distinct (`SaveMyCommunity`).
 
 **Règles de fonctionnement**
 - Aucun client ne peut s'attribuer un forfait payant : seul le webhook signé le fait.

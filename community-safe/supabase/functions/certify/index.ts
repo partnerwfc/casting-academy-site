@@ -28,7 +28,7 @@ async function doh(name: string, type: 'TXT' | 'A' | 'AAAA'): Promise<unknown> {
 }
 
 async function checkDomain(domain: string, code: string): Promise<boolean> {
-  // 1. TXT sur _communitysafe.<domaine> : la méthode de référence, sans aucune requête vers le site.
+  // 1. TXT sur _savemycommunity.<domaine> : la méthode de référence, sans aucune requête vers le site.
   const txt = parseDohTxt(await doh(dnsTxtName(domain), 'TXT').catch(() => null));
   if (txt.some((value) => containsCode(value, code))) return true;
   // 2. Fichier /.well-known : seulement si le domaine résout vers des adresses publiques (anti-SSRF), sans redirection.

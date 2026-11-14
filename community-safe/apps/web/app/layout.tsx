@@ -13,9 +13,9 @@ export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
   return {
     metadataBase: new URL(SITE_URL),
-    title: { default: 'Community Safe — Never lose your community', template: '%s · Community Safe' },
+    title: { default: 'SaveMyCommunity — Never lose your community', template: '%s · SaveMyCommunity' },
     description: translate(locale, 'welcome.subtitle'),
-    openGraph: { siteName: 'Community Safe', type: 'website' },
+    openGraph: { siteName: 'SaveMyCommunity', type: 'website' },
   };
 }
 

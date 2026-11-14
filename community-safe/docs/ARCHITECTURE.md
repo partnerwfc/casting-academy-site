@@ -12,7 +12,7 @@
 ```
 
 Aucune dépendance aux API d'Instagram, TikTok, X ou YouTube : si elles tombent,
-Community Safe continue d'envoyer.
+SaveMyCommunity continue d'envoyer.
 
 ## Choix structurants
 
@@ -91,7 +91,7 @@ Expo deviennent limitants.
 
 ## Continuité de service
 
-Si Community Safe est indisponible, les alertes déjà en file restent en base et
+Si SaveMyCommunity est indisponible, les alertes déjà en file restent en base et
 repartent au retour du service (statuts `queued` / `pending`). Sauvegardes Supabase
 quotidiennes + restauration à un instant donné (PITR) à activer en production, avec
 un test de restauration trimestriel.

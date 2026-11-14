@@ -33,7 +33,7 @@ Méthodes : contrôle d'un compte social (code à placer dans la bio ou à envoy
 message), e-mail professionnel, domaine, pièce d'identité. La preuve est conservée
 dans `creator_verifications`.
 
-**Récupération de compte.** Le compte Community Safe repose sur l'adresse e-mail du
+**Récupération de compte.** Le compte SaveMyCommunity repose sur l'adresse e-mail du
 créateur, pas sur le réseau compromis. Recommander une adresse distincte de celle du
 réseau social et, à terme, un second facteur (TOTP déjà disponible, passkeys à venir).
 

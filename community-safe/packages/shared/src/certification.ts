@@ -17,8 +17,8 @@ export function containsCode(text: string | null | undefined, code: string): boo
   return normalizeForMatch(text).includes(normalizeForMatch(code));
 }
 
-export const dnsTxtName = (domain: string) => `_communitysafe.${domain}`;
-export const wellKnownUrl = (domain: string) => `https://${domain}/.well-known/community-safe.txt`;
+export const dnsTxtName = (domain: string) => `_savemycommunity.${domain}`;
+export const wellKnownUrl = (domain: string) => `https://${domain}/.well-known/savemycommunity.txt`;
 
 // Réponse DNS-over-HTTPS (format JSON) → valeurs TXT, sans les guillemets.
 export function parseDohTxt(json: unknown): string[] {

@@ -11,7 +11,7 @@ export function Header({ children }: { children?: ReactNode }) {
   const session = useSession();
   return (
     <header className="header container">
-      <Link href="/" className="brand">{/* eslint-disable-next-line @next/next/no-img-element */}<img className="logo" src="/logo.png" alt="" width={36} height={36} /><span>Community <span className="grad">Safe</span></span></Link>
+      <Link href="/" className="brand">{/* eslint-disable-next-line @next/next/no-img-element */}<img className="logo" src="/logo.png" alt="" width={36} height={36} /><span>SaveMy<span className="grad">Community</span></span></Link>
       <nav className="row">
         {children}
         {session ? <Link className="btn sm secondary" href="/dashboard">{t('profile.creatorSpace')}</Link>
@@ -26,7 +26,7 @@ export function Footer() {
   return (
     <footer className="site">
       <div className="container row between">
-        <span className="small">© Community Safe — {t('app.tagline')}</span>
+        <span className="small">© SaveMyCommunity — {t('app.tagline')}</span>
         <div className="row">
           <Link className="small" href="/privacy">{t('auth.privacy')}</Link>
           <Link className="small" href="/terms">{t('auth.terms')}</Link>

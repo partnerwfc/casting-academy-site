@@ -16,7 +16,7 @@ async function loadCreator(raw: string): Promise<CreatorProfile | null> {
 export async function generateMetadata({ params }: { params: Promise<{ handle: string }> }): Promise<Metadata> {
   const creator = await loadCreator((await params).handle);
   const locale = await getLocale();
-  if (!creator) return { title: 'Community Safe', robots: { index: false } };
+  if (!creator) return { title: 'SaveMyCommunity', robots: { index: false } };
   return {
     title: translate(locale, 'creator.joinTitle', { name: creator.display_name }),
     description: translate(locale, 'creator.joinBody'),

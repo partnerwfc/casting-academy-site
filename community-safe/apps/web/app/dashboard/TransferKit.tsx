@@ -21,7 +21,7 @@ async function drawVisual(format: 'square' | 'story', creator: CreatorProfile, h
   const top = format === 'square' ? 90 : 260;
 
   ctx.fillStyle = '#2563EB'; ctx.font = `700 34px ${font}`; ctx.textAlign = 'center';
-  ctx.fillText('COMMUNITY SAFE', width / 2, top);
+  ctx.fillText('SAVEMYCOMMUNITY', width / 2, top);
 
   const wrap = (text: string, y: number, size: number, weight: number, color: string, lineHeight: number) => {
     ctx.fillStyle = color; ctx.font = `${weight} ${size}px ${font}`;
@@ -43,7 +43,7 @@ async function drawVisual(format: 'square' | 'story', creator: CreatorProfile, h
   ctx.drawImage(qr, (width - qrSize) / 2, qrY, qrSize, qrSize);
 
   ctx.fillStyle = '#2563EB'; ctx.font = `700 44px ${font}`;
-  ctx.fillText(`communitysafe.com/@${creator.handle}`, width / 2, qrY + qrSize + 80);
+  ctx.fillText(`savemycommunity.com/@${creator.handle}`, width / 2, qrY + qrSize + 80);
   return canvas.toDataURL('image/png');
 }
 

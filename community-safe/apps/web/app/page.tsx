@@ -26,7 +26,7 @@ export default async function Landing() {
       <Header />
       <main className="container stack-lg">
         <section className="hero stack" style={{ maxWidth: 720 }}>
-          <span className="eyebrow">Community Safe — {t('app.tagline')}</span>
+          <span className="eyebrow">SaveMyCommunity — {t('app.tagline')}</span>
           <h1>{t('app.promise')}</h1>
           <p className="muted" style={{ fontSize: '1.15rem' }}>{t('welcome.subtitle')}</p>
           <div className="row">

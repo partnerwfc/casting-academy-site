@@ -150,7 +150,7 @@ export function Loading() {
 
 export function Logo({ size = 56 }: { size?: number }) {
   return (
-    <Image source={require('../../assets/images/icon.png')} style={{ width: size, height: size, borderRadius: size * 0.225 }} accessibilityLabel="Community Safe" />
+    <Image source={require('../../assets/images/icon.png')} style={{ width: size, height: size, borderRadius: size * 0.225 }} accessibilityLabel="SaveMyCommunity" />
   );
 }
 
