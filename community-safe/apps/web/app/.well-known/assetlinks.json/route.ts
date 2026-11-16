@@ -1,4 +1,4 @@
-// Android App Links : associe savemycommunity.com/@pseudo à l'application.
+// Android App Links : associe savemycommunity.app/@pseudo à l'application.
 export function GET() {
   const fingerprints = (process.env.ANDROID_SHA256_FINGERPRINTS ?? '').split(',').map((s) => s.trim()).filter(Boolean);
   if (!fingerprints.length) return Response.json([]);

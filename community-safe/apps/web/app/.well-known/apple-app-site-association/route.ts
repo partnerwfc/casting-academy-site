@@ -1,4 +1,4 @@
-// Universal Links iOS : associe savemycommunity.com/@pseudo à l'application.
+// Universal Links iOS : associe savemycommunity.app/@pseudo à l'application.
 export function GET() {
   const teamId = process.env.APPLE_TEAM_ID;
   const bundleId = process.env.IOS_BUNDLE_ID ?? 'com.savemycommunity.app';

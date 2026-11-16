@@ -25,7 +25,7 @@ export function normalizeHandle(input: string): string {
   return input.trim().replace(/^@/, '').toLowerCase();
 }
 
-// Lien universel d'un créateur : https://savemycommunity.com/@julien?s=instagram
+// Lien universel d'un créateur : https://savemycommunity.app/@julien?s=instagram
 export function creatorUrl(baseUrl: string, handle: string, source?: string): string {
   const url = `${baseUrl.replace(/\/$/, '')}/@${handle}`;
   return source ? `${url}?s=${encodeURIComponent(source)}` : url;

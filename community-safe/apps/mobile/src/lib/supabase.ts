@@ -30,7 +30,7 @@ const secureStorage = {
 const url = process.env.EXPO_PUBLIC_SUPABASE_URL ?? '';
 const anonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? '';
 export const isConfigured = Boolean(url && anonKey);
-export const WEB_URL = process.env.EXPO_PUBLIC_WEB_URL ?? 'https://savemycommunity.com';
+export const WEB_URL = process.env.EXPO_PUBLIC_WEB_URL ?? 'https://savemycommunity.app';
 
 export const supabase = createClient(url || 'https://missing.supabase.co', anonKey || 'missing', {
   auth: {

@@ -53,10 +53,19 @@ select id, 'admin' from auth.users where email = 'vous@exemple.com';
    À la première visite de `/admin`, l'application d'authentification (TOTP) est exigée.
 10. Activer les sauvegardes PITR et planifier un test de restauration.
 
-## 2. Site web (Vercel)
+## 2. Domaine `savemycommunity.app`
+
+Le `.app` impose le HTTPS (liste de préchargement des navigateurs) : tout fonctionne en `https://`, jamais en `http://`.
+1. Chez le registrar, pointer le domaine vers Vercel (enregistrements affichés par Vercel : `A` pour la racine, `CNAME` pour `www`).
+2. Ajouter le domaine dans Vercel (Settings → Domains) ; le certificat est automatique.
+3. Vérifier que ces deux adresses répondent en JSON (sans redirection) une fois `APPLE_TEAM_ID` et l'empreinte Android renseignés :
+   `https://savemycommunity.app/.well-known/apple-app-site-association` et `https://savemycommunity.app/.well-known/assetlinks.json`.
+4. Dans Supabase (Authentification → URL), mettre `https://savemycommunity.app` comme URL du site.
+
+## 3. Site web (Vercel)
 
 Nouveau projet Vercel, **Root Directory** : `community-safe/apps/web`.
-Variables : voir `apps/web/.env.example`. Domaine : celui que vous aurez acheté (à vérifier chez un registrar ; j'ai écrit `savemycommunity.com` par défaut,
+Variables : voir `apps/web/.env.example`. Domaine : celui que vous aurez acheté (à vérifier chez un registrar ; j'ai écrit `savemycommunity.app` par défaut,
 à remplacer dans `EXPO_PUBLIC_WEB_URL`, `NEXT_PUBLIC_SITE_URL`, `SITE_URL`, `associatedDomains` et `intentFilters` de `apps/mobile/app.json`).
 
 ## 3. iOS
@@ -102,7 +111,7 @@ npx eas-cli@latest submit --platform all
 
 Sur un iPhone et un Android réels :
 
-- [ ] Ouvrir `savemycommunity.com/@test` sans l'app → suivre → installer → se connecter → la communauté est là.
+- [ ] Ouvrir `savemycommunity.app/@test` sans l'app → suivre → installer → se connecter → la communauté est là.
 - [ ] Même lien avec l'app installée → ouvre directement le profil.
 - [ ] Autoriser les notifications → « M'envoyer une alerte de test » → la notification arrive, app fermée.
 - [ ] Appui sur la notification → détail de l'alerte, pas le lien.
@@ -133,7 +142,7 @@ update plans set stripe_price_id = 'price_...' where id = 'premium';
 5. Secrets et déploiement :
 
 ```bash
-npx supabase secrets set STRIPE_SECRET_KEY=sk_live_... STRIPE_WEBHOOK_SECRET=whsec_... SITE_URL=https://savemycommunity.com
+npx supabase secrets set STRIPE_SECRET_KEY=sk_live_... STRIPE_WEBHOOK_SECRET=whsec_... SITE_URL=https://savemycommunity.app
 ```
 
 ```bash

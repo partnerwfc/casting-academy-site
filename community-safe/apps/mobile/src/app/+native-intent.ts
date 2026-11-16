@@ -1,7 +1,7 @@
-// Liens universels : https://savemycommunity.com/@julien?s=instagram → écran du créateur.
+// Liens universels : https://savemycommunity.app/@julien?s=instagram → écran du créateur.
 export function redirectSystemPath({ path }: { path: string; initial: boolean }) {
   try {
-    const url = new URL(path, 'https://savemycommunity.com');
+    const url = new URL(path, 'https://savemycommunity.app');
     const match = /^\/@([a-zA-Z0-9_.]{3,30})\/?$/.exec(url.pathname);
     if (match) {
       const source = url.searchParams.get('s');

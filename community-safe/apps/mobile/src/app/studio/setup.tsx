@@ -42,7 +42,7 @@ export default function Setup() {
       <Input label={t('setup.displayName')} value={name} onChangeText={setName} maxLength={60} />
       <View style={{ gap: 4 }}>
         <Input label={t('setup.handle')} value={handle} onChangeText={setHandle} autoCapitalize="none" autoCorrect={false} maxLength={31} placeholder="@" />
-        <T v="small">{clean ? `savemycommunity.com/@${clean} · ` : ''}{t('setup.handleHint')}</T>
+        <T v="small">{clean ? `savemycommunity.app/@${clean} · ` : ''}{t('setup.handleHint')}</T>
       </View>
       <View style={{ gap: space.sm }}>
         <T v="small" style={{ fontWeight: '600', color: c.text }}>{t('setup.category')}</T>

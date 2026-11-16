@@ -43,7 +43,7 @@ async function drawVisual(format: 'square' | 'story', creator: CreatorProfile, h
   ctx.drawImage(qr, (width - qrSize) / 2, qrY, qrSize, qrSize);
 
   ctx.fillStyle = '#2563EB'; ctx.font = `700 44px ${font}`;
-  ctx.fillText(`savemycommunity.com/@${creator.handle}`, width / 2, qrY + qrSize + 80);
+  ctx.fillText(`savemycommunity.app/@${creator.handle}`, width / 2, qrY + qrSize + 80);
   return canvas.toDataURL('image/png');
 }
 
