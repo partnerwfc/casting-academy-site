@@ -24,7 +24,7 @@ create table public.certification_events (
   actor_user_id uuid,                       -- null = le système
   action text not null check (action in (
     'requested', 'code_issued', 'auto_check_passed', 'auto_check_failed', 'sent_to_review', 'alternative_requested',
-    'presence_passed', 'presence_failed', 'approved', 'rejected', 'suspended', 'reinstated', 'revoked', 'expired', 'reverification_required', 'owner_transferred')),
+    'presence_call_requested', 'presence_passed', 'presence_failed', 'approved', 'rejected', 'suspended', 'reinstated', 'revoked', 'expired', 'reverification_required', 'owner_transferred')),
   reason text,
   metadata jsonb not null default '{}',
   created_at timestamptz not null default now()
@@ -220,6 +220,28 @@ begin
    where id = v_row.id;
   perform public.cert_event(v_row.creator_id, v_row.id, case when p_passed then 'presence_passed' else 'presence_failed' end, p_note,
     jsonb_build_object('provider', 'manual_call'));
+end $$;
+
+-- Mode « manual » : le créateur indique un lien de visio (Meet, Zoom, FaceTime…) et ses disponibilités ;
+-- l'équipe le rejoint, mène le contrôle, puis confirme avec admin_confirm_presence. Aucun e-mail n'intervient.
+create or replace function public.request_presence_call(p_verification_id uuid, p_link text, p_availability text default null)
+returns void language plpgsql security definer set search_path = public, extensions as $$
+declare
+  v_row creator_verifications;
+  v_error text;
+begin
+  select v.* into v_row from creator_verifications v join creator_profiles c on c.id = v.creator_id
+   where v.id = p_verification_id and c.owner_user_id = public.require_user() for update of v;
+  if v_row.id is null then raise exception 'verification_not_found' using errcode = 'P0002'; end if;
+  if v_row.status <> 'awaiting_proof' or v_row.presence_status = 'passed' then raise exception 'verification_not_open' using errcode = '22023'; end if;
+  v_error := public.check_alert_link(trim(p_link));
+  if v_error is not null then raise exception '%', v_error using errcode = '22023'; end if;
+  update creator_verifications
+     set evidence = evidence || jsonb_build_object('call_link', left(trim(p_link), 300),
+           'availability', left(coalesce(trim(p_availability), ''), 200), 'call_requested_at', now()),
+         presence_status = case when presence_status = 'failed' then 'pending' else presence_status end
+   where id = v_row.id;
+  perform public.cert_event(v_row.creator_id, v_row.id, 'presence_call_requested');
 end $$;
 
 -- Résultat du contrôle vidéo, envoyé par le prestataire (webhook signé, service_role uniquement).
@@ -473,14 +495,14 @@ revoke execute on function
   public.require_reverification(uuid, text), public.guard_certified_profile(), public.guard_social_account(),
   public.cert_alphabet_code(), public.start_certification(uuid), public.request_certification_review(uuid),
   public.request_alternative_certification(uuid, text), public.cert_risk_flags(uuid, uuid),
-  public.record_auto_check(uuid, boolean, text), public.cert_approve(uuid, uuid, text), public.cert_presence_ok(uuid), public.record_presence_result(uuid, boolean, text, text), public.admin_confirm_presence(uuid, boolean, text),
+  public.record_auto_check(uuid, boolean, text), public.cert_approve(uuid, uuid, text), public.cert_presence_ok(uuid), public.request_presence_call(uuid, text, text), public.record_presence_result(uuid, boolean, text, text), public.admin_confirm_presence(uuid, boolean, text),
   public.admin_review_certification(uuid, boolean, text), public.admin_suspend_certification(uuid, text),
   public.admin_reinstate_certification(uuid, text), public.admin_revoke_certification(uuid, text),
   public.admin_transfer_owner(uuid, uuid, text), public.has_strong_recent_auth(), public.has_totp_factor(),
   public.purge_certification_data() from public, anon, authenticated;
 grant execute on function
   public.parse_social_url(text, text), public.add_social_account(text, text), public.start_certification(uuid),
-  public.request_certification_review(uuid), public.request_alternative_certification(uuid, text),
+  public.request_certification_review(uuid), public.request_presence_call(uuid, text, text), public.request_alternative_certification(uuid, text),
   public.admin_review_certification(uuid, boolean, text), public.admin_suspend_certification(uuid, text),
   public.admin_reinstate_certification(uuid, text), public.admin_revoke_certification(uuid, text),
   public.admin_transfer_owner(uuid, uuid, text), public.admin_confirm_presence(uuid, boolean, text), public.has_strong_recent_auth(), public.has_totp_factor() to authenticated;

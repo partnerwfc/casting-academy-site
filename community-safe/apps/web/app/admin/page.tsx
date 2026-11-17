@@ -60,7 +60,8 @@ function Table({ rows, columns, actions }: { rows: Row[]; columns: string[]; act
             <tr key={String(row.id ?? row.key ?? i)}>
               {columns.map((c) => {
                 const value = c.split('.').reduce<unknown>((acc, k) => (acc as Row | null)?.[k], row);
-                return <td key={c}>{value === null || value === undefined ? '—' : typeof value === 'object' ? JSON.stringify(value) : String(value)}</td>;
+                const text = value === null || value === undefined ? '—' : typeof value === 'object' ? JSON.stringify(value) : String(value);
+                return <td key={c}>{/^https:\/\/\S+$/.test(text) ? <a href={text} target="_blank" rel="noopener noreferrer">{text}</a> : text}</td>;
               })}
               {actions ? <td><div className="row">{actions(row)}</div></td> : null}
             </tr>
@@ -80,6 +81,8 @@ function Console() {
   const [plans, setPlans] = useState<Row[]>([]);
   const [settings, setSettings] = useState<Row[]>([]);
   const [logs, setLogs] = useState<Row[]>([]);
+  const [certs, setCerts] = useState<Row[]>([]);
+  const [certEvents, setCertEvents] = useState<Row[]>([]);
   const [search, setSearch] = useState('');
   const [error, setError] = useState<string | null>(null);
 
@@ -88,19 +91,25 @@ function Console() {
     const term = search.trim().replace(/[%,()\\*]/g, '');
     let creatorQuery = db.from('creator_profiles').select('id, handle, display_name, category, verification_status, status, plan_id, member_count').order('created_at', { ascending: false }).limit(50);
     if (term) creatorQuery = creatorQuery.or(`handle.ilike.%${term}%,display_name.ilike.%${term}%`);
-    const [s, v, r, c, a, p, st, l] = await Promise.all([
+    const [s, v, r, c, a, p, st, l, ce] = await Promise.all([
       db.rpc('admin_stats'),
-      db.from('creator_verifications').select('id, method, evidence, created_at, creator_profiles(handle, display_name, category)').eq('status', 'pending').order('created_at'),
+      db.from('creator_verifications').select('id, method, status, presence_status, risk_flags, evidence, note, attempts, created_at, creator_profiles(handle, display_name), social_accounts(platform, handle, url)').in('status', ['awaiting_proof', 'in_review']).order('created_at'),
       db.from('abuse_reports').select('id, reason, details, created_at, creator_id, alert_id, creator_profiles(handle)').eq('status', 'open').order('created_at'),
       creatorQuery,
       db.from('alerts').select('id, kind, status, message, link_url, recipients_total, created_at, creator_profiles(handle)').neq('kind', 'test').order('created_at', { ascending: false }).limit(30),
       db.from('plans').select('*').order('sort_order'),
       db.from('app_settings').select('*').order('key'),
       db.from('audit_logs').select('id, action, target_type, target_id, metadata, created_at').order('created_at', { ascending: false }).limit(50),
+      db.from('certification_events').select('id, action, reason, metadata, created_at, creator_profiles(handle)').order('id', { ascending: false }).limit(50),
     ]);
     if (s.error) return setError(s.error.message);
     setStats(s.data as Record<string, number>);
-    setVerifications((v.data ?? []) as Row[]); setReports((r.data ?? []) as Row[]); setCreators((c.data ?? []) as Row[]);
+    setVerifications(((v.data ?? []) as Row[]).map((r) => {
+      const acct = r.social_accounts as { platform?: string; url?: string } | null;
+      const ev = (r.evidence ?? {}) as { call_link?: string; availability?: string };
+      return { ...r, account: acct?.url ?? '—', platform: acct?.platform ?? '', call: ev.call_link ?? '', availability: ev.availability ?? '', flags: (r.risk_flags as string[] | null)?.join(', ') ?? '' };
+    }));
+    setCertEvents(((ce.data ?? []) as Row[]).map((r) => ({ ...r, handle: (r.creator_profiles as { handle?: string } | null)?.handle ?? '' }))); setReports((r.data ?? []) as Row[]); setCreators((c.data ?? []) as Row[]);
     setAlerts((a.data ?? []) as Row[]); setPlans((p.data ?? []) as Row[]); setSettings((st.data ?? []) as Row[]); setLogs((l.data ?? []) as Row[]);
   }, [search]);
 
@@ -128,10 +137,17 @@ function Console() {
         </section>
       ) : null}
 
-      <section className="card"><h3>Pending verifications</h3>
-        <Table rows={verifications} columns={['creator_profiles.handle', 'creator_profiles.display_name', 'method', 'evidence', 'created_at']} actions={(row) => (<>
-          <button className="btn sm" onClick={() => act(db.rpc('admin_review_verification', { p_verification_id: row.id, p_approve: true }))}>Approve</button>
-          <button className="btn sm danger" onClick={() => act(db.rpc('admin_review_verification', { p_verification_id: row.id, p_approve: false, p_notes: prompt('Reason?') }))}>Reject</button>
+      <section className="card"><h3>Certification requests</h3>
+        <p className="small">Step 1 · confirm presence after a live video call (nothing recorded). Step 2 · approve only after checking the public profile shows the code. A risk flag requires a written justification.</p>
+        <Table rows={verifications} columns={['creator_profiles.handle', 'creator_profiles.display_name', 'platform', 'account', 'method', 'status', 'presence_status', 'flags', 'call', 'availability', 'note', 'created_at']} actions={(row) => (<>
+          {row.status === 'awaiting_proof' && row.presence_status !== 'passed' ? (<>
+            <button className="btn sm" onClick={() => act(db.rpc('admin_confirm_presence', { p_verification_id: row.id, p_passed: true, p_note: prompt('Note (optional)') }))}>Presence OK</button>
+            <button className="btn sm danger" onClick={() => act(db.rpc('admin_confirm_presence', { p_verification_id: row.id, p_passed: false, p_note: prompt('Reason?') }))}>Presence failed</button>
+          </>) : null}
+          {row.status === 'in_review' ? (<>
+            <button className="btn sm" onClick={() => { const reason = prompt(row.flags ? `Risk: ${row.flags}. Justification (min 10 characters)` : 'Note (optional)'); if (reason !== null) act(db.rpc('admin_review_certification', { p_verification_id: row.id, p_approve: true, p_reason: reason || null })); }}>Approve</button>
+            <button className="btn sm danger" onClick={() => { const reason = prompt('Reason for refusal (shown to the creator)'); if (reason) act(db.rpc('admin_review_certification', { p_verification_id: row.id, p_approve: false, p_reason: reason })); }}>Refuse</button>
+          </>) : null}
         </>)} />
       </section>
 
@@ -149,6 +165,9 @@ function Console() {
           {row.status === 'active'
             ? <button className="btn sm danger" onClick={() => confirm(`Suspend @${row.handle}?`) && act(db.rpc('admin_set_creator_status', { p_creator_id: row.id, p_status: 'suspended', p_reason: prompt('Reason?') }))}>Suspend</button>
             : <button className="btn sm secondary" onClick={() => act(db.rpc('admin_set_creator_status', { p_creator_id: row.id, p_status: 'active' }))}>Reactivate</button>}
+          {row.verification_status === 'verified' ? <button className="btn sm danger" onClick={() => { const r = prompt('Reason for suspending the certification'); if (r) act(db.rpc('admin_suspend_certification', { p_creator_id: row.id, p_reason: r })); }}>Suspend badge</button> : null}
+          {row.verification_status === 'suspended' ? <button className="btn sm secondary" onClick={() => act(db.rpc('admin_reinstate_certification', { p_creator_id: row.id, p_reason: prompt('Note (optional)') }))}>Reinstate badge</button> : null}
+          {['verified', 'suspended'].includes(String(row.verification_status)) ? <button className="btn sm danger" onClick={() => { const r = prompt('Reason for REVOKING the certification'); if (r && confirm(`Revoke the badge of @${row.handle}?`)) act(db.rpc('admin_revoke_certification', { p_creator_id: row.id, p_reason: r })); }}>Revoke badge</button> : null}
           <select className="input" style={{ width: 'auto', padding: '6px 8px' }} aria-label="Plan" value={String(row.plan_id)}
             onChange={(e) => act(db.rpc('admin_set_creator_plan', { p_creator_id: row.id, p_plan_id: e.target.value }))}>
             {plans.map((p) => <option key={String(p.id)} value={String(p.id)}>{String(p.name)}</option>)}
@@ -181,6 +200,10 @@ function Console() {
             try { act(db.from('app_settings').update({ value: JSON.parse(v), updated_at: new Date().toISOString() }).eq('key', row.key)); } catch { setError('Invalid JSON value'); }
           }}>Edit</button>
         )} />
+      </section>
+
+      <section className="card"><h3>Certification decisions</h3>
+        <Table rows={certEvents} columns={['created_at', 'handle', 'action', 'reason', 'metadata']} />
       </section>
 
       <section className="card"><h3>Audit log</h3>

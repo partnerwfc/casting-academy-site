@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { formatCount, normalizeHandle, translate, HANDLE_PATTERN, type CreatorProfile, type MessageKey } from '@community-safe/shared';
 import { Avatar, Footer, Header } from '@/components/Chrome';
+import { CertBadge } from '@/components/CertBadge';
 import { getLocale } from '@/lib/locale';
 import { anonServerClient } from '@/lib/supabase';
 import { FollowPanel } from './FollowPanel';
@@ -40,9 +41,7 @@ export default async function CreatorPage({ params }: { params: Promise<{ handle
               <Avatar name={creator.display_name} url={creator.avatar_url} size={104} />
               <h2>{creator.display_name}</h2>
               <p className="muted">@{creator.handle} · {t(`category.${creator.category}` as MessageKey)}</p>
-              <span className={`pill ${creator.verification_status === 'verified' ? 'primary' : ''}`}>
-                {creator.verification_status === 'verified' ? `✓ ${t('creator.verified')}` : t('creator.unverified')}
-              </span>
+              {creator.verification_status === 'verified' ? <CertBadge /> : <span className="pill">{t('creator.unverified')}</span>}
               <p className="small">{t('creator.members', { count: formatCount(locale, creator.member_count) })}</p>
               {creator.bio ? <p>{creator.bio}</p> : null}
             </div>

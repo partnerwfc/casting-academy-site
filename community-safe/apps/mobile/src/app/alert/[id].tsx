@@ -2,12 +2,13 @@ import { useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert as RNAlert, Linking, View } from 'react-native';
 import { checkLink, formatDate, linkHost, type Alert, type MessageKey } from '@community-safe/shared';
+import { CertBadge } from '@/components/CertBadge';
 import { Avatar, Button, Card, Loading, Pill, Screen, T } from '@/components/ui';
 import { useI18n } from '@/lib/i18n';
 import { supabase } from '@/lib/supabase';
 import { space } from '@/lib/theme';
 
-type AlertWithCreator = Alert & { creator_profiles: { display_name: string; handle: string; avatar_url: string | null } };
+type AlertWithCreator = Alert & { creator_profiles: { display_name: string; handle: string; avatar_url: string | null; verification_status: string } };
 
 export default function AlertDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -15,7 +16,7 @@ export default function AlertDetail() {
   const [alert, setAlert] = useState<AlertWithCreator | null | undefined>(undefined);
 
   useEffect(() => {
-    supabase.from('alerts').select('*, creator_profiles!inner(display_name, handle, avatar_url)').eq('id', id).maybeSingle()
+    supabase.from('alerts').select('*, creator_profiles!inner(display_name, handle, avatar_url, verification_status)').eq('id', id).maybeSingle()
       .then(({ data }) => setAlert((data as AlertWithCreator | null) ?? null));
     supabase.rpc('mark_alert_opened', { p_alert_id: id, p_link: false }).then(() => {});
   }, [id]);
@@ -44,7 +45,7 @@ export default function AlertDetail() {
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md }}>
         <Avatar name={creator.display_name} url={creator.avatar_url} size={56} />
         <View style={{ flex: 1, gap: 2 }}>
-          <T v="heading">{creator.display_name} ✓</T>
+          <View style={{ gap: 4 }}><T v="heading">{creator.display_name}</T>{creator.verification_status === 'verified' ? <CertBadge small /> : null}</View>
           <T v="small">@{creator.handle} · {formatDate(locale, alert.created_at)}</T>
         </View>
       </View>

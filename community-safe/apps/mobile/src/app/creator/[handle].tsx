@@ -5,6 +5,7 @@ import { Alert, View } from 'react-native';
 import {
   formatCount, normalizeHandle, type CreatorProfile, type MessageKey, type NotificationPreferences,
 } from '@community-safe/shared';
+import { CertBadge } from '@/components/CertBadge';
 import { PushPrompt } from '@/components/PushPrompt';
 import { Avatar, Button, Card, Loading, Pill, Screen, SwitchRow, T } from '@/components/ui';
 import { useAuth } from '@/lib/auth';
@@ -104,7 +105,7 @@ export default function CreatorScreen() {
         <Avatar name={creator.display_name} url={creator.avatar_url} size={96} />
         <T v="title" center>{creator.display_name}</T>
         <T v="muted">@{creator.handle} · {t(`category.${creator.category}` as MessageKey)}</T>
-        <Pill label={verified ? `✓ ${t('creator.verified')}` : t('creator.unverified')} tone={verified ? 'primary' : 'neutral'} />
+        {verified ? <CertBadge /> : <Pill label={t('creator.unverified')} />}
         <T v="small">{t('creator.members', { count: formatCount(locale, creator.member_count) })}</T>
         {creator.bio ? <T v="body" center>{creator.bio}</T> : null}
       </View>

@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Alert as RNAlert, Pressable, View } from 'react-native';
 import * as Crypto from 'expo-crypto';
 import { formatCount, formatDate, type Alert, type DashboardStats } from '@community-safe/shared';
+import { CertBadge } from '@/components/CertBadge';
 import { Button, Card, Loading, Pill, Screen, Stat, T } from '@/components/ui';
 import { useAuth } from '@/lib/auth';
 import { useI18n } from '@/lib/i18n';
@@ -76,13 +77,14 @@ export default function Studio() {
     <Screen>
       <View style={{ gap: space.xs }}>
         <T v="hero" style={{ fontSize: 44, lineHeight: 50 }}>{formatCount(locale, stats.members_total)}</T>
-        <T v="muted">{t('dash.members')} · @{creator.handle} {verified ? '✓' : ''}</T>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm, flexWrap: 'wrap' }}><T v="muted">{t('dash.members')} · @{creator.handle}</T>{verified ? <CertBadge small /> : null}</View>
       </View>
 
       {verified ? null : (
         <Card tone="soft">
-          <T v="muted">{t(creator.verification_status === 'pending' ? 'verify.pending' : creator.verification_status === 'rejected' ? 'verify.rejected' : 'verify.needed')}</T>
-          {creator.verification_status === 'pending' ? null : <Button label={t('verify.cta')} onPress={() => router.push('/studio/verify')} />}
+          <T v="heading">{t('cert.title')}</T>
+          <T v="muted">{t(creator.verification_status === 'pending' ? 'cert.inReview' : creator.verification_status === 'suspended' ? 'cert.suspended' : 'cert.requiredToSend')}</T>
+          <Button label={t(creator.verification_status === 'pending' ? 'cert.title' : 'cert.start')} onPress={() => router.push('/studio/verify')} />
         </Card>
       )}
 

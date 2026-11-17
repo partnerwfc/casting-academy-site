@@ -14,7 +14,8 @@ import { useSession } from '@/lib/useSession';
 import { Composer } from './Composer';
 import { Tracking } from './Tracking';
 import { TransferKit } from './TransferKit';
-import { VerificationCard } from './VerificationCard';
+import { CertificationCard } from './CertificationCard';
+import { CertBadge } from '@/components/CertBadge';
 
 function Setup({ onCreated }: { onCreated: () => void }) {
   const { t, locale } = useI18n();
@@ -126,7 +127,7 @@ export default function Dashboard() {
         <section className="stack">
           <span className="eyebrow">{t('dash.title')}</span>
           <div className="big-number">{formatCount(locale, stats.members_total)}</div>
-          <p className="muted">{t('dash.members')} · @{creator.handle} {verified ? '✓' : ''}</p>
+          <p className="muted row" style={{ gap: 8 }}>{t('dash.members')} · @{creator.handle} {verified ? <CertBadge small /> : null}</p>
           <div className="row">
             <button className="btn sos" disabled={!verified} onClick={() => setComposing('sos')}>{t('dash.sos')}</button>
             <a className="btn secondary" href="#transfer">{t('dash.share')}</a>
@@ -134,7 +135,7 @@ export default function Dashboard() {
           {notice ? <p className="small" role="status">{notice}</p> : null}
         </section>
 
-        {verified ? null : <VerificationCard creator={creator} onChange={load} />}
+        <CertificationCard creator={creator} onChange={load} />
         {composing ? <Composer kind={composing} creator={creator} email={session.user.email ?? ''} onClose={() => setComposing(null)}
           onSent={(id) => { setComposing(null); setTracking(id); load(); }} /> : null}
         {tracking ? <Tracking alertId={tracking} onClose={() => setTracking(null)} /> : null}

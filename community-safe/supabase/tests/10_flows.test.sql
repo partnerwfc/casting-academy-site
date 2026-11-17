@@ -358,3 +358,12 @@ select follow_creator('julie') is not null as ok \gset
 select t.expect_error($$select create_creator_profile('anonyme_createur', 'X')$$, 'account_required');
 select t.logout();
 select t.eq((select purge_anonymous_users()), 0, 'comptes anonymes récents conservés');
+
+-- ── Demande d'appel vidéo (mode manuel) : lien HTTPS public uniquement ──
+select t.login('00000000-0000-0000-0000-00000000000a', 30);
+select (start_certification(:'acct_id')).id as v6 \gset
+select t.expect_error(format($$select request_presence_call(%L, 'http://meet.example.com/x')$$, :'v6'), 'link_not_https');
+select t.expect_error(format($$select request_presence_call(%L, 'https://bit.ly/abc')$$, :'v6'), 'link_blocked_domain');
+select request_presence_call(:'v6', 'https://meet.google.com/abc-defg-hij', 'Lun-ven après 18h');
+select t.eq((select evidence ->> 'call_link' from creator_verifications where id = :'v6'), 'https://meet.google.com/abc-defg-hij', 'lien de visio enregistré');
+select t.logout();

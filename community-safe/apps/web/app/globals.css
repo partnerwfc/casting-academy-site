@@ -97,3 +97,13 @@ pre.copy { white-space: pre-wrap; word-break: break-word; font: inherit; color: 
 footer.site { padding: 32px 0; margin-top: 48px; border-top: 1px solid var(--border); }
 .prose { display: flex; flex-direction: column; gap: 14px; padding: 32px 0; }
 .prose h2 { margin-top: 12px; font-size: 1.2rem; }
+.cbadge { display: inline-flex; align-items: center; gap: 6px; background: var(--primary-soft); color: var(--primary); border-radius: 999px; padding: 4px 11px 4px 5px; font-weight: 700; font-size: 0.8rem; letter-spacing: -0.01em; white-space: nowrap; }
+.cbadge svg { width: 18px; height: 18px; flex: none; }
+.cbadge.sm { padding: 2px 8px 2px 3px; font-size: 0.72rem; }
+.cbadge.sm svg { width: 15px; height: 15px; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.lvl { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; }
+.lvl .ic { width: 28px; height: 28px; border-radius: 50%; background: var(--border); color: #fff; display: grid; place-items: center; font-weight: 800; flex: none; font-size: 0.85rem; }
+.lvl.ok .ic { background: var(--success); }
+.lvl.cur .ic { background: var(--primary); }
+.codebox { background: var(--surface); border: 1px dashed var(--primary); border-radius: 14px; padding: 14px; text-align: center; font-size: 1.5rem; font-weight: 800; letter-spacing: 0.12em; font-variant-numeric: tabular-nums; }

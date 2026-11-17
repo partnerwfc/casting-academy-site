@@ -11,7 +11,7 @@ export const SOS_REASONS = ['hacked', 'suspended', 'deleted', 'platform_down', '
 export type SosReason = (typeof SOS_REASONS)[number];
 
 export const SOCIAL_PLATFORMS = [
-  'instagram', 'tiktok', 'youtube', 'x', 'twitch', 'facebook', 'telegram', 'whatsapp', 'discord', 'website', 'other',
+  'instagram', 'tiktok', 'youtube', 'x', 'twitch', 'facebook', 'snapchat', 'telegram', 'whatsapp', 'discord', 'website', 'other',
 ] as const;
 export type SocialPlatform = (typeof SOCIAL_PLATFORMS)[number];
 

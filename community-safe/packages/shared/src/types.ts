@@ -1,6 +1,25 @@
 import type { AlertKind } from './push';
 
-export type VerificationStatus = 'unverified' | 'pending' | 'verified' | 'rejected';
+export type VerificationStatus = 'unverified' | 'pending' | 'verified' | 'rejected' | 'suspended' | 'revoked';
+export type CertificationStatus = 'awaiting_proof' | 'in_review' | 'approved' | 'rejected' | 'expired' | 'failed' | 'revoked' | 'cancelled';
+
+export interface Certification {
+  id: string;
+  creator_id: string;
+  social_account_id: string | null;
+  method: 'auto_domain' | 'auto_youtube' | 'auto_twitch' | 'manual_social' | 'manual_alt';
+  status: CertificationStatus;
+  code: string | null;
+  code_expires_at: string | null;
+  attempts: number;
+  max_attempts: number;
+  presence_status: 'pending' | 'passed' | 'failed' | 'expired';
+  evidence: { call_link?: string; availability?: string; call_requested_at?: string };
+  decision_reason: string | null;
+  created_at: string;
+}
+
+export const SOCIAL_PLATFORMS_CERT = ['instagram', 'tiktok', 'youtube', 'x', 'twitch', 'snapchat', 'facebook', 'website'] as const;
 export type AlertStatus = 'queued' | 'sending' | 'sent' | 'blocked' | 'failed';
 
 export interface CreatorProfile {

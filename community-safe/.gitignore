@@ -12,3 +12,4 @@ expo-env.d.ts
 next-env.d.ts
 supabase/.temp
 supabase/.branches
+.env.backend
