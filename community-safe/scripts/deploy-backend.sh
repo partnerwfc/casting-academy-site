@@ -29,8 +29,12 @@ ask() { # $1 = nom, $2 = invite, $3 = "optional"
   printf -v "$name" '%s' "$value"
 }
 # Secrets générés une fois si absents (à conserver : ils relient le planificateur aux fonctions).
-[[ -z "${DISPATCH_SECRET:-}" ]] && DISPATCH_SECRET="$(openssl rand -hex 32)" && echo "ℹ DISPATCH_SECRET généré (conservez-le dans .env.backend)"
-[[ -z "${PRESENCE_WEBHOOK_SECRET:-}" ]] && PRESENCE_WEBHOOK_SECRET="$(openssl rand -hex 32)"
+save_secret() { # enregistre (ou remplace) NOM=valeur dans .env.backend, lisible par vous seul
+  touch .env.backend && chmod 600 .env.backend
+  { grep -v "^$1=" .env.backend || true; echo "$1=$2"; } > .env.backend.tmp && mv .env.backend.tmp .env.backend && chmod 600 .env.backend
+}
+if [[ -z "${DISPATCH_SECRET:-}" ]]; then DISPATCH_SECRET="$(openssl rand -hex 32)"; save_secret DISPATCH_SECRET "$DISPATCH_SECRET"; echo "ℹ DISPATCH_SECRET généré et enregistré dans .env.backend"; fi
+if [[ -z "${PRESENCE_WEBHOOK_SECRET:-}" ]]; then PRESENCE_WEBHOOK_SECRET="$(openssl rand -hex 32)"; save_secret PRESENCE_WEBHOOK_SECRET "$PRESENCE_WEBHOOK_SECRET"; fi
 
 ask SITE_URL "URL du site (ex. https://savemycommunity.app)"
 ask STRIPE_SECRET_KEY "Clé secrète Stripe (sk_…), vide pour plus tard" optional
@@ -55,7 +59,7 @@ done
 echo "▶ 5/5  Planification des envois (reprises, reçus, purges)"
 echo "   À coller UNE FOIS dans Supabase → SQL Editor (remplacez les valeurs) :"
 echo "   select vault.create_secret('https://$REF.supabase.co/functions/v1/dispatch-alerts', 'dispatch_url');"
-echo "   select vault.create_secret('<DISPATCH_SECRET>', 'dispatch_secret');"
+echo "   select vault.create_secret('<valeur de DISPATCH_SECRET dans .env.backend>', 'dispatch_secret');"
 
 cat <<MSG
 
