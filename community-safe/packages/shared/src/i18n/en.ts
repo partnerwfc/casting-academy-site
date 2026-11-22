@@ -50,6 +50,7 @@ export const en = {
   'dash.d90': "90 days",
   'dash.sendAlert': "Send an alert",
   'cert.headline': "Get your account certified",
+  'plan.headline': "Protect your community",
   'welcome.discover': 'Discover communities',
   'welcome.creator': "I'm a creator",
   'auth.title': 'Sign in',

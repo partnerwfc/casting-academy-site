@@ -2,6 +2,7 @@ import { Redirect, router } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useCallback, useEffect, useState } from 'react';
 import { Alert, Pressable, View } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 import { errorMessage, formatCount, formatDate, type MessageKey } from '@community-safe/shared';
 import { Button, Card, Input, Loading, Pill, Screen, T } from '@/components/ui';
 import { useAuth } from '@/lib/auth';
@@ -71,7 +72,13 @@ export default function PlanScreen() {
 
   return (
     <Screen>
-      <T v="muted">{t('plan.subtitle')}</T>
+      <View style={{ alignItems: 'center', gap: space.md }}>
+        <View style={{ width: 68, height: 68, borderRadius: 20, backgroundColor: c.brand, alignItems: 'center', justifyContent: 'center' }}>
+          <Svg width={32} height={32} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><Path d="M12 3l7.5 3v5.6c0 4.4-3 7.7-7.5 9.4-4.5-1.7-7.5-5-7.5-9.4V6zM8.8 12l2.4 2.4 4.2-4.4" /></Svg>
+        </View>
+        <T v="hero" center style={{ fontSize: 28, lineHeight: 34 }}>{t('plan.headline')}</T>
+        <T v="muted" center>{t('plan.subtitle')}</T>
+      </View>
 
       {paidActive && sub ? (
         <Card tone="soft">
@@ -86,9 +93,9 @@ export default function PlanScreen() {
           const on = selected === p.id;
           return (
             <Pressable key={p.id} accessibilityRole="radio" accessibilityState={{ selected: on }} onPress={() => { setSelected(p.id); setError(null); }}
-              style={{ flexDirection: 'row', alignItems: 'center', gap: 14, padding: on ? 15 : 16, borderRadius: 18, borderWidth: on ? 2 : 1.5, borderColor: on ? c.primary : c.border, backgroundColor: c.card }}>
-              <View style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: on ? c.primary : c.border, alignItems: 'center', justifyContent: 'center' }}>
-                {on ? <T v="small" style={{ color: '#fff', fontWeight: '800', fontSize: 12 }}>✓</T> : null}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 14, padding: on ? 15 : 16, borderRadius: 20, borderWidth: on ? 1.5 : 1, borderColor: on ? c.primary : c.border, backgroundColor: on ? c.primarySoft : c.card }}>
+              <View style={{ width: 22, height: 22, borderRadius: 11, borderWidth: 2, borderColor: on ? c.primary : '#C9CCD8', backgroundColor: on ? c.primary : 'transparent', alignItems: 'center', justifyContent: 'center' }}>
+                {on ? <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#fff' }} /> : null}
               </View>
               <View style={{ flex: 1, gap: 2 }}>
                 <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
