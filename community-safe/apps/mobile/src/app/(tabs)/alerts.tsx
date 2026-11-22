@@ -33,7 +33,7 @@ export default function Alerts() {
 
   return (
     <Screen scroll={false} padded={false}>
-      <View style={{ padding: space.lg }}><T v="title">{t('tabs.alerts')}</T></View>
+      <View style={{ padding: space.lg }}><T v="hero">{t('tabs.alerts')}</T></View>
       {rows === null ? <Loading /> : (
         <FlatList
           data={rows}
@@ -44,15 +44,18 @@ export default function Alerts() {
             const a = item.alerts;
             return (
               <Pressable accessibilityRole="button" onPress={() => router.push(`/alert/${a.id}`)}
-                style={{ flexDirection: 'row', gap: space.md, paddingVertical: space.md, borderBottomWidth: 1, borderBottomColor: c.border }}>
+                style={{
+                  flexDirection: 'row', gap: space.md, padding: space.md, marginBottom: space.md, borderRadius: 20, borderWidth: 1,
+                  backgroundColor: a.kind === 'sos' ? c.sosSoft : c.card, borderColor: a.kind === 'sos' ? '#FBC5CF' : c.border,
+                }}>
                 <Avatar name={a.creator_profiles.display_name} url={a.creator_profiles.avatar_url} size={44} />
                 <View style={{ flex: 1, gap: 4 }}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
                     <T v="heading" style={{ flexShrink: 1 }}>{a.creator_profiles.display_name}</T>
                     <Pill label={t(`alerts.kind.${a.kind}`)} tone={a.kind === 'sos' ? 'sos' : 'primary'} />
-                    {item.opened_at ? null : <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: c.primary }} />}
+                    {item.opened_at ? null : <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: c.primary, marginLeft: 'auto' }} />}
                   </View>
-                  <T v="muted" style={{ color: c.text }}>{a.message}</T>
+                  <T v="heading" style={{ fontSize: 15 }}>{a.message}</T>
                   <T v="small">{formatDate(locale, a.created_at)}</T>
                 </View>
               </Pressable>

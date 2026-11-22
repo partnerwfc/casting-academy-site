@@ -42,7 +42,7 @@ export default function Discover() {
   return (
     <Screen scroll={false} padded={false}>
       <View style={{ padding: space.lg, gap: space.md }}>
-        <T v="title">{t('tabs.discover')}</T>
+        <T v="hero">{t('tabs.discover')}</T>
         <Input value={query} onChangeText={setQuery} placeholder={t('discover.search')} autoCapitalize="none" autoCorrect={false} returnKeyType="search" />
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: space.sm }}>
           <Chip label={t('discover.popular')} selected={sort === 'popular'} onPress={() => setSort('popular')} />

@@ -1,9 +1,9 @@
 import { Pressable, View } from 'react-native';
 import { router } from 'expo-router';
-import { formatCount, type CreatorProfile, type MessageKey } from '@community-safe/shared';
+import { formatCount, type CreatorProfile } from '@community-safe/shared';
 import { useI18n } from '@/lib/i18n';
 import { space, useColors } from '@/lib/theme';
-import { Avatar, Pill, T } from './ui';
+import { Avatar, Pill, T, VerifiedBadge } from './ui';
 
 export function CreatorRow({ creator }: { creator: CreatorProfile }) {
   const c = useColors();
@@ -14,19 +14,19 @@ export function CreatorRow({ creator }: { creator: CreatorProfile }) {
       accessibilityRole="button"
       onPress={() => router.push(`/creator/${creator.handle}`)}
       style={({ pressed }) => ({
-        flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.md,
-        borderBottomWidth: 1, borderBottomColor: c.border, opacity: pressed ? 0.7 : 1,
+        flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.md, marginBottom: space.md,
+        backgroundColor: c.card, borderRadius: 20, opacity: pressed ? 0.8 : 1,
+        shadowColor: '#170B2F', shadowOpacity: 0.06, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2,
       })}>
-      <Avatar name={creator.display_name} url={creator.avatar_url} />
+      <Avatar name={creator.display_name} url={creator.avatar_url} size={52} />
       <View style={{ flex: 1, gap: 2 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
           <T v="heading">{creator.display_name}</T>
-          {verified ? <T v="small" style={{ color: c.primary, fontWeight: '700' }}>✓</T> : null}
+          {verified ? <VerifiedBadge /> : null}
         </View>
         <T v="small">
-          @{creator.handle} · {t(`category.${creator.category}` as MessageKey)}
+          @{creator.handle} · {t('creator.members', { count: formatCount(locale, creator.member_count) })}
         </T>
-        <T v="small">{t('creator.members', { count: formatCount(locale, creator.member_count) })}</T>
       </View>
       {verified ? null : <Pill label={t('creator.unverified')} />}
     </Pressable>

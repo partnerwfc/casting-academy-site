@@ -3,6 +3,7 @@ import {
   ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View,
   type StyleProp, type TextInputProps, type TextStyle, type ViewStyle,
 } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { fontFor, radius, space, useColors } from '@/lib/theme';
 
@@ -10,7 +11,7 @@ export function Screen({ children, scroll = true, padded = true }: { children: R
   const c = useColors();
   const pad = padded ? { padding: space.lg, gap: space.lg } : undefined;
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: c.bg }} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: c.surface }} edges={['top', 'left', 'right']}>
       {scroll ? (
         <ScrollView contentContainerStyle={[pad, { paddingBottom: space.xxl }]} keyboardShouldPersistTaps="handled">
           {children}
@@ -27,7 +28,7 @@ export function T({ v = 'body', style, children, center }: { v?: Variant; style?
   const c = useColors();
   const base: Record<Variant, TextStyle> = {
     hero: { fontSize: 34, fontWeight: '800', color: c.text, letterSpacing: -0.8, lineHeight: 40 },
-    title: { fontSize: 26, fontWeight: '700', color: c.text, letterSpacing: -0.4 },
+    title: { fontSize: 28, fontWeight: '800', color: c.text, letterSpacing: -0.6 },
     heading: { fontSize: 17, fontWeight: '600', color: c.text },
     body: { fontSize: 16, color: c.text, lineHeight: 23 },
     muted: { fontSize: 15, color: c.muted, lineHeight: 21 },
@@ -78,7 +79,7 @@ export function Input(props: TextInputProps & { label?: string }) {
         placeholderTextColor={c.muted}
         accessibilityLabel={label}
         {...rest}
-        style={[styles.input, { borderColor: c.border, color: c.text, backgroundColor: c.surface }, style]}
+        style={[styles.input, { borderColor: c.border, color: c.text, backgroundColor: c.card }, style]}
       />
     </View>
   );
@@ -86,9 +87,10 @@ export function Input(props: TextInputProps & { label?: string }) {
 
 export function Avatar({ name, url, size = 48 }: { name: string; url?: string | null; size?: number }) {
   const c = useColors();
-  if (url) return <Image source={{ uri: url }} style={{ width: size, height: size, borderRadius: size / 2 }} accessibilityIgnoresInvertColors />;
+  const r = size * 0.28;
+  if (url) return <Image source={{ uri: url }} style={{ width: size, height: size, borderRadius: r }} accessibilityIgnoresInvertColors />;
   return (
-    <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: c.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
+    <View style={{ width: size, height: size, borderRadius: r, backgroundColor: c.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
       <Text style={{ color: c.primary, fontFamily: fontFor(700), fontSize: size * 0.4 }}>{name.trim().charAt(0).toUpperCase()}</Text>
     </View>
   );
@@ -97,10 +99,10 @@ export function Avatar({ name, url, size = 48 }: { name: string; url?: string | 
 export function Pill({ label, tone = 'neutral' }: { label: string; tone?: 'neutral' | 'primary' | 'success' | 'sos' }) {
   const c = useColors();
   const fg = { neutral: c.muted, primary: c.primary, success: c.success, sos: c.sos }[tone];
-  const bg = { neutral: c.surface, primary: c.primarySoft, success: c.primarySoft, sos: c.sosSoft }[tone];
+  const bg = { neutral: c.surface, primary: c.primarySoft, success: '#E6F7EE', sos: c.sosSoft }[tone];
   return (
     <View style={{ backgroundColor: bg, paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.pill, alignSelf: 'flex-start' }}>
-      <Text style={{ color: fg, fontSize: 12, fontFamily: fontFor(700) }}>{label}</Text>
+      <Text style={{ color: fg, fontSize: 11, fontFamily: fontFor(700), letterSpacing: 0.3 }}>{label}</Text>
     </View>
   );
 }
@@ -114,9 +116,9 @@ export function Chip({ label, selected, onPress }: { label: string; selected: bo
       onPress={onPress}
       style={{
         paddingHorizontal: 14, paddingVertical: 8, borderRadius: radius.pill, borderWidth: 1,
-        borderColor: selected ? c.primary : c.border, backgroundColor: selected ? c.primarySoft : c.bg,
+        borderColor: selected ? c.primary : c.border, backgroundColor: selected ? c.primary : c.card,
       }}>
-      <Text style={{ color: selected ? c.primary : c.text, fontSize: 14, fontFamily: fontFor(500) }}>{label}</Text>
+      <Text style={{ color: selected ? '#fff' : c.text, fontSize: 14, fontFamily: fontFor(600) }}>{label}</Text>
     </Pressable>
   );
 }
@@ -155,7 +157,17 @@ export function Logo({ size = 56 }: { size?: number }) {
 }
 
 const styles = StyleSheet.create({
-  button: { minHeight: 54, borderRadius: 15, alignItems: 'center', justifyContent: 'center', paddingHorizontal: space.lg },
-  card: { borderRadius: radius.lg, borderWidth: StyleSheet.hairlineWidth, padding: space.lg, gap: space.md },
-  input: { borderWidth: 1, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, fontSize: 16, fontFamily: 'Inter_400Regular' },
+  button: { minHeight: 52, borderRadius: 14, alignItems: 'center', justifyContent: 'center', paddingHorizontal: space.lg },
+  card: { borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, padding: space.lg, gap: space.md, shadowColor: '#170B2F', shadowOpacity: 0.06, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 },
+  input: { borderWidth: 1, borderRadius: 16, paddingHorizontal: 16, paddingVertical: 14, fontSize: 16, fontFamily: 'Inter_400Regular' },
 });
+
+export function VerifiedBadge({ size = 16 }: { size?: number }) {
+  const c = useColors();
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" accessibilityLabel="Certifié">
+      <Path fill={c.primary} d="M12 1.8l2.6 1.9 3.2-.1 1 3 2.6 1.9-1 3 1 3-2.6 1.9-1 3-3.2-.1L12 22.2l-2.6-1.9-3.2.1-1-3-2.6-1.9 1-3-1-3 2.6-1.9 1-3 3.2.1z" />
+      <Path d="m8 12.2 2.8 2.8L16.2 9.6" stroke="#fff" strokeWidth={2.2} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}

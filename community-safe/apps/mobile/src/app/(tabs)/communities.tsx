@@ -25,7 +25,7 @@ export default function Communities() {
   return (
     <Screen scroll={false} padded={false}>
       <View style={{ padding: space.lg, gap: space.md }}>
-        <T v="title">{t('tabs.communities')}</T>
+        <T v="hero">{t('tabs.communities')}</T>
         {session && items?.length ? <PushPrompt /> : null}
       </View>
       {items === null ? <Loading /> : (
