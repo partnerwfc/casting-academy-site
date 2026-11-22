@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
-import { FlatList, ScrollView, View } from 'react-native';
-import { CATEGORIES, type CreatorProfile, type MessageKey } from '@community-safe/shared';
+import { router } from 'expo-router';
+import { FlatList, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
+import { CATEGORIES, formatCount, type CreatorProfile, type MessageKey } from '@community-safe/shared';
 import { CreatorRow } from '@/components/CreatorRow';
 import { Button, Chip, Input, Loading, Screen, T } from '@/components/ui';
 import { useI18n } from '@/lib/i18n';
@@ -10,7 +12,7 @@ import { space } from '@/lib/theme';
 const PAGE = 30;
 
 export default function Discover() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [query, setQuery] = useState('');
   const [sort, setSort] = useState<'popular' | 'new'>('popular');
   const [category, setCategory] = useState<string | null>(null);
@@ -60,6 +62,20 @@ export default function Discover() {
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => <CreatorRow creator={item} />}
           contentContainerStyle={{ paddingHorizontal: space.lg, paddingBottom: space.xxl }}
+          ListHeaderComponent={items.length && !query.trim() && !category && sort === 'popular' ? (
+            <View style={{ borderRadius: 28, overflow: 'hidden', padding: space.xl, marginBottom: space.lg, gap: 6 }}>
+              <Svg style={StyleSheet.absoluteFill} preserveAspectRatio="none" viewBox="0 0 10 10">
+                <Defs><LinearGradient id="f" x1="0" y1="0" x2="1" y2="1"><Stop offset="0" stopColor="#170B2F" /><Stop offset="1" stopColor="#6D28D9" /></LinearGradient></Defs>
+                <Rect width={10} height={10} fill="url(#f)" />
+              </Svg>
+              <T v="small" style={{ color: '#C9B8FF', fontWeight: '800', letterSpacing: 0.8 }}>{t('discover.featured')}</T>
+              <T v="hero" style={{ color: '#fff', fontSize: 28, lineHeight: 34 }}>{items[0].display_name}</T>
+              <T v="muted" style={{ color: '#E4DAFF' }}>{t(`category.${items[0].category}` as MessageKey)} · {t('creator.members', { count: formatCount(locale, items[0].member_count) })}</T>
+              <Pressable accessibilityRole="button" onPress={() => router.push(`/creator/${items[0].handle}`)} style={{ alignSelf: 'flex-start', marginTop: space.md, backgroundColor: '#fff', borderRadius: 999, paddingHorizontal: 18, paddingVertical: 10 }}>
+                <T v="heading" style={{ fontSize: 15 }}>{t('tabs.discover')}</T>
+              </Pressable>
+            </View>
+          ) : null}
           ListEmptyComponent={<T v="muted" center style={{ marginTop: space.xxl }}>{t('discover.empty')}</T>}
           ListFooterComponent={hasMore ? <Button label="+" kind="ghost" onPress={() => load(items.length)} /> : undefined}
         />

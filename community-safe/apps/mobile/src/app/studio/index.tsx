@@ -1,6 +1,6 @@
 import { Redirect, router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Alert as RNAlert, Pressable, View } from 'react-native';
+import { Alert as RNAlert, Modal, Pressable, View } from 'react-native';
 import * as Crypto from 'expo-crypto';
 import { formatCount, formatDate, type Alert, type DashboardStats } from '@community-safe/shared';
 import { CertBadge } from '@/components/CertBadge';
@@ -38,8 +38,11 @@ export default function Studio() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [testing, setTesting] = useState(false);
+  const [plans, setPlans] = useState<{ id: string; name: string; price_cents: number | null; currency: string; member_limit: number | null }[]>([]);
+  const [sheetDismissed, setSheetDismissed] = useState(false);
   const [range, setRange] = useState<7 | 30 | 90>(30);
   const creatorId = creator?.id;
+  useEffect(() => { supabase.from('plans').select('id, name, price_cents, currency, member_limit').order('sort_order').then(({ data }) => setPlans((data ?? []) as typeof plans)); }, []);
 
   const load = useCallback(async () => {
     if (!creatorId) return;
@@ -83,8 +86,36 @@ export default function Studio() {
     load();
   };
 
+  const fmt = (p?: { price_cents: number | null; currency: string }) => (p && p.price_cents ? `${new Intl.NumberFormat(locale, { style: 'currency', currency: p.currency }).format(p.price_cents / 100)} ${t('plan.perYear')}` : t('plan.free'));
+  const curPlan = plans.find((p) => p.id === creator.plan_id);
+  const nextPlan = plans.find((p) => p.price_cents !== null && (p.member_limit === null || p.member_limit >= stats.members_total));
+  const curPrice = fmt(curPlan);
+  const nextPrice = nextPlan ? fmt(nextPlan) : t('plan.quote');
   return (
     <Screen>
+      <Modal visible={over && !sheetDismissed} transparent animationType="slide" onRequestClose={() => setSheetDismissed(true)}>
+        <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(23,11,47,0.45)' }}>
+          <View style={{ backgroundColor: c.bg, borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: space.xl, gap: space.md, alignItems: 'center' }}>
+            <View style={{ width: 36, height: 5, borderRadius: 3, backgroundColor: '#D7D8E2' }} />
+            <View style={{ width: 90, height: 90, borderRadius: 45, borderWidth: 9, borderColor: c.brand, alignItems: 'center', justifyContent: 'center' }}>
+              <T v="heading" style={{ fontSize: 15, fontWeight: '800' }}>{formatCount(locale, stats.members_total)}</T>
+              <T v="small" style={{ fontSize: 11 }}>/ {limit !== null ? formatCount(locale, limit) : ''}</T>
+            </View>
+            <T v="title" center>{t('over.title')}</T>
+            <T v="muted" center>{t('over.body', { name: creator.display_name, limit: limit !== null ? formatCount(locale, limit) : '' })}</T>
+            <View style={{ alignSelf: 'stretch', backgroundColor: c.surface, borderRadius: 16, paddingHorizontal: space.lg }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 14 }}>
+                <T v="body">{t('over.current')}</T><T v="muted">{curPrice}</T>
+              </View>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 14, borderTopWidth: 1, borderTopColor: c.border }}>
+                <T v="heading">{t('over.next')}</T><T v="heading" style={{ color: c.primary }}>{nextPrice}</T>
+              </View>
+            </View>
+            <Button label={t('over.upgrade', { price: nextPrice })} style={{ alignSelf: 'stretch' }} onPress={() => { setSheetDismissed(true); router.push('/studio/plan'); }} />
+            <Pressable onPress={() => setSheetDismissed(true)} style={{ padding: space.sm }}><T v="heading" style={{ color: c.primary }}>{t('over.later')}</T></Pressable>
+          </View>
+        </View>
+      </Modal>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md }}>
         <Avatar name={creator.display_name} url={creator.avatar_url} size={56} />
         <View style={{ gap: 2 }}>
