@@ -36,7 +36,7 @@ save_secret() { # enregistre (ou remplace) NOM=valeur dans .env.backend, lisible
 if [[ -z "${DISPATCH_SECRET:-}" ]]; then DISPATCH_SECRET="$(openssl rand -hex 32)"; save_secret DISPATCH_SECRET "$DISPATCH_SECRET"; echo "ℹ DISPATCH_SECRET généré et enregistré dans .env.backend"; fi
 if [[ -z "${PRESENCE_WEBHOOK_SECRET:-}" ]]; then PRESENCE_WEBHOOK_SECRET="$(openssl rand -hex 32)"; save_secret PRESENCE_WEBHOOK_SECRET "$PRESENCE_WEBHOOK_SECRET"; fi
 
-ask SITE_URL "URL du site (ex. https://savemycommunity.app)"
+SITE_URL="${SITE_URL:-https://savemycommunity.app}"
 ask STRIPE_SECRET_KEY "Clé secrète Stripe (sk_…), vide pour plus tard" optional
 ask STRIPE_WEBHOOK_SECRET "Secret du webhook Stripe (whsec_…), vide pour plus tard" optional
 ask EXPO_ACCESS_TOKEN "Jeton Expo (facultatif)" optional
