@@ -5,7 +5,8 @@ import QRCode from 'react-native-qrcode-svg';
 import {
   CAMPAIGN_STEPS, buildTransferKit, creatorUrl, formatCount, type DashboardStats,
 } from '@community-safe/shared';
-import { Button, Card, Screen, Stat, T } from '@/components/ui';
+import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
+import { Avatar, Button, Card, Logo, Screen, Stat, T } from '@/components/ui';
 import { useAuth } from '@/lib/auth';
 import { useI18n } from '@/lib/i18n';
 import { supabase, WEB_URL } from '@/lib/supabase';
@@ -46,14 +47,30 @@ export default function Transfer() {
 
   return (
     <Screen>
+      <T v="hero" style={{ fontSize: 30, lineHeight: 36 }}>{t('kit.headline')}</T>
       <T v="muted">{t('kit.honest')}</T>
+
+      <View style={{ borderRadius: 24, overflow: 'hidden', backgroundColor: c.card, shadowColor: '#170B2F', shadowOpacity: 0.08, shadowRadius: 14, shadowOffset: { width: 0, height: 6 }, elevation: 3 }}>
+        <View style={{ height: 130, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: space.md }}>
+          <Svg style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} width="100%" height="100%" preserveAspectRatio="none" viewBox="0 0 10 10">
+            <Defs><LinearGradient id="k" x1="0" y1="0" x2="1" y2="1"><Stop offset="0" stopColor="#7C3AED" /><Stop offset="1" stopColor="#5B3BEE" /></LinearGradient></Defs>
+            <Rect width={10} height={10} fill="url(#k)" />
+          </Svg>
+          <Avatar name={creator.display_name} url={creator.avatar_url} size={72} />
+          <Logo size={44} />
+        </View>
+        <View style={{ padding: space.lg, gap: 4 }}>
+          <T v="heading" style={{ fontSize: 18, fontWeight: '800' }}>{t('kit.joinTitle', { name: creator.display_name })}</T>
+          <T v="muted">{t('kit.joinBody')}</T>
+        </View>
+      </View>
 
       <Card>
         <T v="small">{t('kit.link')}</T>
         <T v="heading" style={{ color: c.primary }}>{link.replace('https://', '')}</T>
         <View style={{ flexDirection: 'row', gap: space.sm }}>
           <Button label={copied === 'link' ? t('common.copied') : t('common.copy')} kind="secondary" style={{ flex: 1 }} onPress={() => copy('link', link)} />
-          <Button label={t('common.share')} style={{ flex: 1 }} onPress={() => Share.share({ message: `${t('kit.shareText')}\n\n${link}` })} />
+          <Button label={`${t('common.share')}…`} style={{ flex: 1 }} onPress={() => Share.share({ message: `${t('kit.shareText')}\n\n${link}` })} />
         </View>
       </Card>
 
