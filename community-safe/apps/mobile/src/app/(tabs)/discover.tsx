@@ -75,7 +75,7 @@ export default function Discover() {
                 <T v="heading" style={{ fontSize: 15 }}>{t('tabs.discover')}</T>
               </Pressable>
             </View>
-          ) : null}
+          ) : undefined}
           ListEmptyComponent={<T v="muted" center style={{ marginTop: space.xxl }}>{t('discover.empty')}</T>}
           ListFooterComponent={hasMore ? <Button label="+" kind="ghost" onPress={() => load(items.length)} /> : undefined}
         />
