@@ -171,3 +171,26 @@ export function VerifiedBadge({ size = 16 }: { size?: number }) {
     </Svg>
   );
 }
+
+export function Section({ title, children }: { title?: string; children: ReactNode }) {
+  const c = useColors();
+  return (
+    <View style={{ gap: 8 }}>
+      {title ? <Text style={{ color: c.muted, fontSize: 13, letterSpacing: 0.6, fontFamily: fontFor(700), textTransform: 'uppercase', marginLeft: 8 }}>{title}</Text> : null}
+      <View style={{ backgroundColor: c.card, borderRadius: 20, overflow: 'hidden' }}>{children}</View>
+    </View>
+  );
+}
+
+export function Row({ label, value, tint, icon, onPress, last, right }: { label: string; value?: string; tint?: string; icon?: ReactNode; onPress?: () => void; last?: boolean; right?: ReactNode }) {
+  const c = useColors();
+  return (
+    <Pressable accessibilityRole={onPress ? 'button' : undefined} onPress={onPress} disabled={!onPress}
+      style={{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 16, minHeight: 56, borderBottomWidth: last ? 0 : StyleSheet.hairlineWidth, borderBottomColor: c.border }}>
+      {icon ? <View style={{ width: 30, height: 30, borderRadius: 9, backgroundColor: tint ?? c.primary, alignItems: 'center', justifyContent: 'center' }}>{icon}</View> : null}
+      <Text style={{ flex: 1, color: c.text, fontSize: 17, fontFamily: fontFor(400) }}>{label}</Text>
+      {value ? <Text style={{ color: c.muted, fontSize: 16 }}>{value}</Text> : null}
+      {right ?? (onPress ? <Text style={{ color: c.muted, fontSize: 20 }}>›</Text> : null)}
+    </Pressable>
+  );
+}
