@@ -1,18 +1,19 @@
-import { useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
+import Svg, { Path } from 'react-native-svg';
 import { useEffect, useState } from 'react';
-import { Alert as RNAlert, Linking, View } from 'react-native';
-import { checkLink, formatDate, linkHost, type Alert, type MessageKey } from '@community-safe/shared';
-import { CertBadge } from '@/components/CertBadge';
-import { Avatar, Button, Card, Loading, Pill, Screen, T } from '@/components/ui';
+import { Alert as RNAlert, Linking, Pressable, Share, View } from 'react-native';
+import { checkLink, creatorUrl, formatDate, linkHost, type Alert, type MessageKey } from '@community-safe/shared';
+import { Avatar, Button, Loading, Pill, Screen, T, VerifiedBadge } from '@/components/ui';
 import { useI18n } from '@/lib/i18n';
-import { supabase } from '@/lib/supabase';
-import { space } from '@/lib/theme';
+import { supabase, WEB_URL } from '@/lib/supabase';
+import { space, useColors } from '@/lib/theme';
 
 type AlertWithCreator = Alert & { creator_profiles: { display_name: string; handle: string; avatar_url: string | null; verification_status: string } };
 
 export default function AlertDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { t, locale } = useI18n();
+  const c = useColors();
   const [alert, setAlert] = useState<AlertWithCreator | null | undefined>(undefined);
 
   useEffect(() => {
@@ -40,28 +41,50 @@ export default function AlertDetail() {
     },
   ]);
 
+  const sos = alert.kind === 'sos';
   return (
     <Screen>
+      {sos ? (
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.md, borderRadius: 22, borderWidth: 1, borderColor: '#FBC5CF', backgroundColor: c.sosSoft }}>
+          <View style={{ width: 46, height: 46, borderRadius: 23, backgroundColor: c.sos, alignItems: 'center', justifyContent: 'center' }}>
+            <Svg width={24} height={24} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><Path d="M12 4 2.8 20h18.4zM12 10v4.5M12 17.4v.1" /></Svg>
+          </View>
+          <View style={{ flex: 1 }}>
+            <T v="heading" style={{ color: c.sos, fontWeight: '800', letterSpacing: 0.4 }}>{t('detail.sosBanner')}</T>
+            <T v="small">{t('detail.sosBannerSub')}</T>
+          </View>
+        </View>
+      ) : <Pill label={t(`alerts.kind.${alert.kind}`)} tone="primary" />}
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md }}>
-        <Avatar name={creator.display_name} url={creator.avatar_url} size={56} />
+        <Avatar name={creator.display_name} url={creator.avatar_url} size={48} />
         <View style={{ flex: 1, gap: 2 }}>
-          <View style={{ gap: 4 }}><T v="heading">{creator.display_name}</T>{creator.verification_status === 'verified' ? <CertBadge small /> : null}</View>
-          <T v="small">@{creator.handle} · {formatDate(locale, alert.created_at)}</T>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <T v="heading" style={{ fontSize: 18, fontWeight: '800' }}>{creator.display_name}</T>
+            {creator.verification_status === 'verified' ? <VerifiedBadge size={18} /> : null}
+          </View>
+          <T v="small">{formatDate(locale, alert.created_at)} · @{creator.handle}</T>
         </View>
       </View>
-      <View style={{ flexDirection: 'row', gap: space.sm }}>
-        <Pill label={t(`alerts.kind.${alert.kind}`)} tone={alert.kind === 'sos' ? 'sos' : 'primary'} />
-        {alert.reason ? <Pill label={t(`reason.${alert.reason}` as MessageKey)} /> : null}
-      </View>
-      <Card tone={alert.kind === 'sos' ? 'sos' : 'soft'}>
-        <T v="body" style={{ fontSize: 18, lineHeight: 27 }}>{alert.message}</T>
-      </Card>
+      {alert.reason ? <Pill label={t(`reason.${alert.reason}` as MessageKey)} /> : null}
+      <T v="hero" style={{ fontSize: 30, lineHeight: 36 }}>{alert.message}</T>
       {alert.link_url && linkSafe ? (
-        <View style={{ gap: space.sm }}>
-          <Button label={t('alerts.openLink', { name: creator.display_name })} kind={alert.kind === 'sos' ? 'sos' : 'primary'} onPress={openLink} />
-          <T v="small" center>{host}</T>
+        <View style={{ gap: space.md }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md, padding: space.md, borderRadius: 18, borderWidth: 1, borderColor: c.border, backgroundColor: c.card }}>
+            <View style={{ width: 42, height: 42, borderRadius: 12, backgroundColor: '#EEEFF5', alignItems: 'center', justifyContent: 'center' }}>
+              <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={c.text} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><Path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" /></Svg>
+            </View>
+            <View style={{ flex: 1 }}>
+              <T v="heading" style={{ fontSize: 16 }}>{host}</T>
+              <T v="small" style={{ color: c.success, fontWeight: '600' }}>{t('detail.linkVerified')}</T>
+            </View>
+          </View>
+          <Button label={`${t('alerts.openLink', { name: creator.display_name })}  ↗`} kind={sos ? 'sos' : 'primary'} onPress={openLink} />
         </View>
       ) : null}
+      <View style={{ flexDirection: 'row', justifyContent: 'center', gap: space.xl }}>
+        <Pressable onPress={() => Share.share({ message: `${alert.message}\n\n${creatorUrl(WEB_URL, creator.handle)}` })}><T v="heading" style={{ color: c.primary }}>{t('detail.share')}</T></Pressable>
+        <Pressable onPress={() => router.push(`/creator/${creator.handle}`)}><T v="heading" style={{ color: c.muted }}>{t('detail.report')}</T></Pressable>
+      </View>
     </Screen>
   );
 }
