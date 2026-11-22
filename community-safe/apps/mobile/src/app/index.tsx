@@ -27,7 +27,7 @@ export default function Welcome() {
           {isConfigured ? null : <Text style={{ color: '#FFB4C0', fontSize: 13 }}>Configuration manquante : EXPO_PUBLIC_SUPABASE_URL / EXPO_PUBLIC_SUPABASE_ANON_KEY.</Text>}
         </View>
         <View style={{ gap: space.md, paddingBottom: space.md }}>
-          <Pressable accessibilityRole="button" onPress={() => router.push('/(tabs)/discover')} style={{ minHeight: 54, borderRadius: 15, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' }}>
+          <Pressable accessibilityRole="button" onPress={() => router.push('/how-it-works')} style={{ minHeight: 54, borderRadius: 15, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' }}>
             <Text style={{ color: '#6D28D9', fontSize: 16, fontFamily: fontFor(700) }}>{t('welcome.discover')}</Text>
           </Pressable>
           <Pressable accessibilityRole="button" onPress={() => router.push({ pathname: '/sign-in', params: { next: '/studio' } })} style={{ minHeight: 54, alignItems: 'center', justifyContent: 'center' }}>
