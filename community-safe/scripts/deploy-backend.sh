@@ -18,7 +18,7 @@ echo "▶ 1/5  Liaison au projet $REF"
 $SB link --project-ref "$REF"
 
 echo "▶ 2/5  Migrations de la base de données"
-$SB db push
+$SB db push --remote
 
 # Secrets : .env.backend si présent, sinon invite masquée pour les indispensables.
 [[ -f .env.backend ]] && set -a && source .env.backend && set +a
