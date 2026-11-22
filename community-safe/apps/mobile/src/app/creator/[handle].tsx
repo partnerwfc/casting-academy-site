@@ -7,7 +7,7 @@ import {
 } from '@community-safe/shared';
 import { CertBadge } from '@/components/CertBadge';
 import { PushPrompt } from '@/components/PushPrompt';
-import { Avatar, Button, Card, Loading, Pill, Screen, SwitchRow, T } from '@/components/ui';
+import { Avatar, Button, Card, Loading, Pill, Screen, SwitchRow, T, VerifiedBadge } from '@/components/ui';
 import { useAuth } from '@/lib/auth';
 import { useI18n } from '@/lib/i18n';
 import { continueAnonymously } from '@/lib/oauth';
@@ -102,11 +102,13 @@ export default function CreatorScreen() {
   return (
     <Screen>
       <View style={{ alignItems: 'center', gap: space.md }}>
-        <Avatar name={creator.display_name} url={creator.avatar_url} size={96} />
-        <T v="title" center>{creator.display_name}</T>
-        <T v="muted">@{creator.handle} · {t(`category.${creator.category}` as MessageKey)}</T>
-        {verified ? <CertBadge /> : <Pill label={t('creator.unverified')} />}
-        <T v="small">{t('creator.members', { count: formatCount(locale, creator.member_count) })}</T>
+        <Avatar name={creator.display_name} url={creator.avatar_url} size={120} />
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <T v="hero" center style={{ fontSize: 30, lineHeight: 36 }}>{creator.display_name}</T>
+          {verified ? <VerifiedBadge size={22} /> : null}
+        </View>
+        <T v="muted">@{creator.handle} · {t('creator.members', { count: formatCount(locale, creator.member_count) })}</T>
+        {verified ? null : <Pill label={t('creator.unverified')} />}
         {creator.bio ? <T v="body" center>{creator.bio}</T> : null}
       </View>
 
@@ -122,7 +124,7 @@ export default function CreatorScreen() {
               onChange={(v) => updatePrefs({ sos: prefs.sos_enabled, announcements: v })} />
           </Card>
           <PushPrompt />
-          <Button label={t('creator.unfollow')} kind="ghost" onPress={unfollow} />
+          <Button label={`✓  ${t('creator.following')}`} kind="neutral" onPress={unfollow} />
         </>
       ) : (
         <View style={{ gap: space.sm }}>

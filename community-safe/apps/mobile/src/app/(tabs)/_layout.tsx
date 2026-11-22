@@ -12,7 +12,7 @@ function AlertButton({ label }: { label: string }) {
   const router = useRouter();
   const c = useColors();
   return (
-    <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={() => router.push('/studio')} style={{ flex: 1, alignItems: 'center', top: -14 }}>
+    <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={() => router.push('/studio/new')} style={{ flex: 1, alignItems: 'center', top: -14 }}>
       <View style={{ width: 52, height: 40, shadowColor: c.sos, shadowOpacity: 0.35, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 6 }}>
         <Svg width={52} height={40} viewBox="0 0 52 40">
           <Defs><LinearGradient id="g" x1="0" y1="0" x2="1" y2="1"><Stop offset="0" stopColor={c.sosFrom} /><Stop offset="1" stopColor={c.sos} /></LinearGradient></Defs>

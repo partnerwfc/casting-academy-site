@@ -37,6 +37,7 @@ function Navigator() {
       <Stack.Screen name="creator/[handle]" options={{ title: '' }} />
       <Stack.Screen name="alert/[id]" options={{ title: '' }} />
       <Stack.Screen name="studio/index" options={{ title: t('dash.title') }} />
+      <Stack.Screen name="studio/new" options={{ title: '' }} />
       <Stack.Screen name="studio/setup" options={{ title: t('setup.title') }} />
       <Stack.Screen name="studio/verify" options={{ title: t('verify.title') }} />
       <Stack.Screen name="studio/compose" options={{ title: '' }} />

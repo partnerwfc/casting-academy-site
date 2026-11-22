@@ -42,12 +42,12 @@ export function T({ v = 'body', style, children, center }: { v?: Variant; style?
 export function Button({
   label, onPress, kind = 'primary', loading, disabled, style,
 }: {
-  label: string; onPress: () => void; kind?: 'primary' | 'secondary' | 'sos' | 'ghost' | 'danger';
+  label: string; onPress: () => void; kind?: 'primary' | 'secondary' | 'sos' | 'ghost' | 'danger' | 'neutral';
   loading?: boolean; disabled?: boolean; style?: StyleProp<ViewStyle>;
 }) {
   const c = useColors();
-  const bg = { primary: c.primary, secondary: c.primarySoft, sos: c.sos, ghost: 'transparent', danger: 'transparent' }[kind];
-  const fg = { primary: c.onPrimary, secondary: c.primary, sos: '#FFFFFF', ghost: c.primary, danger: c.sos }[kind];
+  const bg = { primary: c.primary, secondary: c.primarySoft, sos: c.sos, ghost: 'transparent', danger: 'transparent', neutral: '#EEEFF5' }[kind];
+  const fg = { primary: c.onPrimary, secondary: c.primary, sos: '#FFFFFF', ghost: c.primary, danger: c.sos, neutral: c.text }[kind];
   const off = disabled || loading;
   return (
     <Pressable
