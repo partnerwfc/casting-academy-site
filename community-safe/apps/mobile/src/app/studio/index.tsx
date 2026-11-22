@@ -4,7 +4,8 @@ import { Alert as RNAlert, Pressable, View } from 'react-native';
 import * as Crypto from 'expo-crypto';
 import { formatCount, formatDate, type Alert, type DashboardStats } from '@community-safe/shared';
 import { CertBadge } from '@/components/CertBadge';
-import { Button, Card, Loading, Pill, Screen, Stat, T } from '@/components/ui';
+import Svg, { Defs, LinearGradient, Path, Stop } from 'react-native-svg';
+import { Avatar, Button, Card, Loading, Pill, Screen, Stat, T, VerifiedBadge } from '@/components/ui';
 import { useAuth } from '@/lib/auth';
 import { useI18n } from '@/lib/i18n';
 import { supabase } from '@/lib/supabase';
@@ -12,12 +13,20 @@ import { space, useColors } from '@/lib/theme';
 
 function GrowthChart({ data }: { data: DashboardStats['growth'] }) {
   const c = useColors();
+  const [w, setW] = useState(0);
+  const h = 120;
   const max = Math.max(1, ...data.map((d) => d.count));
+  const pts = data.map((d, i) => [data.length > 1 ? (i / (data.length - 1)) * w : w / 2, h - 8 - (d.count / max) * (h - 16)] as const);
+  const line = pts.map(([x, y], i) => `${i ? 'L' : 'M'}${x.toFixed(1)} ${y.toFixed(1)}`).join(' ');
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'flex-end', height: 72, gap: 2 }} accessibilityLabel="growth chart">
-      {data.map((d) => (
-        <View key={d.day} style={{ flex: 1, height: Math.max(2, (d.count / max) * 72), backgroundColor: d.count ? c.primary : c.border, borderRadius: 2 }} />
-      ))}
+    <View onLayout={(e) => setW(e.nativeEvent.layout.width)} style={{ height: h }} accessibilityLabel="growth chart">
+      {w > 0 && pts.length ? (
+        <Svg width={w} height={h}>
+          <Defs><LinearGradient id="ga" x1="0" y1="0" x2="0" y2="1"><Stop offset="0" stopColor={c.primary} stopOpacity={0.22} /><Stop offset="1" stopColor={c.primary} stopOpacity={0} /></LinearGradient></Defs>
+          <Path d={`${line} L${w} ${h} L0 ${h} Z`} fill="url(#ga)" />
+          <Path d={line} stroke={c.primary} strokeWidth={3} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+        </Svg>
+      ) : null}
     </View>
   );
 }
@@ -29,6 +38,7 @@ export default function Studio() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [testing, setTesting] = useState(false);
+  const [range, setRange] = useState<7 | 30 | 90>(30);
   const creatorId = creator?.id;
 
   const load = useCallback(async () => {
@@ -75,9 +85,17 @@ export default function Studio() {
 
   return (
     <Screen>
-      <View style={{ gap: space.xs }}>
-        <T v="hero" style={{ fontSize: 44, lineHeight: 50 }}>{formatCount(locale, stats.members_total)}</T>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm, flexWrap: 'wrap' }}><T v="muted">{t('dash.members')} · @{creator.handle}</T>{verified ? <CertBadge small /> : null}</View>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md }}>
+        <Avatar name={creator.display_name} url={creator.avatar_url} size={56} />
+        <View style={{ gap: 2 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}><T v="heading" style={{ fontSize: 20, fontWeight: '800' }}>{creator.display_name}</T>{verified ? <VerifiedBadge size={18} /> : null}</View>
+          <T v="muted">@{creator.handle}</T>
+        </View>
+      </View>
+      <View style={{ gap: space.xs, alignItems: 'flex-start' }}>
+        <T v="muted" style={{ fontWeight: '600' }}>{t('dash.members')}</T>
+        <T v="hero" style={{ fontSize: 56, lineHeight: 62, letterSpacing: -2 }}>{formatCount(locale, stats.members_total)}</T>
+        <Pill label={`↗ +${formatCount(locale, stats.members_today)} ${t('dash.today').toLowerCase()}`} tone="success" />
       </View>
 
       {verified ? null : (
@@ -88,8 +106,25 @@ export default function Studio() {
         </Card>
       )}
 
-      <Button label={t('dash.sos')} kind="sos" disabled={!verified} onPress={() => router.push({ pathname: '/studio/compose', params: { kind: 'sos' } })} />
-      <Button label={t('dash.share')} kind="secondary" onPress={() => router.push('/studio/transfer')} />
+      <View style={{ flexDirection: 'row', gap: space.md }}>
+        <Button label={t('dash.share')} kind="secondary" style={{ flex: 1 }} onPress={() => router.push('/studio/transfer')} />
+        <Button label={`+  ${t('dash.sendAlert')}`} style={{ flex: 1 }} disabled={!verified} onPress={() => router.push('/studio/new')} />
+      </View>
+
+      <Card>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+          <T v="heading" style={{ fontSize: 18 }}>{t('dash.growth')}</T>
+          <T v="heading" style={{ color: c.success, fontSize: 15 }}>+{formatCount(locale, stats.growth.slice(-range).reduce((n, d) => n + d.count, 0))}</T>
+        </View>
+        <View style={{ flexDirection: 'row', backgroundColor: '#EEEFF5', borderRadius: 12, padding: 3 }}>
+          {([7, 30, 90] as const).map((r) => (
+            <Pressable key={r} accessibilityRole="button" onPress={() => setRange(r)} style={{ flex: 1, paddingVertical: 8, borderRadius: 10, alignItems: 'center', backgroundColor: range === r ? '#fff' : 'transparent' }}>
+              <T v="heading" style={{ fontSize: 14 }}>{t(`dash.d${r}` as 'dash.d7')}</T>
+            </Pressable>
+          ))}
+        </View>
+        <GrowthChart data={stats.growth.slice(-range)} />
+      </Card>
 
       <Card>
         <View style={{ flexDirection: 'row' }}>
@@ -97,8 +132,6 @@ export default function Studio() {
           <Stat label={t('dash.week')} value={`+${formatCount(locale, stats.members_week)}`} />
           <Stat label={t('dash.month')} value={`+${formatCount(locale, stats.members_month)}`} />
         </View>
-        <T v="small">{t('dash.growth')}</T>
-        <GrowthChart data={stats.growth} />
       </Card>
 
       <Card>
