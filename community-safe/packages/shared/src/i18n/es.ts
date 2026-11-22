@@ -51,6 +51,7 @@ export const es: Dictionary = {
   'dash.d30': "30 días",
   'dash.d90': "90 días",
   'dash.sendAlert': "Enviar una alerta",
+  'cert.headline': "Certifica tu cuenta",
   'welcome.discover': 'Descubrir comunidades',
   'welcome.creator': 'Soy creador',
   'auth.title': 'Iniciar sesión',

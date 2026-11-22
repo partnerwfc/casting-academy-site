@@ -4,7 +4,8 @@ import { useCallback, useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { SOCIAL_PLATFORMS_CERT, errorMessage, formatDate, type Certification } from '@community-safe/shared';
 import { CertBadge } from '@/components/CertBadge';
-import { Button, Card, Chip, Input, Loading, Screen, T } from '@/components/ui';
+import Svg, { Path } from 'react-native-svg';
+import { Button, Card, Chip, Input, Loading, Pill, Screen, T } from '@/components/ui';
 import { useAuth } from '@/lib/auth';
 import { useI18n } from '@/lib/i18n';
 import { supabase } from '@/lib/supabase';
@@ -100,7 +101,14 @@ export default function Certification() {
           {!open && cert?.status === 'rejected' ? <T v="small" style={{ color: c.sos }}>{t('cert.rejected')}{cert.decision_reason ? ` · ${cert.decision_reason}` : ''}</T> : null}
           {!open && cert?.status === 'expired' ? <T v="small" style={{ color: c.sos }}>{t('cert.expired')}</T> : null}
           {!open && cert?.status === 'failed' ? <T v="small" style={{ color: c.sos }}>{t('cert.failed')}</T> : null}
-          <T v="muted">{t('cert.intro')}</T>
+          <View style={{ alignItems: 'center', gap: space.md }}>
+            <View style={{ width: 74, height: 74, borderRadius: 37, backgroundColor: c.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
+              <Svg width={34} height={34} viewBox="0 0 24 24" fill="none" stroke={c.brand} strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><Path d="M12 3l7.5 3v5.6c0 4.4-3 7.7-7.5 9.4-4.5-1.7-7.5-5-7.5-9.4V6zM8.8 12l2.4 2.4 4.2-4.4" /></Svg>
+            </View>
+            <Pill label={t('creator.unverified')} />
+            <T v="hero" center style={{ fontSize: 28, lineHeight: 34 }}>{t('cert.headline')}</T>
+            <T v="muted" center>{t('cert.intro')}</T>
+          </View>
           <Card>
             <Level n="1" ok={presenceOk} current={open && !presenceOk} title={presenceOk ? t('cert.presenceOk') : t('cert.step1')} body={t('cert.step1Body')} />
             <Level n="2" current={open && presenceOk} title={t('cert.step2')} body={t('cert.step2Body')} />
