@@ -49,7 +49,7 @@ args=(SITE_URL="$SITE_URL" DISPATCH_SECRET="$DISPATCH_SECRET" PRESENCE_WEBHOOK_S
 for n in STRIPE_SECRET_KEY STRIPE_WEBHOOK_SECRET EXPO_ACCESS_TOKEN YOUTUBE_API_KEY TWITCH_CLIENT_ID TWITCH_CLIENT_SECRET; do
   [[ -n "${!n:-}" ]] && args+=("$n=${!n}")
 done
-$SB secrets set "${args[@]}" --project-ref "$REF" >/dev/null
+$SB secrets set "${args[@]}" --project-ref "$REF" --yes >/dev/null
 
 echo "▶ 4/5  Fonctions"
 for fn in dispatch-alerts billing stripe-webhook delete-account certify presence-webhook; do
