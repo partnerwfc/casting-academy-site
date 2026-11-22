@@ -17,9 +17,9 @@
     "android": {
       "package": "com.savemycommunity.app",
       "adaptiveIcon": {
-        "backgroundColor": "#2A2CE8",
+        "backgroundColor": "#14082B",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundColor": "#2A2CE8",
+        "backgroundColor": "#14082B",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "intentFilters": [
@@ -37,7 +37,7 @@
       "expo-localization",
       "expo-apple-authentication",
       ["expo-notifications", { "color": "#0755FF" }],
-      ["expo-splash-screen", { "backgroundColor": "#0D1635", "image": "./assets/images/splash-icon.png", "imageWidth": 76 }]
+      ["expo-splash-screen", { "backgroundColor": "#170B2F", "image": "./assets/images/splash-icon.png", "imageWidth": 76 }]
     ],
     "experiments": { "reactCompiler": true },
     "extra": {

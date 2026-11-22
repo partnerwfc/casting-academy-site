@@ -10,7 +10,7 @@ export default function Welcome() {
   const { session, loading } = useAuth();
   const { t } = useI18n();
   if (loading) return <Loading />;
-  if (session) return <Redirect href="/(tabs)/discover" />;
+  if (session) return <Redirect href="/(tabs)/communities" />;
   return (
     <Screen scroll={false}>
       <View style={{ flex: 1, justifyContent: 'center', gap: space.lg }}>

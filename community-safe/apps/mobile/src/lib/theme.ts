@@ -1,12 +1,14 @@
 import { useColorScheme } from 'react-native';
 
 const light = {
-  bg: '#FFFFFF', surface: '#F7F9FC', card: '#FFFFFF', text: '#0D1635', muted: '#6F788B', border: '#E6EAF1',
-  primary: '#2457F5', primarySoft: '#EFF3FF', onPrimary: '#FFFFFF', success: '#18A95D', sos: '#ED3345', sosSoft: '#FFF0F1',
+  bg: '#FFFFFF', surface: '#F7F8FC', card: '#FFFFFF', text: '#170B2F', muted: '#6B7385', border: '#E8E9F2',
+  primary: '#6D28D9', primarySoft: '#F0EBFF', onPrimary: '#FFFFFF', success: '#24B36B', sos: '#E11D48', sosSoft: '#FFF1F3',
+  brand: '#633BEE', cyan: '#16B8E8', sosFrom: '#FF4D6D',
 };
 const dark: typeof light = {
-  bg: '#0B1020', surface: '#0D1635', card: '#121B3A', text: '#F5F7FB', muted: '#9AA3B8', border: '#222C4D',
-  primary: '#4A7BFF', primarySoft: '#14234F', onPrimary: '#FFFFFF', success: '#22C55E', sos: '#FF4D5E', sosSoft: '#2A1218',
+  bg: '#0F0720', surface: '#170B2F', card: '#1D1040', text: '#F5F3FF', muted: '#A59CC0', border: '#2B1D52',
+  primary: '#8B5CF6', primarySoft: '#251650', onPrimary: '#FFFFFF', success: '#34D399', sos: '#FB3B66', sosSoft: '#2D1020',
+  brand: '#7C5CFF', cyan: '#16B8E8', sosFrom: '#FF4D6D',
 };
 export type Colors = typeof light;
 
