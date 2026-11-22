@@ -6,6 +6,9 @@ create extension if not exists citext with schema extensions;
 create extension if not exists pg_trgm with schema extensions;
 create extension if not exists pgcrypto with schema extensions;
 
+-- Le schéma des extensions n'est pas dans le search_path par défaut des migrations distantes.
+set search_path = public, extensions;
+
 -- ───────────────────────────── Types ─────────────────────────────
 -- unverified : jamais certifié · pending : demande en cours · verified : « Créateur certifié »
 -- rejected : refusé · suspended : badge retiré temporairement · revoked : certification retirée

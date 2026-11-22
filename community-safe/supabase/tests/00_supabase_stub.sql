@@ -21,5 +21,3 @@ grant usage on schema public, auth to anon, authenticated, service_role;
 grant execute on all functions in schema auth to anon, authenticated, service_role;
 create schema extensions;
 grant usage on schema extensions to anon, authenticated, service_role;
-set search_path = "$user", public, extensions;
-do $$ begin execute format('alter database %I set search_path = "$user", public, extensions', current_database()); end $$;
