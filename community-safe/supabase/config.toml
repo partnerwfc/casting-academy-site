@@ -47,3 +47,6 @@ verify_jwt = false          # l'utilisateur est authentifié dans la fonction
 
 [functions.presence-webhook]
 verify_jwt = false          # appelée par le prestataire, authentifiée par signature
+
+[functions.revenuecat-webhook]
+verify_jwt = false          # appelée par RevenueCat, authentifiée par secret

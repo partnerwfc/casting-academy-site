@@ -1,16 +1,18 @@
 import { Redirect, router } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useCallback, useEffect, useState } from 'react';
-import { Alert, Pressable, View } from 'react-native';
+import { Alert, Linking, Pressable, View } from 'react-native';
+import type { PurchasesPackage } from 'react-native-purchases';
 import Svg, { Path } from 'react-native-svg';
 import { errorMessage, formatCount, formatDate, type MessageKey } from '@community-safe/shared';
 import { Button, Card, Input, Loading, Pill, Screen, T } from '@/components/ui';
 import { useAuth } from '@/lib/auth';
+import { buy, iapAvailable, loadStorePackages, restore } from '@/lib/iap';
 import { useI18n } from '@/lib/i18n';
 import { supabase, WEB_URL } from '@/lib/supabase';
 import { fontFor, space, useColors } from '@/lib/theme';
 
-interface Plan { id: string; name: string; price_cents: number | null; currency: string; member_limit: number | null }
+interface Plan { id: string; name: string; price_cents: number | null; currency: string; member_limit: number | null; apple_product_id: string | null }
 interface Sub { plan_id: string; status: string; provider: string | null; cancel_at_period_end: boolean; current_period_end: string | null }
 
 // Les abonnements payants se souscrivent et se gèrent sur le site (Stripe). L'app affiche la formule,
@@ -26,10 +28,12 @@ export default function PlanScreen() {
   const [error, setError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [confirm, setConfirm] = useState('');
+  const [store, setStore] = useState<Record<string, PurchasesPackage>>({});
+  const [notice, setNotice] = useState<string | null>(null);
   const creatorId = creator?.id;
 
   const load = useCallback(async () => {
-    const { data: p } = await supabase.from('plans').select('id, name, price_cents, currency, member_limit').order('sort_order');
+    const { data: p } = await supabase.from('plans').select('id, name, price_cents, currency, member_limit, apple_product_id').order('sort_order');
     setPlans((p ?? []) as Plan[]);
     if (creatorId) {
       const { data: s } = await supabase.from('subscriptions').select('plan_id, status, provider, cancel_at_period_end, current_period_end').eq('creator_id', creatorId).maybeSingle();
@@ -37,6 +41,7 @@ export default function PlanScreen() {
     }
   }, [creatorId]);
   useEffect(() => { load(); }, [load]);
+  useEffect(() => { if (iapAvailable && creatorId) loadStorePackages(creatorId).then(setStore).catch(() => {}); }, [creatorId]);
   useEffect(() => { if (creator) setSelected(creator.plan_id); }, [creator]);
 
   if (loading) return <Loading />;
@@ -50,9 +55,26 @@ export default function PlanScreen() {
     const from = i === 0 ? 0 : (plans[i - 1].member_limit ?? 0) + 1;
     return p.member_limit === null ? t('plan.rangeMore', { from: formatCount(locale, from - 1) }) : t('plan.range', { from: formatCount(locale, from), to: formatCount(locale, p.member_limit) });
   };
-  const paidActive = sub?.provider === 'stripe' && ['active', 'past_due'].includes(sub.status);
   const chosen = plans.find((p) => p.id === selected);
+  const paidActive = (sub?.provider === 'stripe' || sub?.provider === 'app_store') && ['active', 'past_due'].includes(sub.status);
+  const appleSub = sub?.provider === 'app_store';
+  const pkg = chosen?.apple_product_id ? store[chosen.apple_product_id] : undefined;
 
+  const purchase = async () => {
+    if (!pkg || !creatorId) return;
+    setBusy(true); setError(null); setNotice(null);
+    try {
+      if (await buy(creatorId, pkg)) { setNotice(t('plan.purchased')); setTimeout(load, 4000); setTimeout(load, 10000); }
+    } catch (e) { setError(errorMessage(locale, e)); }
+    setBusy(false);
+  };
+  const restorePurchases = async () => {
+    if (!creatorId) return;
+    setBusy(true); setError(null); setNotice(null);
+    try { setNotice(t((await restore(creatorId)) ? 'plan.restored' : 'plan.nothingToRestore')); setTimeout(load, 4000); }
+    catch (e) { setError(errorMessage(locale, e)); }
+    setBusy(false);
+  };
   const downgrade = async () => {
     setBusy(true); setError(null);
     const { error: err } = await supabase.rpc('set_free_plan');
@@ -119,11 +141,25 @@ export default function PlanScreen() {
           </View>
           {chosen.price_cents === 0 && chosen.id !== creator.plan_id && !paidActive
             ? <Button label={t('plan.activateFree')} onPress={downgrade} loading={busy} /> : null}
-          {chosen.price_cents !== 0 && chosen.id !== creator.plan_id
+          {chosen.price_cents !== 0 && chosen.price_cents !== null && chosen.id !== creator.plan_id && iapAvailable
+            ? <Button label={t('plan.subscribeIap', { price: pkg?.product.priceString ?? price(chosen) })} onPress={purchase} loading={busy} disabled={!pkg} /> : null}
+          {chosen.price_cents !== 0 && chosen.id !== creator.plan_id && !iapAvailable
             ? <><T v="small">{t('plan.onWeb')}</T><Button label={t('plan.openWeb')} onPress={() => WebBrowser.openBrowserAsync(`${WEB_URL}/dashboard/plan`)} /></> : null}
-          {paidActive ? <Button label={t('plan.manage')} kind="secondary" onPress={() => WebBrowser.openBrowserAsync(`${WEB_URL}/dashboard/plan`)} /> : null}
+          {paidActive ? <Button label={t('plan.manage')} kind="secondary" onPress={() => (appleSub ? Linking.openURL('https://apps.apple.com/account/subscriptions') : WebBrowser.openBrowserAsync(`${WEB_URL}/dashboard/plan`))} /> : null}
+          {notice ? <T v="small" style={{ color: c.success }}>{notice}</T> : null}
           {chosen.price_cents !== null && chosen.member_limit !== null && creator.member_count > chosen.member_limit ? <T v="small">{t('plan.overCapacity')}</T> : null}
           {error ? <T v="small" style={{ color: c.sos }}>{error}</T> : null}
+        </View>
+      ) : null}
+
+      {iapAvailable ? (
+        <View style={{ gap: space.sm, alignItems: 'center' }}>
+          <T v="small" center>{t('plan.renewNote')}</T>
+          <View style={{ flexDirection: 'row', gap: space.lg, flexWrap: 'wrap', justifyContent: 'center' }}>
+            <Pressable onPress={restorePurchases}><T v="small" style={{ color: c.primary, fontWeight: '700' }}>{t('plan.restore')}</T></Pressable>
+            <Pressable onPress={() => WebBrowser.openBrowserAsync(`${WEB_URL}/terms`)}><T v="small" style={{ color: c.primary, fontWeight: '700' }}>{t('auth.terms')}</T></Pressable>
+            <Pressable onPress={() => WebBrowser.openBrowserAsync(`${WEB_URL}/privacy`)}><T v="small" style={{ color: c.primary, fontWeight: '700' }}>{t('auth.privacy')}</T></Pressable>
+          </View>
         </View>
       ) : null}
 
