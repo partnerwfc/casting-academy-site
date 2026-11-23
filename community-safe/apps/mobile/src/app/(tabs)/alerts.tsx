@@ -90,7 +90,7 @@ export default function Alerts() {
                     <Text style={{ marginLeft: 'auto', fontSize: 14, color: c.muted }}>{formatWhen(locale, item.created_at, t('alerts.yesterday'))}</Text>
                     {item.unread ? <View style={{ width: 9, height: 9, borderRadius: 5, backgroundColor: c.primary }} /> : null}
                   </View>
-                  <Text style={{ fontSize: 17, lineHeight: 23, color: c.text, fontFamily: fontFor(item.unread ? 700 : 500), letterSpacing: -0.2 }}>{item.message}</Text>
+                  <Text style={{ fontSize: 16, lineHeight: 22, color: c.text, fontFamily: fontFor(item.unread ? 700 : 500), letterSpacing: -0.2 }}>{item.message}</Text>
                   <Text style={{ fontSize: 14.5, color: c.muted }}>{item.name}</Text>
                 </View>
               </Pressable>

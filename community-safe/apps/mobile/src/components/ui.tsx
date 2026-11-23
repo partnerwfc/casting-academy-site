@@ -153,7 +153,7 @@ export function Chip({ label, selected, onPress, tone = 'violet', fill = false }
       accessibilityState={{ selected }}
       onPress={onPress}
       style={{
-        paddingHorizontal: 18, height: 40, justifyContent: 'center', borderRadius: radius.pill, borderWidth: selected || fill ? 0 : 1,
+        paddingHorizontal: 18, height: 38, justifyContent: 'center', borderRadius: radius.pill, borderWidth: selected || fill ? 0 : 1,
         borderColor: '#E9E6F3', backgroundColor: selected ? on : fill ? '#EEEFF5' : '#fff',
       }}>
       <Text style={{ color: selected ? '#fff' : c.text, fontSize: 15, fontFamily: fontFor(600) }}>{label}</Text>
@@ -166,7 +166,7 @@ export function Segmented<T extends string | number>({ options, value, onChange 
     <View style={{ flexDirection: 'row', backgroundColor: '#EEEFF5', borderRadius: 14, padding: 3 }}>
       {options.map((o) => (
         <Pressable key={String(o.value)} accessibilityRole="button" accessibilityState={{ selected: value === o.value }} onPress={() => onChange(o.value)}
-          style={{ flex: 1, paddingVertical: 9, borderRadius: 11, alignItems: 'center', backgroundColor: value === o.value ? '#fff' : 'transparent',
+          style={{ flex: 1, paddingVertical: 8, borderRadius: 11, alignItems: 'center', backgroundColor: value === o.value ? '#fff' : 'transparent',
             shadowColor: '#170B2F', shadowOpacity: value === o.value ? 0.1 : 0, shadowRadius: 4, shadowOffset: { width: 0, height: 1 }, elevation: value === o.value ? 1 : 0 }}>
           <Text style={{ fontSize: 15, color: '#170B2F', fontFamily: fontFor(600) }}>{o.label}</Text>
         </Pressable>
