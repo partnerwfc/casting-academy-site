@@ -35,25 +35,28 @@ save_secret() { # enregistre (ou remplace) NOM=valeur dans .env.backend, lisible
 }
 if [[ -z "${DISPATCH_SECRET:-}" ]]; then DISPATCH_SECRET="$(openssl rand -hex 32)"; save_secret DISPATCH_SECRET "$DISPATCH_SECRET"; echo "ℹ DISPATCH_SECRET généré et enregistré dans .env.backend"; fi
 if [[ -z "${PRESENCE_WEBHOOK_SECRET:-}" ]]; then PRESENCE_WEBHOOK_SECRET="$(openssl rand -hex 32)"; save_secret PRESENCE_WEBHOOK_SECRET "$PRESENCE_WEBHOOK_SECRET"; fi
-if [[ -z "${REVENUECAT_WEBHOOK_SECRET:-}" ]]; then REVENUECAT_WEBHOOK_SECRET="$(openssl rand -hex 32)"; save_secret REVENUECAT_WEBHOOK_SECRET "$REVENUECAT_WEBHOOK_SECRET"; echo "ℹ REVENUECAT_WEBHOOK_SECRET généré : à coller dans RevenueCat > Webhooks > Authorization header (voir .env.backend)"; fi
 
 SITE_URL="${SITE_URL:-https://savemycommunity.app}"
 ask STRIPE_SECRET_KEY "Clé secrète Stripe (sk_…), vide pour plus tard" optional
 ask STRIPE_WEBHOOK_SECRET "Secret du webhook Stripe (whsec_…), vide pour plus tard" optional
+ask APPLE_IAP_KEY_ID "Apple : identifiant de la clé Achats intégrés (Key ID), vide pour plus tard" optional
+ask APPLE_IAP_ISSUER_ID "Apple : Issuer ID, vide pour plus tard" optional
+ask APPLE_IAP_KEY_FILE "Apple : chemin du fichier .p8 de la clé, vide pour plus tard" optional
+if [[ -n "${APPLE_IAP_KEY_FILE:-}" ]]; then APPLE_IAP_PRIVATE_KEY="$(cat "${APPLE_IAP_KEY_FILE/#\~/$HOME}")"; fi
 ask EXPO_ACCESS_TOKEN "Jeton Expo (facultatif)" optional
 ask YOUTUBE_API_KEY "Clé API YouTube (facultatif, certification automatique)" optional
 ask TWITCH_CLIENT_ID "Twitch client id (facultatif)" optional
 ask TWITCH_CLIENT_SECRET "Twitch client secret (facultatif)" optional
 
 echo "▶ 3/5  Secrets des fonctions"
-args=(SITE_URL="$SITE_URL" DISPATCH_SECRET="$DISPATCH_SECRET" PRESENCE_WEBHOOK_SECRET="$PRESENCE_WEBHOOK_SECRET" REVENUECAT_WEBHOOK_SECRET="$REVENUECAT_WEBHOOK_SECRET")
-for n in STRIPE_SECRET_KEY STRIPE_WEBHOOK_SECRET EXPO_ACCESS_TOKEN YOUTUBE_API_KEY TWITCH_CLIENT_ID TWITCH_CLIENT_SECRET; do
+args=(SITE_URL="$SITE_URL" DISPATCH_SECRET="$DISPATCH_SECRET" PRESENCE_WEBHOOK_SECRET="$PRESENCE_WEBHOOK_SECRET")
+for n in STRIPE_SECRET_KEY STRIPE_WEBHOOK_SECRET APPLE_IAP_KEY_ID APPLE_IAP_ISSUER_ID APPLE_IAP_PRIVATE_KEY EXPO_ACCESS_TOKEN YOUTUBE_API_KEY TWITCH_CLIENT_ID TWITCH_CLIENT_SECRET; do
   [[ -n "${!n:-}" ]] && args+=("$n=${!n}")
 done
 $SB secrets set "${args[@]}" --project-ref "$REF" --yes >/dev/null
 
 echo "▶ 4/5  Fonctions"
-for fn in dispatch-alerts billing stripe-webhook delete-account certify presence-webhook revenuecat-webhook; do
+for fn in dispatch-alerts billing stripe-webhook delete-account certify presence-webhook apple-iap apple-notifications; do
   echo "   · $fn"; $SB functions deploy "$fn" --project-ref "$REF" --no-verify-jwt
 done
 

@@ -37,6 +37,7 @@
       "expo-localization",
       "expo-apple-authentication",
       ["expo-notifications", { "color": "#0755FF" }],
+      "expo-iap",
       ["expo-splash-screen", { "backgroundColor": "#170B2F", "image": "./assets/images/splash-icon.png", "imageWidth": 76 }]
     ],
     "experiments": { "reactCompiler": true },

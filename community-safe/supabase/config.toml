@@ -48,5 +48,9 @@ verify_jwt = false          # l'utilisateur est authentifié dans la fonction
 [functions.presence-webhook]
 verify_jwt = false          # appelée par le prestataire, authentifiée par signature
 
-[functions.revenuecat-webhook]
-verify_jwt = false          # appelée par RevenueCat, authentifiée par secret
+
+[functions.apple-iap]
+verify_jwt = false          # l'utilisateur est authentifié dans la fonction
+
+[functions.apple-notifications]
+verify_jwt = false          # appelée par Apple ; l'état est relu chez Apple avant toute action

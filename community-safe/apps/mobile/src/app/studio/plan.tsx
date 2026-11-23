@@ -2,12 +2,11 @@ import { Redirect, router } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useCallback, useEffect, useState } from 'react';
 import { Alert, Linking, Pressable, View } from 'react-native';
-import type { PurchasesPackage } from 'react-native-purchases';
 import Svg, { Path } from 'react-native-svg';
 import { errorMessage, formatCount, formatDate, type MessageKey } from '@community-safe/shared';
 import { Button, Card, Input, Loading, Pill, Screen, T } from '@/components/ui';
 import { useAuth } from '@/lib/auth';
-import { buy, iapAvailable, loadStorePackages, restore } from '@/lib/iap';
+import { buy, iapAvailable, loadStorePrices, restore } from '@/lib/iap';
 import { useI18n } from '@/lib/i18n';
 import { supabase, WEB_URL } from '@/lib/supabase';
 import { fontFor, space, useColors } from '@/lib/theme';
@@ -29,7 +28,7 @@ export default function PlanScreen() {
   const [error, setError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [confirm, setConfirm] = useState('');
-  const [store, setStore] = useState<Record<string, PurchasesPackage>>({});
+  const [prices, setPrices] = useState<Record<string, string>>({});
   const [notice, setNotice] = useState<string | null>(null);
   const creatorId = creator?.id;
 
@@ -42,7 +41,11 @@ export default function PlanScreen() {
     }
   }, [creatorId]);
   useEffect(() => { load(); }, [load]);
-  useEffect(() => { if (iapAvailable && creatorId) loadStorePackages(creatorId).then(setStore).catch(() => {}); }, [creatorId]);
+  useEffect(() => {
+    if (!iapAvailable || !plans.length) return;
+    const skus = plans.flatMap((p) => [p.apple_product_id, p.apple_product_id_month]).filter((x): x is string => !!x);
+    if (skus.length) loadStorePrices(skus).then(setPrices).catch(() => {});
+  }, [plans]);
   useEffect(() => { if (creator) setSelected(creator.plan_id); }, [creator]);
 
   if (loading) return <Loading />;
@@ -60,20 +63,20 @@ export default function PlanScreen() {
   const paidActive = (sub?.provider === 'stripe' || sub?.provider === 'app_store') && ['active', 'past_due'].includes(sub.status);
   const appleSub = sub?.provider === 'app_store';
   const productId = interval === 'month' ? chosen?.apple_product_id_month : chosen?.apple_product_id;
-  const pkg = productId ? store[productId] : undefined;
+  const storePrice = productId ? prices[productId] : undefined;
 
   const purchase = async () => {
-    if (!pkg || !creatorId) return;
+    if (!productId || !storePrice || !creatorId) return;
     setBusy(true); setError(null); setNotice(null);
     try {
-      if (await buy(creatorId, pkg)) { setNotice(t('plan.purchased')); setTimeout(load, 4000); setTimeout(load, 10000); }
+      if (await buy(creatorId, productId)) { setNotice(t('plan.purchased')); setTimeout(load, 4000); setTimeout(load, 10000); }
     } catch (e) { setError(errorMessage(locale, e)); }
     setBusy(false);
   };
   const restorePurchases = async () => {
     if (!creatorId) return;
     setBusy(true); setError(null); setNotice(null);
-    try { setNotice(t((await restore(creatorId)) ? 'plan.restored' : 'plan.nothingToRestore')); setTimeout(load, 4000); }
+    try { setNotice(t((await restore()) ? 'plan.restored' : 'plan.nothingToRestore')); setTimeout(load, 4000); }
     catch (e) { setError(errorMessage(locale, e)); }
     setBusy(false);
   };
@@ -151,7 +154,7 @@ export default function PlanScreen() {
           {chosen.price_cents === 0 && chosen.id !== creator.plan_id && !paidActive
             ? <Button label={t('plan.activateFree')} onPress={downgrade} loading={busy} /> : null}
           {chosen.price_cents !== 0 && chosen.price_cents !== null && chosen.id !== creator.plan_id && iapAvailable
-            ? <Button label={t('plan.subscribeIap', { price: pkg?.product.priceString ?? price(chosen) })} onPress={purchase} loading={busy} disabled={!pkg} /> : null}
+            ? <Button label={t('plan.subscribeIap', { price: storePrice ?? price(chosen) })} onPress={purchase} loading={busy} disabled={!storePrice} /> : null}
           {chosen.price_cents !== 0 && chosen.id !== creator.plan_id && !iapAvailable
             ? <><T v="small">{t('plan.onWeb')}</T><Button label={t('plan.openWeb')} onPress={() => WebBrowser.openBrowserAsync(`${WEB_URL}/dashboard/plan`)} /></> : null}
           {paidActive ? <Button label={t('plan.manage')} kind="secondary" onPress={() => (appleSub ? Linking.openURL('https://apps.apple.com/account/subscriptions') : WebBrowser.openBrowserAsync(`${WEB_URL}/dashboard/plan`))} /> : null}

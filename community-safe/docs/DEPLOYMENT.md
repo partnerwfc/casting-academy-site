@@ -176,3 +176,13 @@ stores sur la vente d'abonnements numériques dépendent du pays et évoluent ; 
 
 Ajouter Sentry (`@sentry/react-native`, `@sentry/nextjs`) et une alerte sur les
 journaux `dispatch_failed` / `expo_send_http_error` de la fonction.
+
+## Achats in-app Apple (sans prestataire)
+1. App Store Connect → Monétisation → Abonnements : créer les 6 produits `com.savemycommunity.app.{creator,pro,business}.{monthly,yearly}`.
+2. App Store Connect → Utilisateurs et accès → Intégrations → **Achats intégrés** : générer une clé ; noter le *Key ID* et l'*Issuer ID*, télécharger le fichier `.p8` (une seule fois).
+3. `bash scripts/deploy-backend.sh <ref>` : saisir Key ID, Issuer ID et le chemin du `.p8` (stockés comme secrets Supabase, jamais dans le dépôt).
+4. App Store Connect → Informations sur l'app → **URL des notifications serveur** (production ET sandbox) :
+   `https://<ref>.supabase.co/functions/v1/apple-notifications`
+5. Suivi : `/admin` → Subscriptions, Payments, Apple purchase log.
+
+Principe : l'app envoie seulement l'identifiant de transaction ; `apple-iap` relit l'état réel chez Apple (API App Store Server) et vérifie que l'achat porte le jeton du créateur connecté. Les notifications d'Apple ne font que déclencher une relecture.

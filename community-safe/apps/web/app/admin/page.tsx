@@ -83,15 +83,19 @@ function Console() {
   const [logs, setLogs] = useState<Row[]>([]);
   const [certs, setCerts] = useState<Row[]>([]);
   const [certEvents, setCertEvents] = useState<Row[]>([]);
+  const [subs, setSubs] = useState<Row[]>([]);
+  const [payments, setPayments] = useState<Row[]>([]);
+  const [iapEvents, setIapEvents] = useState<Row[]>([]);
   const [search, setSearch] = useState('');
   const [error, setError] = useState<string | null>(null);
 
+  const money = (cents: number) => new Intl.NumberFormat('en', { style: 'currency', currency: 'EUR' }).format(cents / 100);
   const load = useCallback(async () => {
     const db = supabase();
     const term = search.trim().replace(/[%,()\\*]/g, '');
     let creatorQuery = db.from('creator_profiles').select('id, handle, display_name, category, verification_status, status, plan_id, member_count').order('created_at', { ascending: false }).limit(50);
     if (term) creatorQuery = creatorQuery.or(`handle.ilike.%${term}%,display_name.ilike.%${term}%`);
-    const [s, v, r, c, a, p, st, l, ce] = await Promise.all([
+    const [s, v, r, c, a, p, st, l, ce, sb, pm, ie] = await Promise.all([
       db.rpc('admin_stats'),
       db.from('creator_verifications').select('id, method, status, presence_status, risk_flags, evidence, note, attempts, created_at, creator_profiles(handle, display_name), social_accounts(platform, handle, url)').in('status', ['awaiting_proof', 'in_review']).order('created_at'),
       db.from('abuse_reports').select('id, reason, details, created_at, creator_id, alert_id, creator_profiles(handle)').eq('status', 'open').order('created_at'),
@@ -101,6 +105,9 @@ function Console() {
       db.from('app_settings').select('*').order('key'),
       db.from('audit_logs').select('id, action, target_type, target_id, metadata, created_at').order('created_at', { ascending: false }).limit(50),
       db.from('certification_events').select('id, action, reason, metadata, created_at, creator_profiles(handle)').order('id', { ascending: false }).limit(50),
+      db.from('subscriptions').select('id, plan_id, status, provider, current_period_end, cancel_at_period_end, updated_at, creator_profiles(handle, display_name, member_count)').neq('plan_id', 'discovery').order('updated_at', { ascending: false }).limit(100),
+      db.from('payments').select('id, amount_cents, tax_cents, currency, status, provider, created_at, creator_profiles(handle)').order('created_at', { ascending: false }).limit(100),
+      db.from('iap_events').select('id, created_at, source, notification_type, subtype, product_id, environment, result, creator_profiles(handle)').order('created_at', { ascending: false }).limit(50),
     ]);
     if (s.error) return setError(s.error.message);
     setStats(s.data as Record<string, number>);
@@ -110,6 +117,10 @@ function Console() {
       return { ...r, account: acct?.url ?? '—', platform: acct?.platform ?? '', call: ev.call_link ?? '', availability: ev.availability ?? '', flags: (r.risk_flags as string[] | null)?.join(', ') ?? '' };
     }));
     setCertEvents(((ce.data ?? []) as Row[]).map((r) => ({ ...r, handle: (r.creator_profiles as { handle?: string } | null)?.handle ?? '' }))); setReports((r.data ?? []) as Row[]); setCreators((c.data ?? []) as Row[]);
+    const flat = (rows: Row[] | null): Row[] => (rows ?? []).map((r) => ({ ...r, handle: (r.creator_profiles as { handle?: string } | null)?.handle ?? '' }));
+    setSubs(((sb.data ?? []) as Row[]).map((r) => { const c = r.creator_profiles as { handle?: string; member_count?: number } | null; return { ...r, handle: c?.handle ?? '', members: c?.member_count ?? 0, ends: r.current_period_end ?? '', cancels: r.cancel_at_period_end ? 'yes' : '' }; }));
+    setPayments(flat(pm.data as Row[] | null).map((r) => ({ ...r, amount: money(Number(r.amount_cents)) })));
+    setIapEvents(flat(ie.data as Row[] | null));
     setAlerts((a.data ?? []) as Row[]); setPlans((p.data ?? []) as Row[]); setSettings((st.data ?? []) as Row[]); setLogs((l.data ?? []) as Row[]);
   }, [search]);
 
@@ -121,7 +132,6 @@ function Console() {
     load();
   };
   const db = supabase();
-  const money = (cents: number) => new Intl.NumberFormat('en', { style: 'currency', currency: 'EUR' }).format(cents / 100);
 
   return (
     <div className="stack-lg">
@@ -181,14 +191,34 @@ function Console() {
         )} />
       </section>
 
-      <section className="card"><h3>Plans</h3><p className="small">Prices in cents. Empty = custom / unlimited.</p>
-        <Table rows={plans} columns={['id', 'name', 'price_cents', 'member_limit', 'announcements_per_month', 'is_public']} actions={(row) => (
+      <section className="card"><h3>Subscriptions</h3>
+        {(() => {
+          const active = subs.filter((r) => r.status === 'active' || r.status === 'past_due');
+          const since = Date.now() - 30 * 86400000;
+          const paid = payments.filter((r) => r.status === 'succeeded' && new Date(String(r.created_at)).getTime() >= since);
+          const sum = (prov?: string) => paid.filter((r) => !prov || r.provider === prov).reduce((n, r) => n + Number(r.amount_cents), 0);
+          return <p className="small">Paying: {active.length} · Apple {active.filter((r) => r.provider === 'app_store').length} · Stripe {active.filter((r) => r.provider === 'stripe').length} · Cancelling at period end: {active.filter((r) => r.cancels).length} · Collected, last 30 days: {money(sum())} (Apple {money(sum('app_store'))}, Stripe {money(sum('stripe'))}) — gross, before store commission and tax.</p>;
+        })()}
+        <Table rows={subs} columns={['handle', 'plan_id', 'status', 'provider', 'members', 'ends', 'cancels']} />
+      </section>
+
+      <section className="card"><h3>Payments</h3>
+        <Table rows={payments} columns={['created_at', 'handle', 'amount', 'currency', 'status', 'provider']} />
+      </section>
+
+      <section className="card"><h3>Apple purchase log</h3><p className="small">Each purchase and App Store notification, as verified against Apple's servers.</p>
+        <Table rows={iapEvents} columns={['created_at', 'handle', 'source', 'notification_type', 'subtype', 'product_id', 'environment', 'result']} />
+      </section>
+
+      <section className="card"><h3>Plans</h3><p className="small">Prices in cents: monthly and yearly (yearly = price_cents). Empty = custom / unlimited. Changing a price here does not change it at Apple or Stripe.</p>
+        <Table rows={plans} columns={['id', 'name', 'price_month_cents', 'price_cents', 'member_limit', 'announcements_per_month', 'is_public']} actions={(row) => (
           <button className="btn sm secondary" onClick={() => {
             const num = (label: string, current: unknown) => { const v = prompt(label, current === null ? '' : String(current)); return v === null ? undefined : v.trim() === '' ? null : Number(v); };
-            const price = num('Price (cents)', row.price_cents); if (price === undefined) return;
+            const monthly = num('Monthly price (cents)', row.price_month_cents); if (monthly === undefined) return;
+            const price = num('Yearly price (cents)', row.price_cents); if (price === undefined) return;
             const members = num('Member limit', row.member_limit); if (members === undefined) return;
             const announcements = num('Announcements per month', row.announcements_per_month); if (announcements === undefined) return;
-            act(db.from('plans').update({ price_cents: price, member_limit: members, announcements_per_month: announcements, updated_at: new Date().toISOString() }).eq('id', row.id));
+            act(db.from('plans').update({ price_month_cents: monthly, price_cents: price, member_limit: members, announcements_per_month: announcements, updated_at: new Date().toISOString() }).eq('id', row.id));
           }}>Edit</button>
         )} />
       </section>
