@@ -60,8 +60,8 @@ assert.equal(stats.plan.member_limit, 100);
 step('nouveau créateur : forfait Discovery gratuit, 100 membres');
 
 // 2. Un client ne peut pas se donner un forfait payant, ni appeler le webhook sans signature valide.
-assert.ok((await julie.db.from('creator_profiles').update({ plan_id: 'premium' }).eq('id', profile.id)).error);
-assert.ok((await julie.db.rpc('apply_subscription_event', { p_event: { creator_id: profile.id, plan_id: 'premium', status: 'active' } })).error);
+assert.ok((await julie.db.from('creator_profiles').update({ plan_id: 'business' }).eq('id', profile.id)).error);
+assert.ok((await julie.db.rpc('apply_subscription_event', { p_event: { creator_id: profile.id, plan_id: 'business', status: 'active' } })).error);
 assert.equal((await webhook(subEvent(profile.id), 'mauvais_secret')).status, 400);
 assert.equal((await fetch(`${API}/functions/v1/stripe-webhook`, { method: 'POST', body: '{}' })).status, 400);
 ({ data: stats } = await julie.db.rpc('creator_dashboard_stats'));
@@ -75,7 +75,7 @@ assert.equal((await webhook(paid)).status, 200);
 assert.equal((await webhook(paid)).status, 200); // Stripe renvoie parfois deux fois
 ({ data: stats } = await julie.db.rpc('creator_dashboard_stats'));
 assert.equal(stats.plan.id, 'creator');
-assert.equal(stats.plan.member_limit, 10000);
+assert.equal(stats.plan.member_limit, 2500);
 const { data: payments } = await service.from('payments').select('amount_cents, tax_cents, currency, status').eq('creator_id', profile.id);
 assert.deepEqual(payments, [{ amount_cents: 2999, tax_cents: 500, currency: 'EUR', status: 'succeeded' }]);
 step('paiement : forfait Creator (10 000 membres) actif, facture enregistrée une seule fois');

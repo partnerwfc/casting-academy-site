@@ -11,8 +11,9 @@ Deno.serve(async (req) => {
   }
   try {
     const event = JSON.parse(payload);
-    const plans = await select<{ id: string; stripe_price_id: string | null }>('plans', 'select=id,stripe_price_id&stripe_price_id=not.is.null');
-    const priceToPlan = Object.fromEntries(plans.map((p) => [p.stripe_price_id!, p.id]));
+    const plans = await select<{ id: string; stripe_price_id: string | null; stripe_price_id_month: string | null }>('plans', 'select=id,stripe_price_id,stripe_price_id_month');
+    const priceToPlan: Record<string, string> = {};
+    for (const p of plans) { if (p.stripe_price_id) priceToPlan[p.stripe_price_id] = p.id; if (p.stripe_price_id_month) priceToPlan[p.stripe_price_id_month] = p.id; }
     const normalized = normalizeStripeEvent(event, priceToPlan);
     const result = normalized ? await rpc<string>('apply_subscription_event', { p_event: normalized }) : 'not_relevant';
     console.log('stripe_event', event.type, result);

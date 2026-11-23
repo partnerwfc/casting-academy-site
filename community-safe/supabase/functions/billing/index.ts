@@ -8,7 +8,7 @@ import { authUser, cors, json, patch, select, SITE_URL, stripe } from '../_share
 
 interface Creator { id: string; handle: string }
 interface Subscription { provider: string | null; status: string; provider_customer_id: string | null }
-interface Plan { id: string; price_cents: number | null; stripe_price_id: string | null }
+interface Plan { id: string; price_cents: number | null; stripe_price_id: string | null; stripe_price_id_month: string | null }
 
 // Le retour doit rester sur notre site : jamais de redirection vers une adresse choisie par le client.
 const safeReturn = (value: unknown) =>
@@ -36,8 +36,9 @@ Deno.serve(async (req) => {
 
     if (body.action === 'checkout') {
       const planId = String(body.plan_id ?? '');
-      const [plan] = await select<Plan>('plans', `select=id,price_cents,stripe_price_id&id=eq.${encodeURIComponent(planId)}&is_public=eq.true&limit=1`);
-      if (!plan || !plan.price_cents || !plan.stripe_price_id) return json({ error: 'plan_not_purchasable' }, 400);
+      const [plan] = await select<Plan>('plans', `select=id,price_cents,stripe_price_id,stripe_price_id_month&id=eq.${encodeURIComponent(planId)}&is_public=eq.true&limit=1`);
+      const priceId = body.interval === 'month' ? plan?.stripe_price_id_month : plan?.stripe_price_id;
+      if (!plan || !plan.price_cents || !priceId) return json({ error: 'plan_not_purchasable' }, 400);
       // Un abonnement payant existe déjà : on change de formule depuis le portail, pas avec un second abonnement.
       if (sub?.provider === 'stripe' && ['active', 'past_due'].includes(sub.status)) return json({ error: 'use_billing_portal' }, 409);
 
@@ -50,7 +51,7 @@ Deno.serve(async (req) => {
       }
       const session = await stripe<{ url: string }>('/checkout/sessions', 'POST', stripeForm({
         mode: 'subscription', customer, client_reference_id: creator.id,
-        line_items: [{ price: plan.stripe_price_id, quantity: 1 }],
+        line_items: [{ price: priceId, quantity: 1 }],
         subscription_data: { metadata: { creator_id: creator.id } },
         success_url: `${returnUrl}${returnUrl.includes('?') ? '&' : '?'}checkout=success`,
         cancel_url: returnUrl,

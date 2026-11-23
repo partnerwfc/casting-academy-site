@@ -249,8 +249,8 @@ select t.eq((select member_count from creator_profiles where handle = 'julie'), 
 
 select t.login('00000000-0000-0000-0000-00000000000a', 30);
 select t.eq((select plan_id from creator_profiles where handle = 'julie'), 'discovery', 'forfait gratuit par défaut');
-select t.expect_error($$update creator_profiles set plan_id = 'premium'$$, 'permission denied%');
-select t.expect_error($$update subscriptions set plan_id = 'premium'$$, 'permission denied%');
+select t.expect_error($$update creator_profiles set plan_id = 'business'$$, 'permission denied%');
+select t.expect_error($$update subscriptions set plan_id = 'business'$$, 'permission denied%');
 select t.expect_error($$select apply_subscription_event('{"status":"active","plan_id":"premium"}')$$, 'permission denied%');
 select request_quote('Plus de 500 000 membres') is not null as ok \gset
 select t.expect_error($$select request_quote()$$, 'quote_already_requested');
@@ -268,7 +268,7 @@ select t.logout();
 select t.login('00000000-0000-0000-0000-00000000000a', 30);
 select t.expect_error($$select set_free_plan()$$, 'use_billing_portal');
 select t.expect_error($$select delete_my_account()$$, 'cancel_subscription_first');
-select t.eq((creator_dashboard_stats() -> 'plan' ->> 'member_limit')::int, 10000, 'capacité Creator');
+select t.eq((creator_dashboard_stats() -> 'plan' ->> 'member_limit')::int, 2500, 'capacité Creator');
 select t.logout();
 set role service_role;
 -- Résiliation chez le prestataire : la communauté reste, le forfait retombe à Discovery.

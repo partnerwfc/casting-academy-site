@@ -10,7 +10,7 @@ import { SITE_URL, supabase } from '@/lib/supabase';
 import { useSession } from '@/lib/useSession';
 import { useRouter } from 'next/navigation';
 
-interface Plan { id: string; name: string; price_cents: number | null; currency: string; member_limit: number | null; sort_order: number }
+interface Plan { id: string; name: string; price_cents: number | null; price_month_cents: number | null; currency: string; member_limit: number | null; sort_order: number }
 interface Subscription { plan_id: string; status: string; provider: string | null; cancel_at_period_end: boolean; current_period_end: string | null }
 
 export default function PlanPage() {
@@ -21,6 +21,7 @@ export default function PlanPage() {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [sub, setSub] = useState<Subscription | null>(null);
   const [selected, setSelected] = useState<string>('discovery');
+  const [interval, setInterval_] = useState<'month' | 'year'>('year');
   const [quote, setQuote] = useState('');
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -34,7 +35,7 @@ export default function PlanPage() {
     const db = supabase();
     const { data: c } = await db.from('creator_profiles').select('*').eq('owner_user_id', userId).maybeSingle();
     setCreator((c as CreatorProfile | null) ?? null);
-    const { data: p } = await db.from('plans').select('id, name, price_cents, currency, member_limit, sort_order').order('sort_order');
+    const { data: p } = await db.from('plans').select('id, name, price_cents, price_month_cents, currency, member_limit, sort_order').order('sort_order');
     setPlans((p ?? []) as Plan[]);
     if (c) {
       const { data: s } = await db.from('subscriptions').select('plan_id, status, provider, cancel_at_period_end, current_period_end').eq('creator_id', c.id).maybeSingle();
@@ -45,14 +46,14 @@ export default function PlanPage() {
   useEffect(() => { load(); }, [load]);
   useEffect(() => { if (session === null) router.replace('/login'); }, [session, router]);
 
-  const money = (plan: Plan) => new Intl.NumberFormat(locale, { style: 'currency', currency: plan.currency }).format((plan.price_cents ?? 0) / 100);
+  const money = (plan: Plan) => new Intl.NumberFormat(locale, { style: 'currency', currency: plan.currency }).format(((interval === 'month' && plan.price_month_cents ? plan.price_month_cents : plan.price_cents) ?? 0) / 100);
   const planName = (plan: Plan) => t(`plan.name.${plan.id}` as MessageKey) === `plan.name.${plan.id}` ? plan.name : t(`plan.name.${plan.id}` as MessageKey);
   const range = (plan: Plan, index: number) => {
     const from = index === 0 ? 0 : (plans[index - 1].member_limit ?? 0) + 1;
     return plan.member_limit === null ? t('plan.rangeMore', { from: formatCount(locale, from - 1) })
       : t('plan.range', { from: formatCount(locale, from), to: formatCount(locale, plan.member_limit) });
   };
-  const priceLabel = (plan: Plan) => plan.price_cents === null ? t('plan.quote') : plan.price_cents === 0 ? t('plan.free') : `${money(plan)} ${t('plan.perYear')}`;
+  const priceLabel = (plan: Plan) => plan.price_cents === null ? t('plan.quote') : plan.price_cents === 0 ? t('plan.free') : `${money(plan)} ${interval === 'month' && plan.price_month_cents ? t('plan.perMonth') : t('plan.perYear')}`;
 
   const current = creator?.plan_id ?? 'discovery';
   const chosen = plans.find((p) => p.id === selected);
@@ -61,7 +62,7 @@ export default function PlanPage() {
   const callBilling = async (action: 'checkout' | 'portal') => {
     setBusy(true); setError(null);
     const { data, error: err } = await supabase().functions.invoke('billing', {
-      body: { action, plan_id: selected, return_url: `${SITE_URL}/dashboard/plan` },
+      body: { action, plan_id: selected, interval, return_url: `${SITE_URL}/dashboard/plan` },
     });
     setBusy(false);
     const code = (data as { error?: string } | null)?.error ?? (err ? 'billing_failed' : null);
@@ -132,6 +133,14 @@ export default function PlanPage() {
           </div>
         ) : null}
 
+        <div role="tablist" style={{ display: 'flex', background: 'var(--surface, #EEEFF5)', borderRadius: 14, padding: 3 }}>
+          {(['month', 'year'] as const).map((k) => (
+            <button key={k} role="tab" aria-selected={interval === k} onClick={() => setInterval_(k)}
+              style={{ flex: 1, padding: '10px 0', borderRadius: 11, border: 0, fontWeight: 700, background: interval === k ? '#fff' : 'transparent', cursor: 'pointer' }}>
+              {t(k === 'month' ? 'plan.monthly' : 'plan.yearly')}
+            </button>
+          ))}
+        </div>
         <div className="stack" role="radiogroup" aria-label={t('plan.title')} style={{ gap: 10 }}>
           {plans.map((plan, i) => (
             <button key={plan.id} type="button" role="radio" aria-checked={selected === plan.id} className="plan" onClick={() => { setSelected(plan.id); setMessage(null); setError(null); }}>

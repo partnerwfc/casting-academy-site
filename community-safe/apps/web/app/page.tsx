@@ -5,13 +5,13 @@ import { landingCopy } from '@/lib/landing-copy';
 import { getLocale } from '@/lib/locale';
 import { anonServerClient } from '@/lib/supabase';
 
-interface Plan { id: string; name: string; price_cents: number | null; currency: string; member_limit: number | null; announcements_per_month: number | null }
+interface Plan { id: string; name: string; price_cents: number | null; price_month_cents: number | null; currency: string; member_limit: number | null; announcements_per_month: number | null }
 
 // Les tarifs viennent de la base : modifiables depuis l'administration, jamais codés en dur.
 async function loadPlans(): Promise<Plan[]> {
   const client = anonServerClient();
   if (!client) return [];
-  const { data } = await client.from('plans').select('id, name, price_cents, currency, member_limit, announcements_per_month').order('sort_order');
+  const { data } = await client.from('plans').select('id, name, price_cents, price_month_cents, currency, member_limit, announcements_per_month').order('sort_order');
   return (data ?? []) as Plan[];
 }
 
@@ -69,10 +69,15 @@ export default async function Landing() {
               {plans.map((plan) => (
                 <div className="card" key={plan.id}>
                   <h3>{translate(locale, `plan.name.${plan.id}` as Parameters<typeof translate>[1]) === `plan.name.${plan.id}` ? plan.name : translate(locale, `plan.name.${plan.id}` as Parameters<typeof translate>[1])}</h3>
-                  <p className="stat-value">
-                    {plan.price_cents === null ? copy.quote
-                      : `${new Intl.NumberFormat(locale, { style: 'currency', currency: plan.currency, maximumFractionDigits: 0 }).format(plan.price_cents / 100)} ${copy.perYear}`}
-                  </p>
+                  {(() => {
+                    const fmt = (c: number) => new Intl.NumberFormat(locale, { style: 'currency', currency: plan.currency, minimumFractionDigits: c % 100 ? 2 : 0 }).format(c / 100);
+                    if (plan.price_cents === null) return <p className="stat-value">{copy.quote}</p>;
+                    if (plan.price_cents === 0) return <p className="stat-value">{fmt(0)}</p>;
+                    return (<>
+                      <p className="stat-value">{plan.price_month_cents ? `${fmt(plan.price_month_cents)} ${translate(locale, 'plan.perMonth')}` : `${fmt(plan.price_cents)} ${copy.perYear}`}</p>
+                      {plan.price_month_cents ? <p className="muted">{fmt(plan.price_cents)} {copy.perYear}</p> : null}
+                    </>);
+                  })()}
                   {plan.member_limit !== null ? <p className="muted">{copy.upTo.replace('{n}', formatCount(locale, plan.member_limit))}</p> : null}
                   {plan.announcements_per_month !== null ? <p className="muted">{copy.annPerMonth.replace('{n}', String(plan.announcements_per_month))}</p> : null}
                 </div>

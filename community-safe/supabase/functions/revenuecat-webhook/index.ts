@@ -31,8 +31,8 @@ Deno.serve(async (req) => {
     else if (ev.type === 'EXPIRATION') status = 'canceled';
     if (!status) return new Response('not_relevant');
 
-    const plans = await select<{ id: string; apple_product_id: string }>('plans', 'select=id,apple_product_id&apple_product_id=not.is.null');
-    const plan = plans.find((p) => p.apple_product_id === ev.product_id);
+    const plans = await select<{ id: string; apple_product_id: string | null; apple_product_id_month: string | null }>('plans', 'select=id,apple_product_id,apple_product_id_month');
+    const plan = plans.find((p) => p.apple_product_id === ev.product_id || p.apple_product_id_month === ev.product_id);
     if (!plan && status !== 'canceled') return new Response('unknown_product');
 
     const priced = status === 'active' && !cancelAtEnd && typeof ev.price_in_purchased_currency === 'number' && ev.transaction_id;

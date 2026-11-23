@@ -132,7 +132,9 @@ brancher votre compte Stripe : rien ne peut être testé ni encaissé sans lui.
 ```sql
 update plans set stripe_price_id = 'price_...' where id = 'creator';
 update plans set stripe_price_id = 'price_...' where id = 'pro';
-update plans set stripe_price_id = 'price_...' where id = 'premium';
+update plans set stripe_price_id = 'price_...' where id = 'business';
+-- Prix mensuels (créer aussi un prix mensuel par forfait dans Stripe) :
+update plans set stripe_price_id_month = 'price_...' where id in ('creator');  -- idem pro, business
 ```
 
 3. Portail client (Paramètres → Facturation → Portail client) : autoriser **changer de formule**

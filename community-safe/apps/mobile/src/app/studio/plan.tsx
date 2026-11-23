@@ -12,7 +12,7 @@ import { useI18n } from '@/lib/i18n';
 import { supabase, WEB_URL } from '@/lib/supabase';
 import { fontFor, space, useColors } from '@/lib/theme';
 
-interface Plan { id: string; name: string; price_cents: number | null; currency: string; member_limit: number | null; apple_product_id: string | null }
+interface Plan { id: string; name: string; price_cents: number | null; price_month_cents: number | null; currency: string; member_limit: number | null; apple_product_id: string | null; apple_product_id_month: string | null }
 interface Sub { plan_id: string; status: string; provider: string | null; cancel_at_period_end: boolean; current_period_end: string | null }
 
 // Les abonnements payants se souscrivent et se gèrent sur le site (Stripe). L'app affiche la formule,
@@ -24,6 +24,7 @@ export default function PlanScreen() {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [sub, setSub] = useState<Sub | null>(null);
   const [selected, setSelected] = useState('discovery');
+  const [interval, setInterval_] = useState<'month' | 'year'>('year');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -33,7 +34,7 @@ export default function PlanScreen() {
   const creatorId = creator?.id;
 
   const load = useCallback(async () => {
-    const { data: p } = await supabase.from('plans').select('id, name, price_cents, currency, member_limit, apple_product_id').order('sort_order');
+    const { data: p } = await supabase.from('plans').select('id, name, price_cents, price_month_cents, currency, member_limit, apple_product_id, apple_product_id_month').order('sort_order');
     setPlans((p ?? []) as Plan[]);
     if (creatorId) {
       const { data: s } = await supabase.from('subscriptions').select('plan_id, status, provider, cancel_at_period_end, current_period_end').eq('creator_id', creatorId).maybeSingle();
@@ -48,9 +49,9 @@ export default function PlanScreen() {
   if (!session) return <Redirect href={{ pathname: '/sign-in', params: { next: '/studio/plan' } }} />;
   if (!creator) return <Redirect href="/studio/setup" />;
 
-  const money = (p: Plan) => new Intl.NumberFormat(locale, { style: 'currency', currency: p.currency }).format((p.price_cents ?? 0) / 100);
+  const money = (p: Plan) => new Intl.NumberFormat(locale, { style: 'currency', currency: p.currency }).format(((interval === 'month' && p.price_month_cents ? p.price_month_cents : p.price_cents) ?? 0) / 100);
   const name = (p: Plan) => { const k = `plan.name.${p.id}` as MessageKey; const v = t(k); return v === k ? p.name : v; };
-  const price = (p: Plan) => (p.price_cents === null ? t('plan.quote') : p.price_cents === 0 ? t('plan.free') : `${money(p)} ${t('plan.perYear')}`);
+  const price = (p: Plan) => (p.price_cents === null ? t('plan.quote') : p.price_cents === 0 ? t('plan.free') : `${money(p)} ${interval === 'month' && p.price_month_cents ? t('plan.perMonth') : t('plan.perYear')}`);
   const range = (p: Plan, i: number) => {
     const from = i === 0 ? 0 : (plans[i - 1].member_limit ?? 0) + 1;
     return p.member_limit === null ? t('plan.rangeMore', { from: formatCount(locale, from - 1) }) : t('plan.range', { from: formatCount(locale, from), to: formatCount(locale, p.member_limit) });
@@ -58,7 +59,8 @@ export default function PlanScreen() {
   const chosen = plans.find((p) => p.id === selected);
   const paidActive = (sub?.provider === 'stripe' || sub?.provider === 'app_store') && ['active', 'past_due'].includes(sub.status);
   const appleSub = sub?.provider === 'app_store';
-  const pkg = chosen?.apple_product_id ? store[chosen.apple_product_id] : undefined;
+  const productId = interval === 'month' ? chosen?.apple_product_id_month : chosen?.apple_product_id;
+  const pkg = productId ? store[productId] : undefined;
 
   const purchase = async () => {
     if (!pkg || !creatorId) return;
@@ -110,6 +112,13 @@ export default function PlanScreen() {
         </Card>
       ) : null}
 
+      <View style={{ flexDirection: 'row', backgroundColor: '#EEEFF5', borderRadius: 14, padding: 3 }}>
+        {(['month', 'year'] as const).map((k) => (
+          <Pressable key={k} accessibilityRole="button" onPress={() => setInterval_(k)} style={{ flex: 1, paddingVertical: 10, borderRadius: 11, alignItems: 'center', backgroundColor: interval === k ? '#fff' : 'transparent' }}>
+            <T v="heading" style={{ fontSize: 15 }}>{t(k === 'month' ? 'plan.monthly' : 'plan.yearly')}</T>
+          </Pressable>
+        ))}
+      </View>
       <View style={{ gap: 10 }}>
         {plans.map((p, i) => {
           const on = selected === p.id;
