@@ -76,7 +76,12 @@ export default function Discover() {
               </Pressable>
             </View>
           ) : undefined}
-          ListEmptyComponent={<T v="muted" center style={{ marginTop: space.xxl }}>{t('discover.empty')}</T>}
+          ListEmptyComponent={
+            <View style={{ gap: space.lg, marginTop: space.xxl }}>
+              <T v="muted" center>{t('discover.empty')}</T>
+              <Button label={t('profile.becomeCreator')} kind="secondary" onPress={() => router.push('/studio/setup')} />
+            </View>
+          }
           ListFooterComponent={hasMore ? <Button label="+" kind="ghost" onPress={() => load(items.length)} /> : undefined}
         />
       )}

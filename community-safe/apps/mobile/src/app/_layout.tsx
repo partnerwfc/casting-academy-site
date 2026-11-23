@@ -1,11 +1,10 @@
-import { DarkTheme, DefaultTheme, ThemeProvider, router } from 'expo-router';
+import { DefaultTheme, ThemeProvider, router } from 'expo-router';
 import { Stack } from 'expo-router/stack';
 import * as Notifications from 'expo-notifications';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold, Inter_800ExtraBold, useFonts } from '@expo-google-fonts/inter';
 import { SplashScreen } from 'expo-router';
-import { useColorScheme } from 'react-native';
 import { AuthProvider } from '@/lib/auth';
 import { LocaleProvider, useI18n } from '@/lib/i18n';
 import { fontFor, useColors } from '@/lib/theme';
@@ -49,16 +48,15 @@ function Navigator() {
 }
 
 export default function RootLayout() {
-  const scheme = useColorScheme();
   const [fontsLoaded, fontError] = useFonts({ Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold, Inter_800ExtraBold });
   useEffect(() => { if (fontsLoaded || fontError) SplashScreen.hideAsync(); }, [fontsLoaded, fontError]);
   if (!fontsLoaded && !fontError) return null;
   return (
-    <ThemeProvider value={scheme === 'dark' ? DarkTheme : DefaultTheme}>
+    <ThemeProvider value={DefaultTheme}>
       <LocaleProvider>
         <AuthProvider>
           <Navigator />
-          <StatusBar style="auto" />
+          <StatusBar style="dark" />
         </AuthProvider>
       </LocaleProvider>
     </ThemeProvider>

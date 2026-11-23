@@ -1,4 +1,3 @@
-import { useColorScheme } from 'react-native';
 
 const light = {
   bg: '#FFFFFF', surface: '#F7F8FC', card: '#FFFFFF', text: '#170B2F', muted: '#6B7385', border: '#E8E9F2',
@@ -13,7 +12,8 @@ const dark: typeof light = {
 export type Colors = typeof light;
 
 export function useColors(): Colors {
-  return useColorScheme() === 'dark' ? dark : light;
+  void dark; // la maquette est claire : pas de thème sombre
+  return light;
 }
 
 export const space = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32 } as const;

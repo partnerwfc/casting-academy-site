@@ -2,7 +2,7 @@ import { Redirect, router } from 'expo-router';
 import { Pressable, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { formatCount } from '@community-safe/shared';
-import { Avatar, Loading, Pill, Screen, T, VerifiedBadge } from '@/components/ui';
+import { Avatar, Button, Card, Loading, Pill, Screen, T, VerifiedBadge } from '@/components/ui';
 import { useAuth } from '@/lib/auth';
 import { useI18n } from '@/lib/i18n';
 import { space, useColors } from '@/lib/theme';
@@ -53,7 +53,17 @@ export default function NewAlert() {
           </View>
         </>
       ) : (
-        <Pressable onPress={() => router.push('/studio/verify')}><T v="muted" style={{ color: c.primary }}>{t('verify.title')}</T></Pressable>
+        <>
+          <View style={{ opacity: 0.45, gap: space.md }} pointerEvents="none">
+            <Option kind="sos" title={t('compose.sosTitle')} desc={t('new.sosDesc')} tag={t('new.sosTag')} />
+            <Option kind="announcement" title={t('compose.announceTitle')} desc={t('new.annDesc')} tag={t('new.annTag')} />
+          </View>
+          <Card tone="soft">
+            <T v="heading">{t('cert.title')}</T>
+            <T v="muted">{t('cert.requiredToSend')}</T>
+            <Button label={t('cert.start')} onPress={() => router.push('/studio/verify')} />
+          </Card>
+        </>
       )}
     </Screen>
   );
