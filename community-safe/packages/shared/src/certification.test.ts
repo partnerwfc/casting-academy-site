@@ -1,32 +1,32 @@
 import { describe, expect, it } from 'vitest';
 import { containsCode, isPrivateIp, normalizeForMatch, parseDohTxt, twitchDescription, youtubeChannelUrl, youtubeDescription } from './certification';
 
-const CODE = 'CS-7KQM-X2PA';
+const CODE = 'SMC-7KQM-X2PA';
 
 describe('containsCode', () => {
   it('retrouve le code dans une bio, malgré la casse, les espaces et les caractères invisibles', () => {
     expect(containsCode(`Créatrice ✨ vérifie-moi : ${CODE} · merci`, CODE)).toBe(true);
-    expect(containsCode('cs-7kqm-x2pa', CODE)).toBe(true);
-    expect(containsCode('CS 7KQM X2PA', CODE)).toBe(true);
-    expect(containsCode('CS‑​7KQM–X2PA', CODE)).toBe(true);
+    expect(containsCode('smc-7kqm-x2pa', CODE)).toBe(true);
+    expect(containsCode('SMC 7KQM X2PA', CODE)).toBe(true);
+    expect(containsCode('SMC‑​7KQM–X2PA', CODE)).toBe(true);
   });
   it('refuse un code différent, partiel ou un texte vide', () => {
-    expect(containsCode('CS-7KQM-X2PB', CODE)).toBe(false);
-    expect(containsCode('CS-7KQM', CODE)).toBe(false);
+    expect(containsCode('SMC-7KQM-X2PB', CODE)).toBe(false);
+    expect(containsCode('SMC-7KQM', CODE)).toBe(false);
     expect(containsCode('', CODE)).toBe(false);
     expect(containsCode(null, CODE)).toBe(false);
   });
   it('refuse un « code » qui n\'a pas le bon format (jamais de correspondance sur du texte libre)', () => {
     expect(containsCode('julie', 'julie')).toBe(false);
-    expect(containsCode('CS-0000-1111', 'CS-0000-1111')).toBe(false); // 0 et 1 n'existent pas dans l'alphabet
+    expect(containsCode('SMC-0000-1111', 'SMC-0000-1111')).toBe(false); // 0 et 1 n'existent pas dans l'alphabet
   });
   it('normalise', () => expect(normalizeForMatch(' cs–ab ')).toBe('CSAB'));
 });
 
 describe('parseDohTxt', () => {
   it('extrait les valeurs TXT', () => {
-    expect(parseDohTxt({ Answer: [{ type: 16, data: '"CS-7KQM-X2PA"' }, { type: 5, data: 'autre.' }] })).toEqual(['CS-7KQM-X2PA']);
-    expect(parseDohTxt({ Answer: [{ type: 16, data: '"CS-7KQM-" "X2PA"' }] })).toEqual(['CS-7KQM-X2PA']);
+    expect(parseDohTxt({ Answer: [{ type: 16, data: '"SMC-7KQM-X2PA"' }, { type: 5, data: 'autre.' }] })).toEqual(['SMC-7KQM-X2PA']);
+    expect(parseDohTxt({ Answer: [{ type: 16, data: '"SMC-7KQM-" "X2PA"' }] })).toEqual(['SMC-7KQM-X2PA']);
     expect(parseDohTxt(null)).toEqual([]);
   });
 });

@@ -1,12 +1,14 @@
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { Pressable, ScrollView, SectionList, Text, View } from 'react-native';
-import { formatDate, type AlertKind } from '@community-safe/shared';
-import { Avatar, Chip, Loading, Pill, Screen, T } from '@/components/ui';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import type { AlertKind } from '@community-safe/shared';
+import { Avatar, Chip, Loading, Pill, Segmented, T } from '@/components/ui';
 import { useAuth } from '@/lib/auth';
 import { useI18n } from '@/lib/i18n';
 import { supabase } from '@/lib/supabase';
-import { fontFor, space, useColors } from '@/lib/theme';
+import { fontFor, useColors } from '@/lib/theme';
+import { formatWhen } from '@/lib/when';
 
 interface Item {
   id: string; kind: AlertKind; message: string; created_at: string; unread: boolean;
@@ -17,6 +19,7 @@ type Filter = 'all' | 'unread' | 'sos' | 'announcement';
 export default function Alerts() {
   const { t, locale } = useI18n();
   const c = useColors();
+  const top = useSafeAreaInsets().top + 8;
   const { session, creator } = useAuth();
   const [tab, setTab] = useState<'received' | 'sent'>('received');
   const [filter, setFilter] = useState<Filter>('all');
@@ -57,20 +60,12 @@ export default function Alerts() {
   const filters: [Filter, string][] = [['all', t('alerts.fAll')], ['unread', t('alerts.fUnread')], ['sos', t('alerts.fSos')], ['announcement', t('alerts.fAnn')]];
 
   return (
-    <Screen scroll={false} padded={false}>
-      <View style={{ padding: space.lg, gap: space.md }}>
+    <View style={{ flex: 1, backgroundColor: c.surface }}>
+      <View style={{ padding: 20, paddingTop: top, gap: 14 }}>
         <T v="hero">{t('tabs.alerts')}</T>
-        {creator ? (
-          <View style={{ flexDirection: 'row', backgroundColor: '#EEEFF5', borderRadius: 14, padding: 3 }}>
-            {(['received', 'sent'] as const).map((k) => (
-              <Pressable key={k} accessibilityRole="button" onPress={() => setTab(k)} style={{ flex: 1, paddingVertical: 10, borderRadius: 11, alignItems: 'center', backgroundColor: tab === k ? '#fff' : 'transparent' }}>
-                <T v="heading" style={{ fontSize: 15 }}>{t(k === 'received' ? 'alerts.received' : 'alerts.sent')}</T>
-              </Pressable>
-            ))}
-          </View>
-        ) : null}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: space.sm }}>
-          {filters.map(([k, label]) => <Chip key={k} label={label} selected={filter === k} onPress={() => setFilter(k)} />)}
+        {creator ? <Segmented value={tab} onChange={setTab} options={[{ value: 'received', label: t('alerts.received') }, { value: 'sent', label: t('alerts.sent') }]} /> : null}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10 }}>
+          {filters.map(([k, label]) => <Chip key={k} label={label} tone="dark" fill selected={filter === k} onPress={() => setFilter(k)} />)}
         </ScrollView>
       </View>
       {received === null ? <Loading /> : (
@@ -78,29 +73,31 @@ export default function Alerts() {
           sections={sections}
           keyExtractor={(i) => i.id}
           stickySectionHeadersEnabled={false}
-          contentContainerStyle={{ paddingHorizontal: space.lg, paddingBottom: space.xxl }}
-          ListEmptyComponent={<T v="muted" center style={{ marginTop: space.xxl }}>{t('alerts.empty')}</T>}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 100 }}
+          ListEmptyComponent={<T v="muted" center style={{ marginTop: 48 }}>{t('alerts.empty')}</T>}
           renderSectionHeader={({ section }) => (
-            <Text style={{ color: c.muted, fontSize: 13, letterSpacing: 0.6, fontFamily: fontFor(700), textTransform: 'uppercase', marginTop: space.md, marginBottom: 8, marginLeft: 6 }}>{section.title}</Text>
+            <Text style={{ color: c.muted, fontSize: 13, letterSpacing: 0.8, fontFamily: fontFor(700), textTransform: 'uppercase', marginTop: 14, marginBottom: 10, marginLeft: 4 }}>{section.title}</Text>
           )}
-          renderItem={({ item }) => (
-            <Pressable accessibilityRole="button" onPress={() => router.push(item.href as never)}
-              style={{ flexDirection: 'row', gap: space.md, padding: space.md, marginBottom: space.md, borderRadius: 20, borderWidth: 1,
-                backgroundColor: item.kind === 'sos' ? c.sosSoft : c.card, borderColor: item.kind === 'sos' ? '#FBC5CF' : c.border }}>
-              <Avatar name={item.name} url={item.avatar} size={48} />
-              <View style={{ flex: 1, gap: 4 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
-                  <Pill label={t(`alerts.kind.${item.kind}`)} tone={item.kind === 'sos' ? 'sos' : 'primary'} />
-                  <T v="small" style={{ marginLeft: 'auto' }}>{formatDate(locale, item.created_at).split(',')[0]}</T>
-                  {item.unread ? <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: c.primary }} /> : null}
+          renderItem={({ item }) => {
+            const sos = item.kind === 'sos';
+            return (
+              <Pressable accessibilityRole="button" onPress={() => router.push(item.href as never)}
+                style={{ flexDirection: 'row', gap: 14, padding: 14, marginBottom: 12, borderRadius: 22, borderWidth: 1, backgroundColor: sos ? '#FFF1F4' : '#fff', borderColor: sos ? '#F8C3CF' : '#E9E6F3' }}>
+                <Avatar name={item.name} url={item.avatar} size={50} />
+                <View style={{ flex: 1, gap: 5 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    <Pill label={t(`alerts.kind.${item.kind}`).toUpperCase()} tone={sos ? 'sos' : 'primary'} />
+                    <Text style={{ marginLeft: 'auto', fontSize: 14, color: c.muted }}>{formatWhen(locale, item.created_at, t('alerts.yesterday'))}</Text>
+                    {item.unread ? <View style={{ width: 9, height: 9, borderRadius: 5, backgroundColor: c.primary }} /> : null}
+                  </View>
+                  <Text style={{ fontSize: 17, lineHeight: 23, color: c.text, fontFamily: fontFor(item.unread ? 700 : 500), letterSpacing: -0.2 }}>{item.message}</Text>
+                  <Text style={{ fontSize: 14.5, color: c.muted }}>{item.name}</Text>
                 </View>
-                <T v="heading" style={{ fontSize: 16, fontWeight: item.unread ? '700' : '500' }}>{item.message}</T>
-                <T v="small">{item.name}</T>
-              </View>
-            </Pressable>
-          )}
+              </Pressable>
+            );
+          }}
         />
       )}
-    </Screen>
+    </View>
   );
 }

@@ -35,6 +35,11 @@ export function formatCount(locale: AppLocale, n: number): string {
   return new Intl.NumberFormat(locale).format(n);
 }
 
+// « 12,4 k » : forme compacte des maquettes pour les listes.
+export function formatCompact(locale: AppLocale, n: number): string {
+  return new Intl.NumberFormat(locale, { notation: 'compact', maximumFractionDigits: 1 }).format(n).replace(/\u00a0/g, ' ').replace(/(\d)(K)$/i, '$1 k');
+}
+
 export function formatDate(locale: AppLocale, iso: string): string {
   return new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(iso));
 }

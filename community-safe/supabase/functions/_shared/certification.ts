@@ -2,7 +2,7 @@
 // Contrôles de certification « Créateur certifié », sans dépendance : copié tel quel dans
 // supabase/functions/_shared par `pnpm sync:functions`.
 
-export const CODE_PATTERN = /^CS-[A-HJKMNP-Z2-9]{4}-[A-HJKMNP-Z2-9]{4}$/;
+export const CODE_PATTERN = /^SMC-[A-HJKMNP-Z2-9]{4}-[A-HJKMNP-Z2-9]{4}$/;
 
 // Normalisation tolérante : une bio peut mettre le code en gras, le couper ou changer ses tirets,
 // mais pas en modifier les 8 caractères (alphabet aléatoire : aucun risque de faux positif).

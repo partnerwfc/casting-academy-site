@@ -4,21 +4,48 @@ import {
   type StyleProp, type TextInputProps, type TextStyle, type ViewStyle,
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
+import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { fontFor, radius, space, useColors } from '@/lib/theme';
 
-export function Screen({ children, scroll = true, padded = true }: { children: ReactNode; scroll?: boolean; padded?: boolean }) {
+export interface NavSpec { close?: boolean; back?: string | false; title?: string; right?: { label: string; onPress: () => void }; onBack?: () => void }
+
+// Barre de navigation des maquettes : « ‹ Retour » à gauche, titre centré, action à droite.
+export function NavBar({ nav }: { nav: NavSpec }) {
   const c = useColors();
-  const pad = padded ? { padding: space.lg, gap: space.lg } : undefined;
+  const back = nav.onBack ?? (() => router.back());
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: c.surface }} edges={['top', 'left', 'right']}>
+    <View style={{ height: 46, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, backgroundColor: '#fff' }}>
+      <View style={{ flex: 1, alignItems: 'flex-start' }}>
+        {nav.close ? <Pressable accessibilityRole="button" accessibilityLabel="Fermer" onPress={back} hitSlop={12}><Text style={{ color: c.text, fontSize: 24 }}>✕</Text></Pressable> : nav.back === false ? null : (
+          <Pressable accessibilityRole="button" onPress={back} hitSlop={10} style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+            <Text style={{ color: c.text, fontSize: 26, marginTop: -3 }}>‹</Text>
+            <Text style={{ color: c.text, fontSize: 17, fontFamily: fontFor(400) }}>{nav.back ?? 'Retour'}</Text>
+          </Pressable>
+        )}
+      </View>
+      <Text numberOfLines={1} style={{ color: c.text, fontSize: 17, fontFamily: fontFor(700) }}>{nav.title ?? ''}</Text>
+      <View style={{ flex: 1, alignItems: 'flex-end' }}>
+        {nav.right ? <Pressable accessibilityRole="button" onPress={nav.right.onPress} hitSlop={10}><Text style={{ color: c.text, fontSize: 17, fontFamily: fontFor(400) }}>{nav.right.label}</Text></Pressable> : null}
+      </View>
+    </View>
+  );
+}
+
+export function Screen({ children, scroll = true, padded = true, bg, nav, footer }: { children: ReactNode; scroll?: boolean; padded?: boolean; bg?: string; nav?: NavSpec; footer?: ReactNode }) {
+  const c = useColors();
+  const pad = padded ? { padding: space.xl - 4, paddingTop: space.lg, gap: space.lg } : undefined;
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: bg ?? c.surface }} edges={['top', 'left', 'right']}>
+      {nav ? <NavBar nav={nav} /> : null}
       {scroll ? (
-        <ScrollView contentContainerStyle={[pad, { paddingBottom: space.xxl }]} keyboardShouldPersistTaps="handled">
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={[pad, { paddingBottom: space.xxl }]} keyboardShouldPersistTaps="handled">
           {children}
         </ScrollView>
       ) : (
         <View style={[{ flex: 1 }, pad]}>{children}</View>
       )}
+      {footer ? <View style={{ paddingHorizontal: space.xl - 4, paddingBottom: space.lg, paddingTop: space.sm, gap: space.sm }}>{footer}</View> : null}
     </SafeAreaView>
   );
 }
@@ -85,41 +112,66 @@ export function Input(props: TextInputProps & { label?: string }) {
   );
 }
 
+const TINTS: [string, string][] = [['#F0EBFF', '#6D28D9'], ['#E3F6FD', '#0E7490']];
+export function initials(name: string): string {
+  const words = name.trim().split(/\s+/).filter((w) => w.length > 2);
+  const w = words.length ? words : name.trim().split(/\s+/);
+  return (w.length > 1 ? w[0][0] + w[1][0] : w[0]?.[0] ?? '?').toUpperCase();
+}
 export function Avatar({ name, url, size = 48 }: { name: string; url?: string | null; size?: number }) {
-  const c = useColors();
   const r = size * 0.28;
   if (url) return <Image source={{ uri: url }} style={{ width: size, height: size, borderRadius: r }} accessibilityIgnoresInvertColors />;
+  let h = 0; for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) % 997;
+  const [bg, fg] = TINTS[h % TINTS.length];
   return (
-    <View style={{ width: size, height: size, borderRadius: r, backgroundColor: c.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
-      <Text style={{ color: c.primary, fontFamily: fontFor(700), fontSize: size * 0.4 }}>{name.trim().charAt(0).toUpperCase()}</Text>
+    <View style={{ width: size, height: size, borderRadius: r, backgroundColor: bg, alignItems: 'center', justifyContent: 'center' }}>
+      <Text style={{ color: fg, fontFamily: fontFor(800), fontSize: size * 0.34 }}>{initials(name)}</Text>
     </View>
   );
 }
 
-export function Pill({ label, tone = 'neutral' }: { label: string; tone?: 'neutral' | 'primary' | 'success' | 'sos' }) {
+type PillTone = 'neutral' | 'primary' | 'success' | 'sos' | 'warn';
+export function Pill({ label, tone = 'neutral' }: { label: string; tone?: PillTone }) {
   const c = useColors();
-  const fg = { neutral: c.muted, primary: c.primary, success: c.success, sos: c.sos }[tone];
-  const bg = { neutral: c.surface, primary: c.primarySoft, success: '#E6F7EE', sos: c.sosSoft }[tone];
+  const map: Record<PillTone, [string, string]> = {
+    neutral: ['#EEEFF5', '#6B7385'], primary: ['#F0EBFF', c.primary], success: ['#E3F6EC', '#15803D'], sos: ['#FFE4E9', c.sos], warn: ['#FEF3C7', '#92400E'],
+  };
+  const [bg, fg] = map[tone];
   return (
-    <View style={{ backgroundColor: bg, paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.pill, alignSelf: 'flex-start' }}>
-      <Text style={{ color: fg, fontSize: 11, fontFamily: fontFor(700), letterSpacing: 0.3 }}>{label}</Text>
+    <View style={{ backgroundColor: bg, paddingHorizontal: 10, paddingVertical: 4, borderRadius: radius.pill, alignSelf: 'flex-start' }}>
+      <Text style={{ color: fg, fontSize: 12, fontFamily: fontFor(700), letterSpacing: 0.3 }}>{label}</Text>
     </View>
   );
 }
 
-export function Chip({ label, selected, onPress }: { label: string; selected: boolean; onPress: () => void }) {
+export function Chip({ label, selected, onPress, tone = 'violet', fill = false }: { label: string; selected: boolean; onPress: () => void; tone?: 'violet' | 'dark'; fill?: boolean }) {
   const c = useColors();
+  const on = tone === 'dark' ? '#170B2F' : c.primary;
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityState={{ selected }}
       onPress={onPress}
       style={{
-        paddingHorizontal: 14, paddingVertical: 8, borderRadius: radius.pill, borderWidth: 1,
-        borderColor: selected ? c.primary : c.border, backgroundColor: selected ? c.primary : c.card,
+        paddingHorizontal: 18, height: 40, justifyContent: 'center', borderRadius: radius.pill, borderWidth: selected || fill ? 0 : 1,
+        borderColor: '#E9E6F3', backgroundColor: selected ? on : fill ? '#EEEFF5' : '#fff',
       }}>
-      <Text style={{ color: selected ? '#fff' : c.text, fontSize: 14, fontFamily: fontFor(600) }}>{label}</Text>
+      <Text style={{ color: selected ? '#fff' : c.text, fontSize: 15, fontFamily: fontFor(600) }}>{label}</Text>
     </Pressable>
+  );
+}
+
+export function Segmented<T extends string | number>({ options, value, onChange }: { options: { value: T; label: string }[]; value: T; onChange: (v: T) => void }) {
+  return (
+    <View style={{ flexDirection: 'row', backgroundColor: '#EEEFF5', borderRadius: 14, padding: 3 }}>
+      {options.map((o) => (
+        <Pressable key={String(o.value)} accessibilityRole="button" accessibilityState={{ selected: value === o.value }} onPress={() => onChange(o.value)}
+          style={{ flex: 1, paddingVertical: 9, borderRadius: 11, alignItems: 'center', backgroundColor: value === o.value ? '#fff' : 'transparent',
+            shadowColor: '#170B2F', shadowOpacity: value === o.value ? 0.1 : 0, shadowRadius: 4, shadowOffset: { width: 0, height: 1 }, elevation: value === o.value ? 1 : 0 }}>
+          <Text style={{ fontSize: 15, color: '#170B2F', fontFamily: fontFor(600) }}>{o.label}</Text>
+        </Pressable>
+      ))}
+    </View>
   );
 }
 
@@ -176,8 +228,8 @@ export function Section({ title, children }: { title?: string; children: ReactNo
   const c = useColors();
   return (
     <View style={{ gap: 8 }}>
-      {title ? <Text style={{ color: c.muted, fontSize: 13, letterSpacing: 0.6, fontFamily: fontFor(700), textTransform: 'uppercase', marginLeft: 8 }}>{title}</Text> : null}
-      <View style={{ backgroundColor: c.card, borderRadius: 20, overflow: 'hidden' }}>{children}</View>
+      {title ? <Text style={{ color: c.muted, fontSize: 13, letterSpacing: 0.8, fontFamily: fontFor(700), textTransform: 'uppercase', marginLeft: 8 }}>{title}</Text> : null}
+      <View style={{ backgroundColor: '#fff', borderRadius: 22, overflow: 'hidden' }}>{children}</View>
     </View>
   );
 }
@@ -186,11 +238,11 @@ export function Row({ label, value, tint, icon, onPress, last, right }: { label:
   const c = useColors();
   return (
     <Pressable accessibilityRole={onPress ? 'button' : undefined} onPress={onPress} disabled={!onPress}
-      style={{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 16, minHeight: 56, borderBottomWidth: last ? 0 : StyleSheet.hairlineWidth, borderBottomColor: c.border }}>
-      {icon ? <View style={{ width: 30, height: 30, borderRadius: 9, backgroundColor: tint ?? c.primary, alignItems: 'center', justifyContent: 'center' }}>{icon}</View> : null}
+      style={{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 16, minHeight: 58, borderBottomWidth: last ? 0 : 1, borderBottomColor: '#EEEFF5' }}>
+      {icon ? <View style={{ width: 34, height: 34, borderRadius: 10, backgroundColor: tint ?? c.primary, alignItems: 'center', justifyContent: 'center' }}>{icon}</View> : null}
       <Text style={{ flex: 1, color: c.text, fontSize: 17, fontFamily: fontFor(400) }}>{label}</Text>
-      {value ? <Text style={{ color: c.muted, fontSize: 16 }}>{value}</Text> : null}
-      {right ?? (onPress ? <Text style={{ color: c.muted, fontSize: 20 }}>›</Text> : null)}
+      {value ? <Text style={{ color: c.muted, fontSize: 17 }}>{value}</Text> : null}
+      {right ?? (onPress ? <Text style={{ color: '#B6B9C6', fontSize: 22 }}>›</Text> : null)}
     </Pressable>
   );
 }

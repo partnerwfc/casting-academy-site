@@ -38,6 +38,8 @@
       "expo-apple-authentication",
       ["expo-notifications", { "color": "#0755FF" }],
       "expo-iap",
+      ["expo-camera", { "cameraPermission": "SaveMyCommunity utilise la caméra uniquement pour la vidéo selfie de certification (sans son).", "recordAudioAndroid": false }],
+      ["expo-image-picker", { "photosPermission": "Choisis le logo de ta communauté." }],
       ["expo-splash-screen", { "backgroundColor": "#170B2F", "image": "./assets/images/splash-icon.png", "imageWidth": 76 }]
     ],
     "experiments": { "reactCompiler": true },

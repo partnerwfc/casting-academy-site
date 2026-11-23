@@ -120,7 +120,7 @@ select t.eq((select handle from social_accounts where id = :'acct_id'), 'julie.o
 select t.expect_error($$update social_accounts set verified_at = now()$$, 'permission denied%');
 select t.expect_error($$insert into social_accounts (creator_id, platform, handle) select id, 'x', 'julie' from creator_profiles$$, 'permission denied%');
 select (start_certification(:'acct_id')).id as verif_id \gset
-select t.eq((select code ~ '^CS-[A-HJKMNP-Z2-9]{4}-[A-HJKMNP-Z2-9]{4}$' from creator_verifications where id = :'verif_id'), true, 'code unique lisible');
+select t.eq((select code ~ '^SMC-[A-HJKMNP-Z2-9]{4}-[A-HJKMNP-Z2-9]{4}$' from creator_verifications where id = :'verif_id'), true, 'code unique lisible');
 select t.eq((select method from creator_verifications where id = :'verif_id'), 'manual_social', 'Instagram : contrôle manuel');
 select t.eq((select verification_status::text from creator_profiles where handle = 'julie'), 'pending', 'demande en cours');
 select t.expect_error(format($$select request_alternative_certification(%L, 'court')$$, :'verif_id'), 'note_required');
