@@ -83,7 +83,7 @@ SOS sécurisé, annonces avec quotas, file d'envoi push, historique et suivi d'e
 administration, export/suppression RGPD, 4 langues.
 
 Fait mais non testé avec un vrai compte Stripe : abonnements annuels (Discovery gratuit,
-Creator 29,99 €, Pro 49,99 €, Premium 99,99 €, Enterprise sur devis), changement, résiliation,
+Creator 5,99 €/mois ou 59,90 €/an, Pro 14,99 € ou 149,90 €, Business 39,99 € ou 399,90 €, Enterprise sur devis), changement, résiliation,
 suppression de compte. Pas encore fait : achats intégrés iOS/Android, photos de profil, passkeys.
 
 Voir `docs/DEPLOYMENT.md` pour ce qu'il reste à configurer avant un lancement.

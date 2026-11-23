@@ -126,7 +126,7 @@ Le code est écrit et testé de bout en bout avec des événements Stripe signé
 brancher votre compte Stripe : rien ne peut être testé ni encaissé sans lui.
 
 1. Utiliser votre compte Stripe (si c'est celui d'iCastt : voir la note ci-dessous), puis **un produit par formule payante** (Creator, Pro, Premium) avec un
-   **prix annuel** récurrent (29,99 €, 49,99 €, 99,99 €).
+   **prix mensuel et annuel** récurrents : Creator 5,99 € / 59,90 €, Pro 14,99 € / 149,90 €, Business 39,99 € / 399,90 €.
 2. Copier l'identifiant de chaque prix (`price_...`) dans `plans.stripe_price_id` :
 
 ```sql
