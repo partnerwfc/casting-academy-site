@@ -38,7 +38,7 @@ export default function SignIn() {
   };
 
   return (
-    <Screen>
+    <Screen nav={{ close: true }}>
       <View style={{ gap: space.sm }}>
         <T v="title">{t('auth.title')}</T>
         <T v="muted">{name ? t('auth.followIntent', { name }) : t('auth.subtitle')}</T>

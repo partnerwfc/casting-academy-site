@@ -2,7 +2,7 @@ import { Redirect, router } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useEffect, useState } from 'react';
 import { Alert, Linking, Pressable, Text, View } from 'react-native';
-import { errorMessage, formatCount, formatDate } from '@community-safe/shared';
+import { errorMessage, formatCount } from '@community-safe/shared';
 import { Loading, Pill, Screen, Section, T } from '@/components/ui';
 import { useAuth } from '@/lib/auth';
 import { restore as restoreIap, iapAvailable } from '@/lib/iap';
@@ -33,6 +33,8 @@ export default function Subscription() {
   if (!session) return <Redirect href={{ pathname: '/sign-in', params: { next: '/studio/subscription' } }} />;
   if (!creator) return <Redirect href="/studio/setup" />;
 
+  const long = (iso: string) => new Intl.DateTimeFormat(locale, { dateStyle: 'long' }).format(new Date(iso));
+  const short = (iso: string) => new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(iso));
   const money = (cents: number, cur = 'EUR') => new Intl.NumberFormat(locale, { style: 'currency', currency: cur }).format(cents / 100);
   const plan = plans.find((p) => p.id === (sub?.plan_id ?? creator.plan_id));
   const idx = plans.findIndex((p) => p.id === plan?.id);
@@ -44,7 +46,7 @@ export default function Subscription() {
   const pct = limit ? Math.min(100, Math.round((creator.member_count / limit) * 100)) : 0;
   const paid = !!plan && !!plan.price_cents;
   const apple = sub?.provider === 'app_store';
-  const end = sub?.current_period_end ? formatDate(locale, sub.current_period_end).split(',')[0] : '';
+  const end = sub?.current_period_end ? long(sub.current_period_end) : '';
   const manage = () => (apple ? Linking.openURL('https://apps.apple.com/account/subscriptions') : WebBrowser.openBrowserAsync(`${WEB_URL}/dashboard/plan`));
   const link = (label: string, onPress: () => void, arrow: string, last?: boolean) => (
     <Pressable key={label} onPress={onPress} style={{ flexDirection: 'row', alignItems: 'center', minHeight: 54, paddingHorizontal: 16, borderBottomWidth: last ? 0 : 1, borderBottomColor: '#EEEFF5' }}>
@@ -81,7 +83,7 @@ export default function Subscription() {
         ) : null}
         {paid ? (
           <View style={{ borderTopWidth: 1, borderTopColor: '#EEEFF5', marginTop: 10, paddingTop: 8 }}>
-            {kv(t('sub.start'), formatDate(locale, sub?.created_at ?? creator.created_at).split(',')[0])}
+            {kv(t('sub.start'), long(sub?.created_at ?? creator.created_at))}
             {end ? kv(t('sub.renewal'), end) : null}
             {kv(t('sub.payment'), apple ? t('sub.storeApple') : t('sub.storeWeb'))}
           </View>
@@ -100,7 +102,7 @@ export default function Subscription() {
         {pays.length ? pays.map((p, i) => (
           <View key={p.id} style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 16, borderBottomWidth: 1, borderBottomColor: '#EEEFF5' }}>
             <View style={{ gap: 2 }}>
-              <Text style={{ fontSize: 17, color: c.text, fontFamily: fontFor(600) }}>{formatDate(locale, p.created_at).split(',')[0]}</Text>
+              <Text style={{ fontSize: 17, color: c.text, fontFamily: fontFor(600) }}>{short(p.created_at)}</Text>
               <Text style={{ fontSize: 13.5, color: c.muted }}>{plan ? range(plan, idx) : ''}</Text>
             </View>
             <View style={{ alignItems: 'flex-end', gap: 2 }}>

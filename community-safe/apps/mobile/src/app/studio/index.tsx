@@ -87,22 +87,22 @@ export default function Studio() {
     load();
   };
 
-  const fmt = (p?: { price_cents: number | null; currency: string }) => (p && p.price_cents ? `${new Intl.NumberFormat(locale, { style: 'currency', currency: p.currency }).format(p.price_cents / 100)} ${t('plan.perYear')}` : t('plan.free'));
+  const fmt = (p?: { price_cents: number | null; currency: string }) => (p && p.price_cents ? `${new Intl.NumberFormat(locale, { style: 'currency', currency: p.currency }).format(p.price_cents / 100)} ${t('plan.perYearShort')}` : t('plan.free'));
   const curPlan = plans.find((p) => p.id === creator.plan_id);
   const nextPlan = plans.find((p) => p.price_cents !== null && (p.member_limit === null || p.member_limit >= stats.members_total));
   const curPrice = fmt(curPlan);
   const nextPrice = nextPlan ? fmt(nextPlan) : t('plan.quote');
   return (
-    <Screen bg={c.surface} nav={{ back: t('tabs.profile'), title: t('dash.title') }}>
+    <Screen bg={c.surface} nav={{ back: t('tabs.profile'), title: t('profile.creatorSpace') }}>
       <Modal visible={over && !sheetDismissed} transparent animationType="slide" onRequestClose={() => setSheetDismissed(true)}>
         <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(23,11,47,0.45)' }}>
           <View style={{ backgroundColor: c.bg, borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: space.xl, gap: space.md, alignItems: 'center' }}>
             <View style={{ width: 36, height: 5, borderRadius: 3, backgroundColor: '#D7D8E2' }} />
-            <View style={{ width: 90, height: 90, borderRadius: 45, borderWidth: 9, borderColor: c.brand, alignItems: 'center', justifyContent: 'center' }}>
-              <T v="heading" style={{ fontSize: 15, fontWeight: '800' }}>{formatCount(locale, stats.members_total)}</T>
-              <T v="small" style={{ fontSize: 11 }}>/ {limit !== null ? formatCount(locale, limit) : ''}</T>
+            <View style={{ width: 104, height: 104, borderRadius: 52, borderWidth: 9, borderColor: c.brand, alignItems: 'center', justifyContent: 'center' }}>
+              <T v="heading" style={{ fontSize: 21, fontWeight: '800' }}>{formatCount(locale, stats.members_total)}</T>
+              <T v="small" style={{ fontSize: 13 }}>/ {limit !== null ? formatCount(locale, limit) : ''}</T>
             </View>
-            <T v="title" center>{t('over.title')}</T>
+            <T v="title" center style={{ fontSize: 24 }}>{t('over.title')}</T>
             <T v="muted" center>{t('over.body', { name: creator.display_name, limit: limit !== null ? formatCount(locale, limit) : '' })}</T>
             <View style={{ alignSelf: 'stretch', backgroundColor: c.surface, borderRadius: 16, paddingHorizontal: space.lg }}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 14 }}>
@@ -122,7 +122,7 @@ export default function Studio() {
         <Avatar name={creator.display_name} url={creator.avatar_url} size={52} />
         <View style={{ gap: 2 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}><Text style={{ fontSize: 21, color: c.text, fontFamily: fontFor(800), letterSpacing: -0.4 }}>{creator.display_name}</Text>{verified ? <VerifiedBadge size={18} /> : null}</View>
-          <Text style={{ fontSize: 14.5, color: c.muted }}>@{creator.handle}{verified ? ` · ${t('cert.badge')}` : ''}</Text>
+          <Text style={{ fontSize: 14.5, color: c.muted }}>@{creator.handle}{verified ? ` · ${t('cert.short')}` : ''}</Text>
         </View>
       </View>
       <View style={{ gap: 4, alignItems: 'flex-start', marginTop: 4 }}>

@@ -119,7 +119,7 @@ export default function Profile() {
               <View style={{ flex: 1, gap: 3 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                   <Text style={{ fontSize: 18.5, color: c.text, fontFamily: fontFor(800), letterSpacing: -0.3 }}>{creator ? t('profile.creatorSpace') : t('profile.becomeCreator')}</Text>
-                  {creator && verified ? <Pill label={t('cert.badge')} tone="success" /> : null}
+                  {creator && verified ? <Pill label={t('cert.short')} tone="success" /> : null}
                 </View>
                 {creator ? <Text style={{ fontSize: 14.5, color: c.muted }}>{creator.display_name} · {t('profile.protectedMembers', { count: formatCompact(locale, creator.member_count) })}</Text> : null}
               </View>
@@ -128,7 +128,7 @@ export default function Profile() {
 
             {creator ? (
               <Section title={t('profile.secCreator')}>
-                <Row label={t('profile.rowCert')} value={verified ? t('cert.badge') : undefined} tint="#24B36B" icon={ic('M12 3l7.5 3v5.6c0 4.4-3 7.7-7.5 9.4-4.5-1.7-7.5-5-7.5-9.4V6zM8.8 12l2.4 2.4 4.2-4.4')} onPress={() => router.push('/studio/verify')} />
+                <Row label={t('profile.rowCert')} value={verified ? t('cert.short') : undefined} tint="#24B36B" icon={ic('M12 3l7.5 3v5.6c0 4.4-3 7.7-7.5 9.4-4.5-1.7-7.5-5-7.5-9.4V6zM8.8 12l2.4 2.4 4.2-4.4')} onPress={() => router.push('/studio/verify')} />
                 <Row label={t('profile.rowPlan')} value={price} tint="#633BEE" icon={ic('M3 7h18v10H3zM3 11h18')} onPress={() => router.push('/studio/subscription')} />
                 <Row label={t('profile.rowHistory')} tint="#E11D48" icon={ic('M12 7v5l3 2M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z')} last onPress={() => router.push('/(tabs)/alerts')} />
               </Section>

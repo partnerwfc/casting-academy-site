@@ -8,7 +8,7 @@ import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { fontFor, radius, space, useColors } from '@/lib/theme';
 
-export interface NavSpec { close?: boolean; back?: string | false; title?: string; right?: { label: string; onPress: () => void }; onBack?: () => void }
+export interface NavSpec { noChevron?: boolean; close?: boolean; back?: string | false; title?: string; right?: { label: string; onPress: () => void }; onBack?: () => void }
 
 // Barre de navigation des maquettes : « ‹ Retour » à gauche, titre centré, action à droite.
 export function NavBar({ nav }: { nav: NavSpec }) {
@@ -19,7 +19,7 @@ export function NavBar({ nav }: { nav: NavSpec }) {
       <View style={{ flex: 1, alignItems: 'flex-start' }}>
         {nav.close ? <Pressable accessibilityRole="button" accessibilityLabel="Fermer" onPress={back} hitSlop={12}><Text style={{ color: c.text, fontSize: 24 }}>✕</Text></Pressable> : nav.back === false ? null : (
           <Pressable accessibilityRole="button" onPress={back} hitSlop={10} style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
-            <Text style={{ color: c.text, fontSize: 26, marginTop: -3 }}>‹</Text>
+            {nav.noChevron ? null : <Text style={{ color: c.text, fontSize: 26, marginTop: -3 }}>‹</Text>}
             <Text style={{ color: c.text, fontSize: 17, fontFamily: fontFor(400) }}>{nav.back ?? 'Retour'}</Text>
           </Pressable>
         )}

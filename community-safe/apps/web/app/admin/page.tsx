@@ -113,8 +113,8 @@ function Console() {
     setStats(s.data as Record<string, number>);
     setVerifications(((v.data ?? []) as Row[]).map((r) => {
       const acct = r.social_accounts as { platform?: string; url?: string } | null;
-      const ev = (r.evidence ?? {}) as { call_link?: string; availability?: string };
-      return { ...r, account: acct?.url ?? '—', platform: acct?.platform ?? '', call: ev.call_link ?? '', availability: ev.availability ?? '', flags: (r.risk_flags as string[] | null)?.join(', ') ?? '' };
+      const ev = (r.evidence ?? {}) as { call_link?: string; availability?: string; video_path?: string };
+      return { ...r, account: acct?.url ?? '—', platform: acct?.platform ?? '', call: ev.call_link ?? '', availability: ev.availability ?? '', flags: (r.risk_flags as string[] | null)?.join(', ') ?? '', video: ev.video_path ? 'yes' : '' };
     }));
     setCertEvents(((ce.data ?? []) as Row[]).map((r) => ({ ...r, handle: (r.creator_profiles as { handle?: string } | null)?.handle ?? '' }))); setReports((r.data ?? []) as Row[]); setCreators((c.data ?? []) as Row[]);
     const flat = (rows: Row[] | null): Row[] => (rows ?? []).map((r) => ({ ...r, handle: (r.creator_profiles as { handle?: string } | null)?.handle ?? '' }));
@@ -132,6 +132,28 @@ function Console() {
     load();
   };
   const db = supabase();
+  // Vidéo selfie : lecture par lien signé de 5 minutes, suppression dès la décision.
+  const watchVideo = async (id: unknown) => {
+    const { data: v } = await db.from('creator_verifications').select('evidence').eq('id', id).maybeSingle();
+    const path = (v?.evidence as { video_path?: string } | null)?.video_path;
+    if (!path) return setError('No video attached');
+    const { data, error: err } = await db.storage.from('cert-videos').createSignedUrl(path, 300);
+    if (err || !data) return setError(err?.message ?? 'Cannot open video');
+    window.open(data.signedUrl, '_blank', 'noopener');
+  };
+  const deleteVideo = async (id: unknown) => {
+    const { data: v } = await db.from('creator_verifications').select('evidence').eq('id', id).maybeSingle();
+    const path = (v?.evidence as { video_path?: string } | null)?.video_path;
+    if (!path) return;
+    await db.storage.from('cert-videos').remove([path]);
+    await db.rpc('admin_clear_presence_video', { p_verification_id: id });
+  };
+  const decide = async (row: Row, approve: boolean, reason: string | null) => {
+    const { error: err } = await db.rpc('admin_review_certification', { p_verification_id: row.id, p_approve: approve, p_reason: reason });
+    if (err) { setError(err.message); return; }
+    await deleteVideo(row.id); // la vidéo n'est jamais conservée après la décision
+    setError(null); load();
+  };
 
   return (
     <div className="stack-lg">
@@ -148,15 +170,16 @@ function Console() {
       ) : null}
 
       <section className="card"><h3>Certification requests</h3>
-        <p className="small">Step 1 · confirm presence after a live video call (nothing recorded). Step 2 · approve only after checking the public profile shows the code. A risk flag requires a written justification.</p>
-        <Table rows={verifications} columns={['creator_profiles.handle', 'creator_profiles.display_name', 'platform', 'account', 'method', 'status', 'presence_status', 'flags', 'call', 'availability', 'note', 'created_at']} actions={(row) => (<>
+        <p className="small">Watch the selfie video (face, head left, head right, no sound) and check the public profile shows the code, then approve or refuse: the video is deleted as soon as you decide. A risk flag requires a written justification.</p>
+        <Table rows={verifications} columns={['creator_profiles.handle', 'creator_profiles.display_name', 'platform', 'account', 'method', 'status', 'presence_status', 'video', 'flags', 'call', 'availability', 'note', 'created_at']} actions={(row) => (<>
           {row.status === 'awaiting_proof' && row.presence_status !== 'passed' ? (<>
             <button className="btn sm" onClick={() => act(db.rpc('admin_confirm_presence', { p_verification_id: row.id, p_passed: true, p_note: prompt('Note (optional)') }))}>Presence OK</button>
             <button className="btn sm danger" onClick={() => act(db.rpc('admin_confirm_presence', { p_verification_id: row.id, p_passed: false, p_note: prompt('Reason?') }))}>Presence failed</button>
           </>) : null}
+          {row.video ? <button className="btn sm secondary" onClick={() => watchVideo(row.id)}>Watch video</button> : null}
           {row.status === 'in_review' ? (<>
-            <button className="btn sm" onClick={() => { const reason = prompt(row.flags ? `Risk: ${row.flags}. Justification (min 10 characters)` : 'Note (optional)'); if (reason !== null) act(db.rpc('admin_review_certification', { p_verification_id: row.id, p_approve: true, p_reason: reason || null })); }}>Approve</button>
-            <button className="btn sm danger" onClick={() => { const reason = prompt('Reason for refusal (shown to the creator)'); if (reason) act(db.rpc('admin_review_certification', { p_verification_id: row.id, p_approve: false, p_reason: reason })); }}>Refuse</button>
+            <button className="btn sm" onClick={() => { const reason = prompt(row.flags ? `Risk: ${row.flags}. Justification (min 10 characters)` : 'Note (optional)'); if (reason !== null) decide(row, true, reason || null); }}>Approve</button>
+            <button className="btn sm danger" onClick={() => { const reason = prompt('Reason for refusal (shown to the creator)'); if (reason) decide(row, false, reason); }}>Refuse</button>
           </>) : null}
         </>)} />
       </section>

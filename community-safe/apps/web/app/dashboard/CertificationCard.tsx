@@ -78,6 +78,15 @@ export function CertificationCard({ creator, onChange }: { creator: CreatorProfi
     );
   }
 
+  if (presenceMode === 'video' && !(cert && ['awaiting_proof', 'in_review'].includes(cert.status) && cert.status === 'in_review')) {
+    return (
+      <section className="card soft" aria-label={t('cert.title')}>
+        <h3>{t('cert.title')}</h3>
+        <p className="muted">{t('cert2.useApp')}</p>
+      </section>
+    );
+  }
+
   const presenceOk = presenceMode === 'off' || cert?.presence_status === 'passed';
   const open = cert && ['awaiting_proof', 'in_review'].includes(cert.status);
 

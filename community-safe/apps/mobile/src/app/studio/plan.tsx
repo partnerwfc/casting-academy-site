@@ -1,10 +1,10 @@
 import { Redirect, router } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useCallback, useEffect, useState } from 'react';
-import { Alert, Linking, Pressable, View } from 'react-native';
+import { Alert, Linking, Pressable, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { errorMessage, formatCount, formatDate, type MessageKey } from '@community-safe/shared';
-import { Button, Card, Input, Loading, Pill, Screen, T } from '@/components/ui';
+import { Button, Card, Input, Loading, Pill, Screen, Segmented, T } from '@/components/ui';
 import { useAuth } from '@/lib/auth';
 import { buy, iapAvailable, loadStorePrices, restore } from '@/lib/iap';
 import { useI18n } from '@/lib/i18n';
@@ -54,12 +54,13 @@ export default function PlanScreen() {
 
   const money = (p: Plan) => new Intl.NumberFormat(locale, { style: 'currency', currency: p.currency }).format(((interval === 'month' && p.price_month_cents ? p.price_month_cents : p.price_cents) ?? 0) / 100);
   const name = (p: Plan) => { const k = `plan.name.${p.id}` as MessageKey; const v = t(k); return v === k ? p.name : v; };
-  const price = (p: Plan) => (p.price_cents === null ? t('plan.quote') : p.price_cents === 0 ? t('plan.free') : `${money(p)} ${interval === 'month' && p.price_month_cents ? t('plan.perMonth') : t('plan.perYear')}`);
+  const price = (p: Plan) => (p.price_cents === null ? t('plan.quote') : p.price_cents === 0 ? t('plan.free') : `${money(p)}${interval === 'month' && p.price_month_cents ? t('plan.perMonthShort') : t('plan.perYearShort')}`);
   const range = (p: Plan, i: number) => {
     const from = i === 0 ? 0 : (plans[i - 1].member_limit ?? 0) + 1;
     return p.member_limit === null ? t('plan.rangeMore', { from: formatCount(locale, from - 1) }) : t('plan.range', { from: formatCount(locale, from), to: formatCount(locale, p.member_limit) });
   };
   const chosen = plans.find((p) => p.id === selected);
+  const fits = plans.find((p) => p.price_cents !== null && (p.member_limit === null || p.member_limit >= creator.member_count))?.id;
   const paidActive = (sub?.provider === 'stripe' || sub?.provider === 'app_store') && ['active', 'past_due'].includes(sub.status);
   const appleSub = sub?.provider === 'app_store';
   const productId = interval === 'month' ? chosen?.apple_product_id_month : chosen?.apple_product_id;
@@ -98,59 +99,10 @@ export default function PlanScreen() {
   void signOut;
 
   return (
-    <Screen>
-      <View style={{ alignItems: 'center', gap: space.md }}>
-        <View style={{ width: 68, height: 68, borderRadius: 20, backgroundColor: c.brand, alignItems: 'center', justifyContent: 'center' }}>
-          <Svg width={32} height={32} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><Path d="M12 3l7.5 3v5.6c0 4.4-3 7.7-7.5 9.4-4.5-1.7-7.5-5-7.5-9.4V6zM8.8 12l2.4 2.4 4.2-4.4" /></Svg>
-        </View>
-        <T v="hero" center style={{ fontSize: 28, lineHeight: 34 }}>{t('plan.headline')}</T>
-        <T v="muted" center>{t('plan.subtitle')}</T>
-      </View>
-
-      {paidActive && sub ? (
-        <Card tone="soft">
-          <T v="heading">{t('plan.current')}</T>
-          {sub.status === 'past_due' ? <T v="small" style={{ color: c.sos }}>{t('plan.pastDue')}</T>
-            : sub.current_period_end ? <T v="small">{t(sub.cancel_at_period_end ? 'plan.endsOn' : 'plan.renews', { date: formatDate(locale, sub.current_period_end).split(',')[0] })}</T> : null}
-        </Card>
-      ) : null}
-
-      <View style={{ flexDirection: 'row', backgroundColor: '#EEEFF5', borderRadius: 14, padding: 3 }}>
-        {(['month', 'year'] as const).map((k) => (
-          <Pressable key={k} accessibilityRole="button" onPress={() => setInterval_(k)} style={{ flex: 1, paddingVertical: 10, borderRadius: 11, alignItems: 'center', backgroundColor: interval === k ? '#fff' : 'transparent' }}>
-            <T v="heading" style={{ fontSize: 15 }}>{t(k === 'month' ? 'plan.monthly' : 'plan.yearly')}</T>
-          </Pressable>
-        ))}
-      </View>
-      <View style={{ gap: 10 }}>
-        {plans.map((p, i) => {
-          const on = selected === p.id;
-          return (
-            <Pressable key={p.id} accessibilityRole="radio" accessibilityState={{ selected: on }} onPress={() => { setSelected(p.id); setError(null); }}
-              style={{ flexDirection: 'row', alignItems: 'center', gap: 14, padding: on ? 15 : 16, borderRadius: 20, borderWidth: on ? 1.5 : 1, borderColor: on ? c.primary : c.border, backgroundColor: on ? c.primarySoft : c.card }}>
-              <View style={{ width: 22, height: 22, borderRadius: 11, borderWidth: 2, borderColor: on ? c.primary : '#C9CCD8', backgroundColor: on ? c.primary : 'transparent', alignItems: 'center', justifyContent: 'center' }}>
-                {on ? <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#fff' }} /> : null}
-              </View>
-              <View style={{ flex: 1, gap: 2 }}>
-                <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
-                  <T v="heading">{name(p)}</T>
-                  {p.id === creator.plan_id ? <Pill label={t('plan.currentBadge')} tone="primary" /> : null}
-                </View>
-                <T v="small">{range(p, i)}</T>
-              </View>
-              <T v="heading" style={{ fontFamily: fontFor(800) }}>{price(p)}</T>
-            </Pressable>
-          );
-        })}
-      </View>
-
+    <Screen
+      footer={<>
       {chosen ? (
-        <View style={{ gap: space.md }}>
-          <View>
-            <T v="small">{t('plan.selection')}</T>
-            <T v="title">{name(chosen)}</T>
-            <T v="small">{t('plan.billedYearly')}</T>
-          </View>
+        <View style={{ gap: space.sm }}>
           {chosen.price_cents === 0 && chosen.id !== creator.plan_id && !paidActive
             ? <Button label={t('plan.activateFree')} onPress={downgrade} loading={busy} /> : null}
           {chosen.price_cents !== 0 && chosen.price_cents !== null && chosen.id !== creator.plan_id && iapAvailable
@@ -174,6 +126,44 @@ export default function PlanScreen() {
           </View>
         </View>
       ) : null}
+
+      </>}>
+      <View style={{ alignItems: 'flex-end', marginBottom: -26 }}>
+        <Pressable accessibilityRole="button" accessibilityLabel="Fermer" onPress={() => router.back()} style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: '#EEEFF5', alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: c.muted, fontSize: 15 }}>✕</Text></Pressable>
+      </View>
+      <View style={{ alignItems: 'center', gap: space.md }}>
+        <View style={{ width: 68, height: 68, borderRadius: 20, backgroundColor: c.brand, alignItems: 'center', justifyContent: 'center', shadowColor: c.brand, shadowOpacity: 0.35, shadowRadius: 16, shadowOffset: { width: 0, height: 8 }, elevation: 6 }}>
+          <Svg width={32} height={32} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><Path d="M12 3l7.5 3v5.6c0 4.4-3 7.7-7.5 9.4-4.5-1.7-7.5-5-7.5-9.4V6zM8.8 12l2.4 2.4 4.2-4.4" /></Svg>
+        </View>
+        <T v="hero" center style={{ fontSize: 28, lineHeight: 34 }}>{t('plan.headline')}</T>
+        <T v="muted" center>{t('plan.subtitle')}</T>
+        <View style={{ backgroundColor: c.primarySoft, borderRadius: 999, paddingHorizontal: 16, paddingVertical: 8 }}>
+          <Text style={{ color: c.primary, fontSize: 14.5, fontFamily: fontFor(700) }}>{t('plan2.today', { name: creator.display_name, count: formatCount(locale, creator.member_count) })}</Text>
+        </View>
+      </View>
+
+      <Segmented value={interval} onChange={setInterval_} options={[{ value: 'month', label: t('plan.monthly') }, { value: 'year', label: t('plan.yearly') }]} />
+      <View style={{ gap: 10 }}>
+        {plans.map((p, i) => {
+          const on = selected === p.id;
+          return (
+            <Pressable key={p.id} accessibilityRole="radio" accessibilityState={{ selected: on }} onPress={() => { setSelected(p.id); setError(null); }}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 14, padding: on ? 15 : 16, borderRadius: 20, borderWidth: on ? 1.5 : 1, borderColor: on ? c.primary : c.border, backgroundColor: on ? c.primarySoft : c.card }}>
+              <View style={{ width: 22, height: 22, borderRadius: 11, borderWidth: 2, borderColor: on ? c.primary : '#C9CCD8', backgroundColor: on ? c.primary : 'transparent', alignItems: 'center', justifyContent: 'center' }}>
+                {on ? <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#fff' }} /> : null}
+              </View>
+              <View style={{ flex: 1, gap: 3 }}>
+                <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                  <Text style={{ fontSize: 18, color: c.text, fontFamily: fontFor(800), letterSpacing: -0.3 }}>{p.price_cents === null ? name(p) : range(p, i)}</Text>
+                  {fits === p.id ? <Pill label={t('plan2.forYou')} tone="primary" /> : null}
+                </View>
+                <Text style={{ fontSize: 14.5, lineHeight: 20, color: c.muted }}>{p.price_cents === null ? t('plan2.quoteDesc') : p.member_limit !== null && creator.member_count > p.member_limit ? t('plan2.passed') : fits === p.id ? t('plan2.fits', { count: formatCount(locale, creator.member_count) }) : p.id === creator.plan_id ? t('plan.currentBadge') : ''}</Text>
+              </View>
+              <Text style={{ fontSize: 18, color: c.text, fontFamily: fontFor(800), letterSpacing: -0.3 }}>{price(p)}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
 
       <Card tone="sos">
         <T v="heading">{t('account.danger')}</T>

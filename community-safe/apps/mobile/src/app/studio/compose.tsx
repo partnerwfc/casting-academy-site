@@ -92,8 +92,7 @@ export default function Compose() {
   };
 
   return (
-    <Screen>
-      <Stack.Screen options={{ title: t(kind === 'sos' ? 'compose.sosTitle' : 'compose.announceTitle') }} />
+    <Screen nav={{ back: t('common.back'), title: t(kind === 'sos' ? 'compose.sosTitle' : 'compose.announceTitle') }}>
       <View style={{ flexDirection: 'row', gap: 6 }}>
         {steps.map((s, i) => <View key={s} style={{ flex: 1, height: 4, borderRadius: 2, backgroundColor: i <= index ? (kind === 'sos' ? c.sos : c.primary) : c.border }} />)}
       </View>

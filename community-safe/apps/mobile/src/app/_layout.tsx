@@ -27,7 +27,7 @@ function Navigator() {
   const { t } = useI18n();
   useNotificationRouting();
   return (
-    <Stack screenOptions={{ headerTintColor: c.primary, headerTitleStyle: { color: c.text, fontFamily: fontFor(700) }, headerStyle: { backgroundColor: c.bg }, headerShadowVisible: false, headerBackButtonDisplayMode: 'minimal', contentStyle: { backgroundColor: c.bg } }}>
+    <Stack screenOptions={{ headerShown: false, headerTintColor: c.primary, headerTitleStyle: { color: c.text, fontFamily: fontFor(700) }, headerStyle: { backgroundColor: c.bg }, headerShadowVisible: false, headerBackButtonDisplayMode: 'minimal', contentStyle: { backgroundColor: c.bg } }}>
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="how-it-works" options={{ headerShown: false }} />

@@ -21,7 +21,8 @@ export function resolveLocale(preferred: readonly (string | null | undefined)[])
 export function translate(locale: AppLocale, key: MessageKey, vars?: Record<string, string | number>): string {
   let text: string = dictionaries[locale][key] ?? en[key] ?? key;
   if (vars) for (const [k, v] of Object.entries(vars)) text = text.replaceAll(`{${k}}`, String(v));
-  return text;
+  // Apostrophe typographique, comme dans les maquettes (« l’ovale », « t’appartient »).
+  return locale === 'fr' ? text.replace(/(\p{L})'(\p{L})/gu, '$1’$2') : text;
 }
 
 // Message lisible pour un code d'erreur renvoyé par le serveur (ex. "stepup_required").

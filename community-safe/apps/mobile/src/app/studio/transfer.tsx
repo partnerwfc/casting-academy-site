@@ -54,7 +54,7 @@ export default function Transfer() {
   return (
     <Screen nav={{ back: 'Retour', title: t('kit.navTitle') }}>
       <Text style={{ fontSize: 31, lineHeight: 36, color: c.text, fontFamily: fontFor(800), letterSpacing: -0.9, width: 280 }}>{t('kit.headline')}</Text>
-      <Text style={{ fontSize: 16, lineHeight: 23, color: c.muted, marginTop: -6 }}>{t('kit.honest')}</Text>
+      <Text style={{ fontSize: 16, lineHeight: 23, color: c.muted, marginTop: -6 }}>{t('kit.sub', { name: creator.display_name })}</Text>
 
       <View style={{ borderRadius: 26, overflow: 'hidden', backgroundColor: '#fff', shadowColor: '#170B2F', shadowOpacity: 0.1, shadowRadius: 16, shadowOffset: { width: 0, height: 8 }, elevation: 4 }}>
         <View style={{ height: 118, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 14 }}>
@@ -87,7 +87,7 @@ export default function Transfer() {
         <View style={{ backgroundColor: '#fff', borderRadius: 20, overflow: 'hidden' }}>
           {tip(1, t('kit.tip1'), t('kit.tip1d'))}{tip(2, t('kit.tip2'), t('kit.tip2d'))}{tip(3, t('kit.tip3'), t('kit.tip3d'), true)}
         </View>
-        <Text style={{ fontSize: 13.5, lineHeight: 19, color: c.muted, marginLeft: 6 }}>{t('kit.note')}</Text>
+        <Text style={{ fontSize: 13.5, lineHeight: 19, color: c.muted, marginLeft: 6 }}>{t('kit.note')} {t('kit.honest')}</Text>
       </View>
 
       {stats ? (
