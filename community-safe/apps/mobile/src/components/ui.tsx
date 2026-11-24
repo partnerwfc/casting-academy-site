@@ -242,7 +242,7 @@ export function Row({ label, value, tint, icon, onPress, last, right }: { label:
       {icon ? <View style={{ width: 34, height: 34, borderRadius: 10, backgroundColor: tint ?? c.primary, alignItems: 'center', justifyContent: 'center' }}>{icon}</View> : null}
       <Text style={{ flex: 1, color: c.text, fontSize: 17, fontFamily: fontFor(400) }}>{label}</Text>
       {value ? <Text style={{ color: c.muted, fontSize: 17 }}>{value}</Text> : null}
-      {right ?? (onPress ? <Text style={{ color: '#B6B9C6', fontSize: 22 }}>›</Text> : null)}
+      {right ? <View style={{ minWidth: 51, height: 31, justifyContent: 'center', alignItems: 'flex-end' }}>{right}</View> : (onPress ? <Text style={{ color: '#B6B9C6', fontSize: 22 }}>›</Text> : null)}
     </Pressable>
   );
 }

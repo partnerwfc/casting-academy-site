@@ -60,6 +60,7 @@ export function AppTabBar({ state, navigation }: NavProps) {
   const { creator, session } = useAuth();
   const unread = useUnreadCount();
   const active = (state.routes[state.index]?.name ?? 'communities') as Key;
-  const initial = (creator?.display_name ?? session?.user.email ?? '?').trim().charAt(0).toUpperCase();
+  const meta = (session?.user.user_metadata ?? {}) as { full_name?: string; name?: string };
+  const initial = (meta.full_name ?? meta.name ?? creator?.display_name ?? session?.user.email ?? '?').trim().charAt(0).toUpperCase();
   return <TabBarView active={active} unread={unread} initial={initial} onPress={(k) => navigation.navigate(k)} />;
 }

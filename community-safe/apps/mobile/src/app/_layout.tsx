@@ -30,6 +30,7 @@ function Navigator() {
     <Stack screenOptions={{ headerShown: false, headerTintColor: c.primary, headerTitleStyle: { color: c.text, fontFamily: fontFor(700) }, headerStyle: { backgroundColor: c.bg }, headerShadowVisible: false, headerBackButtonDisplayMode: 'minimal', contentStyle: { backgroundColor: c.bg } }}>
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="intro" options={{ headerShown: false }} />
       <Stack.Screen name="how-it-works" options={{ headerShown: false }} />
       <Stack.Screen name="notifications-intro" options={{ headerShown: false }} />
       <Stack.Screen name="sign-in" options={{ title: t('auth.title'), presentation: 'modal' }} />

@@ -4,6 +4,7 @@ import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 import { Button, Screen } from '@/components/ui';
 import { useI18n } from '@/lib/i18n';
+import { markOnboarded } from '@/lib/onboarding';
 import { syncDevice } from '@/lib/push';
 import { fontFor, useColors } from '@/lib/theme';
 
@@ -29,14 +30,14 @@ function Notif({ kind, title, body, time, label, inset }: { kind: 'sos' | 'ann';
 export default function NotificationsIntro() {
   const { t } = useI18n();
   const [busy, setBusy] = useState(false);
-  const done = () => router.replace('/(tabs)/communities');
+  const done = async () => { await markOnboarded(); router.replace('/(tabs)/communities'); };
   return (
     <Screen bg="#F7F8FC" scroll={false} padded={false}
       footer={<>
         <Button label={t('onb.notif.enable')} loading={busy} onPress={async () => { setBusy(true); await syncDevice(true).catch(() => null); setBusy(false); done(); }} />
         <Pressable onPress={done} style={{ alignItems: 'center', paddingVertical: 12 }}><Text style={{ color: '#6D28D9', fontSize: 17, fontFamily: fontFor(700) }}>{t('onb.notif.later')}</Text></Pressable>
       </>}>
-      <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 320 }} pointerEvents="none">
+      <View style={{ position: 'absolute', top: -60, left: 0, right: 0, height: 380 }} pointerEvents="none">
         <Svg style={StyleSheet.absoluteFill} preserveAspectRatio="none" viewBox="0 0 10 10">
           <Defs><LinearGradient id="n" x1="0" y1="0" x2="0" y2="1"><Stop offset="0" stopColor="#F0EBFF" /><Stop offset="1" stopColor="#F7F8FC" /></LinearGradient></Defs>
           <Rect width={10} height={10} fill="url(#n)" />

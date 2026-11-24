@@ -74,7 +74,8 @@ export default function Communities() {
       });
   }, [session]));
 
-  const name = (creator?.display_name ?? session?.user.user_metadata?.name ?? '').toString().split(' ')[0];
+  const meta = (session?.user.user_metadata ?? {}) as { full_name?: string; name?: string };
+  const name = (meta.full_name ?? meta.name ?? '').split(' ')[0];
   const verified = creator?.verification_status === 'verified' || !gate;
   return (
     <View style={{ flex: 1, backgroundColor: c.surface }}>
