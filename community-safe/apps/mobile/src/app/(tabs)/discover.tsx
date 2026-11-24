@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, FlatList, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import Svg, { Circle, Defs, LinearGradient, Path, Rect, Stop } from 'react-native-svg';
 import { CATEGORIES, formatCompact, type CreatorProfile, type MessageKey } from '@community-safe/shared';
@@ -38,7 +38,9 @@ export default function Discover() {
   const [loading, setLoading] = useState(true);
   const [hasMore, setHasMore] = useState(false);
 
+  const reqId = useRef(0);
   const load = async (offset: number) => {
+    const id = ++reqId.current; // une réponse plus ancienne ne remplace jamais la plus récente
     // L'annuaire ne liste que les identités vérifiées : pas de faux comptes officiels.
     let q = supabase.from('creator_profiles').select('*').eq('status', 'active');
     if (gate) q = q.eq('verification_status', 'verified');
@@ -47,6 +49,7 @@ export default function Discover() {
     if (category) q = q.eq('category', category);
     q = sort === 'popular' ? q.order('member_count', { ascending: false }) : q.order('created_at', { ascending: false });
     const { data } = await q.range(offset, offset + PAGE - 1);
+    if (id !== reqId.current) return;
     const rows = (data ?? []) as CreatorProfile[];
     setItems((prev) => (offset === 0 ? rows : [...prev, ...rows]));
     setHasMore(rows.length === PAGE);
@@ -54,8 +57,7 @@ export default function Discover() {
   };
 
   useEffect(() => {
-    setLoading(true);
-    const timer = setTimeout(() => load(0), 250); // évite une requête par frappe
+    const timer = setTimeout(() => { setLoading(true); load(0); }, 300); // évite une requête par frappe
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query, sort, category, gate]);
@@ -126,22 +128,22 @@ export default function Discover() {
 
   return (
     <View style={{ flex: 1, backgroundColor: c.surface }}>
-      {loading ? <View style={{ paddingTop: 56 }}><Loading /></View> : (
-        <FlatList
-          data={list}
-          keyExtractor={(item) => item.id}
-          ListHeaderComponent={header}
-          renderItem={({ item }) => <CreatorRow creator={item} trailing={<FollowToggle following={mine.has(item.id)} label={t(mine.has(item.id) ? 'creator.following' : 'creator.follow')} onPress={() => toggle(item)} />} />}
-          contentContainerStyle={{ padding: 20, paddingTop: 56, paddingBottom: 100 }}
-          ListEmptyComponent={
-            <View style={{ gap: 16, marginTop: 24 }}>
-              <T v="muted" center>{t('discover.empty')}</T>
-              <Button label={t('profile.becomeCreator')} kind="secondary" onPress={() => router.push('/studio/setup')} />
-            </View>
-          }
-          ListFooterComponent={hasMore ? <Button label="+" kind="ghost" onPress={() => load(items.length)} /> : undefined}
-        />
-      )}
+      <FlatList
+        data={list}
+        keyExtractor={(item) => item.id}
+        ListHeaderComponent={header}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+        renderItem={({ item }) => <CreatorRow creator={item} trailing={<FollowToggle following={mine.has(item.id)} label={t(mine.has(item.id) ? 'creator.following' : 'creator.follow')} onPress={() => toggle(item)} />} />}
+        contentContainerStyle={{ padding: 20, paddingTop: 56, paddingBottom: 100 }}
+        ListEmptyComponent={loading ? <View style={{ marginTop: 24 }}><Loading /></View> : (
+          <View style={{ gap: 16, marginTop: 24 }}>
+            <T v="muted" center>{t('discover.empty')}</T>
+            <Button label={t('profile.becomeCreator')} kind="secondary" onPress={() => router.push('/studio/setup')} />
+          </View>
+        )}
+        ListFooterComponent={hasMore ? <Button label="+" kind="ghost" onPress={() => load(items.length)} /> : undefined}
+      />
     </View>
   );
 }
