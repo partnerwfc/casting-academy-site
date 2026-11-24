@@ -311,6 +311,7 @@ export const en = {
   'dk.s2t': "Why SmC?",
   'dk.s2b': "A simple, direct and reliable space to stay connected, whether you are a creator or a follower.",
   'dk.legalPre': "By continuing, you accept the",
+  'discover.countOne': "{count} community",
   'welcome.discover': 'Discover communities',
   'welcome.creator': "I'm a creator",
   'auth.title': 'Sign in',

@@ -1,6 +1,7 @@
+import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, FlatList, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Animated, FlatList, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import Svg, { Circle, Defs, LinearGradient, Path, Rect, Stop } from 'react-native-svg';
 import { CATEGORIES, formatCompact, type CreatorProfile, type MessageKey } from '@community-safe/shared';
 import { CreatorRow } from '@/components/CreatorRow';
@@ -10,18 +11,30 @@ import { useSecurityGate } from '@/lib/gate';
 import { useI18n } from '@/lib/i18n';
 import { continueAnonymously } from '@/lib/oauth';
 import { supabase } from '@/lib/supabase';
-import { fontFor, useColors, tint } from '@/lib/theme';
+import { fontFor, isDark, tint, useColors } from '@/lib/theme';
 
 const PAGE = 30;
 
 function FollowToggle({ following, onPress, label }: { following: boolean; onPress: () => void; label: string }) {
+  const c = useColors();
+  const scale = useRef(new Animated.Value(1)).current;
+  const first = useRef(true);
+  // Petit « pop » à chaque changement d'état (abonné / désabonné).
+  useEffect(() => {
+    if (first.current) { first.current = false; return; }
+    scale.setValue(0.78);
+    Animated.spring(scale, { toValue: 1, friction: 3.2, tension: 190, useNativeDriver: true }).start();
+  }, [following, scale]);
+  const press = () => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {}); onPress(); };
   return (
-    <Pressable accessibilityRole="button" accessibilityLabel={label} accessibilityState={{ selected: following }} onPress={onPress}
-      style={{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: following ? '#6D28D9' : tint('#fff'), borderWidth: following ? 0 : 1.5, borderColor: tint('#DDD3F7') }}>
-      <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={following ? '#fff' : '#6D28D9'} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round">
-        {following ? <Path d="m5 12.5 4.5 4.5L19 7.5" /> : <Path d="M12 5v14M5 12h14" />}
-      </Svg>
-    </Pressable>
+    <Animated.View style={{ transform: [{ scale }] }}>
+      <Pressable accessibilityRole="button" accessibilityLabel={label} accessibilityState={{ selected: following }} onPress={press}
+        style={{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: following ? c.primary : tint('#fff'), borderWidth: following ? 0 : 1.5, borderColor: isDark() ? '#4A1A3A' : '#DDD3F7' }}>
+        <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={following ? '#fff' : c.primary} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round">
+          {following ? <Path d="m5 12.5 4.5 4.5L19 7.5" /> : <Path d="M12 5v14M5 12h14" />}
+        </Svg>
+      </Pressable>
+    </Animated.View>
   );
 }
 
@@ -69,19 +82,28 @@ export default function Discover() {
   }, [session]);
   useEffect(() => { loadMine(); }, [loadMine]);
 
+  // Mise à jour immédiate (état du bouton + compteur), puis confirmation serveur ; retour arrière si la requête échoue.
+  const apply = (creator: CreatorProfile, follow: boolean) => {
+    setMine((prev) => { const n = new Set(prev); if (follow) n.add(creator.id); else n.delete(creator.id); return n; });
+    setItems((prev) => prev.map((x) => (x.id === creator.id ? { ...x, member_count: Math.max(0, x.member_count + (follow ? 1 : -1)) } : x)));
+  };
   const toggle = async (creator: CreatorProfile) => {
     if (mine.has(creator.id)) {
       return Alert.alert(t('creator.unfollow'), t('creator.unfollowConfirm', { name: creator.display_name }), [
         { text: t('common.cancel'), style: 'cancel' },
         { text: t('creator.unfollow'), style: 'destructive', onPress: async () => {
-          await supabase.from('community_memberships').delete().eq('creator_id', creator.id).eq('user_id', session!.user.id);
-          loadMine();
+          apply(creator, false);
+          const { error } = await supabase.from('community_memberships').delete().eq('creator_id', creator.id).eq('user_id', session!.user.id);
+          if (error) apply(creator, true);
+          loadMine(); load(0);
         } },
       ]);
     }
     if (!session) { try { await continueAnonymously(); } catch { return; } }
-    await supabase.rpc('follow_creator', { p_handle: creator.handle, p_source: null });
-    loadMine();
+    apply(creator, true);
+    const { error } = await supabase.rpc('follow_creator', { p_handle: creator.handle, p_source: null });
+    if (error) apply(creator, false);
+    loadMine(); load(0); // relit les vrais compteurs
   };
 
   const featured = items.length && !query.trim() && !category && sort === 'popular' ? items[0] : null;
@@ -121,7 +143,7 @@ export default function Discover() {
       ) : null}
       <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginTop: 10 }}>
         <Text style={{ fontSize: 22, lineHeight: 28, color: c.text, fontFamily: fontFor(800), letterSpacing: -0.4, width: 190 }}>{t('discover.popularTitle')}</Text>
-        <Text style={{ fontSize: 14, color: c.muted, paddingBottom: 4 }}>{t('discover.count', { count: items.length })}</Text>
+        <Text style={{ fontSize: 14, color: c.muted, paddingBottom: 4 }}>{t(items.length === 1 ? 'discover.countOne' : 'discover.count', { count: items.length })}</Text>
       </View>
     </View>
   );

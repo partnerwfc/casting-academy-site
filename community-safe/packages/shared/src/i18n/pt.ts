@@ -313,6 +313,7 @@ export const pt: Dictionary = {
   'dk.s2t': "Por que o SmC?",
   'dk.s2b': "Um espaço simples, direto e confiável para continuar conectado, seja criador ou seguidor.",
   'dk.legalPre': "Ao continuar, você aceita os",
+  'discover.countOne': "{count} comunidade",
   'welcome.discover': 'Descobrir comunidades',
   'welcome.creator': 'Sou criador',
   'auth.title': 'Entrar',
