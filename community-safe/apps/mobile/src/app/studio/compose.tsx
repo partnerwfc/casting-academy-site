@@ -7,6 +7,7 @@ import { SOS_REASONS, checkLink, errorMessage, type Alert, type SosReason } from
 import { NotificationPreview } from '@/components/NotificationPreview';
 import { Button, Card, Chip, Input, Screen, SwitchRow, T } from '@/components/ui';
 import { useAuth } from '@/lib/auth';
+import { useSecurityGate } from '@/lib/gate';
 import { useI18n } from '@/lib/i18n';
 import { signInWith, type Provider } from '@/lib/oauth';
 import { supabase } from '@/lib/supabase';
@@ -29,7 +30,9 @@ export default function Compose() {
   const [checkedLink, setCheckedLink] = useState(false);
   const [hasTotp, setHasTotp] = useState(false);
   const [code, setCode] = useState('');
-  const [fresh, setFresh] = useState(false);
+  const gate = useSecurityGate();
+  const [freshAuth, setFresh] = useState(false);
+  const fresh = freshAuth || !gate; // règles complètes masquées : pas de ré-authentification renforcée demandée
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   // Une seule clé par rédaction : un double appui ou un nouvel essai n'envoie jamais deux alertes.

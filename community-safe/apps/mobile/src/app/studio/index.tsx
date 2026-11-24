@@ -7,6 +7,7 @@ import { CertBadge } from '@/components/CertBadge';
 import Svg, { Defs, LinearGradient, Path, Stop } from 'react-native-svg';
 import { Avatar, Button, Card, Loading, Pill, Screen, Segmented, T, VerifiedBadge } from '@/components/ui';
 import { useAuth } from '@/lib/auth';
+import { useSecurityGate } from '@/lib/gate';
 import { useI18n } from '@/lib/i18n';
 import { supabase } from '@/lib/supabase';
 import { fontFor, space, useColors } from '@/lib/theme';
@@ -36,6 +37,7 @@ export default function Studio() {
   const { t, locale } = useI18n();
   const c = useColors();
   const { session, loading, creator, refreshCreator } = useAuth();
+  const gate = useSecurityGate();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [testing, setTesting] = useState(false);
@@ -71,7 +73,8 @@ export default function Studio() {
   if (!creator) return <Redirect href="/studio/setup" />;
   if (!stats) return <Loading />;
 
-  const verified = creator.verification_status === 'verified';
+  const certified = creator.verification_status === 'verified';
+  const verified = certified || !gate;
   const limit = stats.plan.member_limit;
   const over = limit !== null && stats.members_total > limit;
   const quota = stats.plan.announcements_per_month;
@@ -121,8 +124,8 @@ export default function Studio() {
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
         <Avatar name={creator.display_name} url={creator.avatar_url} size={52} />
         <View style={{ gap: 2 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}><Text style={{ fontSize: 21, color: c.text, fontFamily: fontFor(800), letterSpacing: -0.4 }}>{creator.display_name}</Text>{verified ? <VerifiedBadge size={18} /> : null}</View>
-          <Text style={{ fontSize: 14.5, color: c.muted }}>@{creator.handle}{verified ? ` · ${t('cert.short')}` : ''}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}><Text style={{ fontSize: 21, color: c.text, fontFamily: fontFor(800), letterSpacing: -0.4 }}>{creator.display_name}</Text>{certified ? <VerifiedBadge size={18} /> : null}</View>
+          <Text style={{ fontSize: 14.5, color: c.muted }}>@{creator.handle}{certified ? ` · ${t('cert.short')}` : ''}</Text>
         </View>
       </View>
       <View style={{ gap: 4, alignItems: 'flex-start', marginTop: 4 }}>
@@ -131,7 +134,7 @@ export default function Studio() {
         <Pill label={`↗  +${formatCount(locale, stats.members_today)} ${t('dash.today').toLowerCase()}`} tone="success" />
       </View>
 
-      {verified ? null : (
+      {verified || !gate ? null : (
         <Card tone="soft">
           <T v="heading">{t('cert.title')}</T>
           <T v="muted">{t(creator.verification_status === 'pending' ? 'cert.inReview' : creator.verification_status === 'suspended' ? 'cert.suspended' : 'cert.requiredToSend')}</T>

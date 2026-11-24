@@ -6,6 +6,7 @@ import { CATEGORIES, formatCompact, type CreatorProfile, type MessageKey } from 
 import { CreatorRow } from '@/components/CreatorRow';
 import { Button, Chip, Loading, T } from '@/components/ui';
 import { useAuth } from '@/lib/auth';
+import { useSecurityGate } from '@/lib/gate';
 import { useI18n } from '@/lib/i18n';
 import { continueAnonymously } from '@/lib/oauth';
 import { supabase } from '@/lib/supabase';
@@ -28,6 +29,7 @@ export default function Discover() {
   const { t, locale } = useI18n();
   const c = useColors();
   const { session } = useAuth();
+  const gate = useSecurityGate();
   const [query, setQuery] = useState('');
   const [sort, setSort] = useState<'popular' | 'new'>('popular');
   const [category, setCategory] = useState<string | null>(null);
@@ -38,7 +40,8 @@ export default function Discover() {
 
   const load = async (offset: number) => {
     // L'annuaire ne liste que les identités vérifiées : pas de faux comptes officiels.
-    let q = supabase.from('creator_profiles').select('*').eq('verification_status', 'verified').eq('status', 'active');
+    let q = supabase.from('creator_profiles').select('*').eq('status', 'active');
+    if (gate) q = q.eq('verification_status', 'verified');
     const term = query.trim().replace(/^@/, '').replace(/[%,()\\*]/g, '');
     if (term) q = q.or(`handle.ilike.%${term}%,display_name.ilike.%${term}%`);
     if (category) q = q.eq('category', category);
@@ -55,7 +58,7 @@ export default function Discover() {
     const timer = setTimeout(() => load(0), 250); // évite une requête par frappe
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query, sort, category]);
+  }, [query, sort, category, gate]);
 
   const loadMine = useCallback(async () => {
     if (!session) return setMine(new Set());

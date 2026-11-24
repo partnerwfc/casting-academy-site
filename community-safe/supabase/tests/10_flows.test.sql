@@ -52,6 +52,7 @@ select t.eq((select count(*) from public.users), 6::bigint, 'trigger handle_new_
 insert into admin_roles (user_id, role) values ('00000000-0000-0000-0000-0000000000ad', 'admin');
 
 -- ── Créateur : création de profil ──
+update app_settings set value = '"on"' where key = 'security_gate';  -- les tests couvrent les règles complètes
 select t.login('00000000-0000-0000-0000-00000000000a');
 select t.expect_error($$select create_creator_profile('admin', 'X')$$, 'handle_reserved');
 select t.expect_error($$select create_creator_profile('a b', 'X')$$, 'invalid_handle');
@@ -367,3 +368,15 @@ select t.expect_error(format($$select request_presence_call(%L, 'https://bit.ly/
 select request_presence_call(:'v6', 'https://meet.google.com/abc-defg-hij', 'Lun-ven après 18h');
 select t.eq((select evidence ->> 'call_link' from creator_verifications where id = :'v6'), 'https://meet.google.com/abc-defg-hij', 'lien de visio enregistré');
 select t.logout();
+
+-- ── Interrupteur « sécurité » (phase de démarrage) : off = tout créateur connecté peut envoyer ──
+select t.eq(public.security_gate_on(), true, 'règles complètes actives (mode on)');
+select t.login('00000000-0000-0000-0000-00000000000a', 30);
+select t.expect_error($$select create_alert('sos', 'x', 'key-gate-on-00', 'hacked')$$, 'creator_not_verified');
+select t.logout();
+update app_settings set value = '"off"' where key = 'security_gate';
+select t.eq(public.security_gate_on(), false, 'mode off : règles masquées');
+select t.login('00000000-0000-0000-0000-00000000000a', 0);
+select t.expect_error($$select create_alert('sos', 'x', 'key-gate-off-0', null)$$, 'reason_required');   -- certification et ré-auth plus exigées ; le reste l'est
+select t.logout();
+update app_settings set value = '"on"' where key = 'security_gate';

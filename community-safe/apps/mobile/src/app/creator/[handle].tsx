@@ -9,6 +9,7 @@ import {
 import { PushPrompt } from '@/components/PushPrompt';
 import { Avatar, Button, Card, Loading, Pill, Screen, T, VerifiedBadge } from '@/components/ui';
 import { useAuth } from '@/lib/auth';
+import { useSecurityGate } from '@/lib/gate';
 import { useI18n } from '@/lib/i18n';
 import { continueAnonymously } from '@/lib/oauth';
 import { supabase, WEB_URL } from '@/lib/supabase';
@@ -22,6 +23,7 @@ export default function CreatorScreen() {
   const { t, locale } = useI18n();
   const { session } = useAuth();
   const c = useColors();
+  const gate = useSecurityGate();
   const [unread, setUnread] = useState(0);
   const [creator, setCreator] = useState<CreatorProfile | null | undefined>(undefined);
   const [socials, setSocials] = useState<Social[]>([]);
@@ -131,7 +133,7 @@ export default function CreatorScreen() {
           {verified ? <VerifiedBadge size={22} /> : null}
         </View>
         <Text style={{ fontSize: 15.5, color: c.muted }}>@{creator.handle} · {t('creator.members', { count: formatCount(locale, creator.member_count) })}</Text>
-        {verified ? null : <Pill label={t('creator.unverified')} />}
+        {verified || !gate ? null : <Pill label={t('creator.unverified')} />}
         {creator.bio ? <Text style={{ fontSize: 16.5, lineHeight: 24, color: c.text, textAlign: 'center', marginTop: 8, paddingHorizontal: 10 }}>{creator.bio}</Text> : null}
         <View style={{ marginTop: 14, alignSelf: 'center', width: 230 }}>
           {prefs
@@ -140,7 +142,7 @@ export default function CreatorScreen() {
         </View>
       </View>
 
-      {verified ? null : <Card tone="sos"><T v="muted">{t('creator.unverifiedWarning')}</T></Card>}
+      {verified || !gate ? null : <Card tone="sos"><T v="muted">{t('creator.unverifiedWarning')}</T></Card>}
 
       <View style={{ flexDirection: 'row', gap: 14, backgroundColor: '#fff', borderRadius: 22, padding: 16 }}>
         <View style={{ width: 42, height: 42, borderRadius: 12, backgroundColor: '#F0EBFF', alignItems: 'center', justifyContent: 'center' }}>

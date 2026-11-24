@@ -1,6 +1,7 @@
 import { Pressable, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { formatCompact, type CreatorProfile } from '@community-safe/shared';
+import { useSecurityGate } from '@/lib/gate';
 import { useI18n } from '@/lib/i18n';
 import { fontFor, useColors } from '@/lib/theme';
 import { Avatar, Pill, VerifiedBadge } from './ui';
@@ -10,6 +11,7 @@ export function CreatorRow({ creator, badge, trailing }: { creator: CreatorProfi
   const c = useColors();
   const { t, locale } = useI18n();
   const verified = creator.verification_status === 'verified';
+  const gate = useSecurityGate();
   return (
     <Pressable
       accessibilityRole="button"
@@ -28,7 +30,7 @@ export function CreatorRow({ creator, badge, trailing }: { creator: CreatorProfi
           @{creator.handle} · {t('creator.members', { count: formatCompact(locale, creator.member_count) })}
         </Text>
       </View>
-      {!verified ? <Pill label={t('creator.unverified')} /> : null}
+      {!verified && gate ? <Pill label={t('creator.unverified')} /> : null}
       {badge ? <Pill label={badge} tone="sos" /> : null}
       {trailing === undefined || trailing === 'chevron' ? <Text style={{ color: '#B6B9C6', fontSize: 22 }}>›</Text> : trailing === 'none' ? null : trailing}
     </Pressable>

@@ -4,6 +4,7 @@ import Svg, { Path } from 'react-native-svg';
 import { formatCount } from '@community-safe/shared';
 import { Avatar, Button, Card, Loading, Pill, Screen, T, VerifiedBadge } from '@/components/ui';
 import { useAuth } from '@/lib/auth';
+import { useSecurityGate } from '@/lib/gate';
 import { useI18n } from '@/lib/i18n';
 import { fontFor, space, useColors } from '@/lib/theme';
 
@@ -33,10 +34,11 @@ export default function NewAlert() {
   const { t, locale } = useI18n();
   const c = useColors();
   const { session, loading, creator } = useAuth();
+  const gate = useSecurityGate();
   if (loading) return <Loading />;
   if (!session) return <Redirect href={{ pathname: '/sign-in', params: { next: '/studio/new' } }} />;
   if (!creator) return <Redirect href="/studio/setup" />;
-  const verified = creator.verification_status === 'verified';
+  const verified = creator.verification_status === 'verified' || !gate;
   return (
     <Screen nav={{ close: true }}>
       <T v="hero">{t('new.title')}</T>

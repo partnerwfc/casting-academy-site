@@ -10,6 +10,7 @@ import { formatCompact } from '@community-safe/shared';
 import Svg, { Path } from 'react-native-svg';
 import { Avatar, Button, Card, Pill, Row, Section, T } from '@/components/ui';
 import { useAuth } from '@/lib/auth';
+import { useSecurityGate } from '@/lib/gate';
 import { useI18n } from '@/lib/i18n';
 import { runOAuth } from '@/lib/oauth';
 import { supabase, WEB_URL } from '@/lib/supabase';
@@ -53,6 +54,7 @@ export default function Profile() {
   };
 
   const c = useColors();
+  const gate = useSecurityGate();
   const top = useSafeAreaInsets().top + 8;
   const [prefs, setPrefs] = useState<{ creator_id: string; sos_enabled: boolean; announcements_enabled: boolean }[]>([]);
   const [sub, setSub] = useState<{ plan_id: string } | null>(null);
@@ -128,7 +130,7 @@ export default function Profile() {
 
             {creator ? (
               <Section title={t('profile.secCreator')}>
-                <Row label={t('profile.rowCert')} value={verified ? t('cert.short') : undefined} tint="#24B36B" icon={ic('M12 3l7.5 3v5.6c0 4.4-3 7.7-7.5 9.4-4.5-1.7-7.5-5-7.5-9.4V6zM8.8 12l2.4 2.4 4.2-4.4')} onPress={() => router.push('/studio/verify')} />
+                {gate ? <Row label={t('profile.rowCert')} value={verified ? t('cert.short') : undefined} tint="#24B36B" icon={ic('M12 3l7.5 3v5.6c0 4.4-3 7.7-7.5 9.4-4.5-1.7-7.5-5-7.5-9.4V6zM8.8 12l2.4 2.4 4.2-4.4')} onPress={() => router.push('/studio/verify')} /> : null}
                 <Row label={t('profile.rowPlan')} value={price} tint="#633BEE" icon={ic('M3 7h18v10H3zM3 11h18')} onPress={() => router.push('/studio/subscription')} />
                 <Row label={t('profile.rowHistory')} tint="#E11D48" icon={ic('M12 7v5l3 2M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z')} last onPress={() => router.push('/(tabs)/alerts')} />
               </Section>

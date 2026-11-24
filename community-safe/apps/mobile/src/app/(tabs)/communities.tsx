@@ -10,6 +10,7 @@ import { useAuth } from '@/lib/auth';
 import { useI18n } from '@/lib/i18n';
 import { supabase } from '@/lib/supabase';
 import { fontFor, useColors } from '@/lib/theme';
+import { useSecurityGate } from '@/lib/gate';
 import { useUnreadCount } from '@/lib/unread';
 
 function Bell({ dot }: { dot: boolean }) {
@@ -56,6 +57,7 @@ export default function Communities() {
   const c = useColors();
   const { session, creator } = useAuth();
   const unread = useUnreadCount();
+  const gate = useSecurityGate();
   const [items, setItems] = useState<CreatorProfile[] | null>(null);
   const [sosBy, setSosBy] = useState<Record<string, number>>({});
 
@@ -73,7 +75,7 @@ export default function Communities() {
   }, [session]));
 
   const name = (creator?.display_name ?? session?.user.user_metadata?.name ?? '').toString().split(' ')[0];
-  const verified = creator?.verification_status === 'verified';
+  const verified = creator?.verification_status === 'verified' || !gate;
   return (
     <View style={{ flex: 1, backgroundColor: c.surface }}>
       <ScrollView contentContainerStyle={{ padding: 20, paddingTop: 56, paddingBottom: 100, gap: 18 }}>

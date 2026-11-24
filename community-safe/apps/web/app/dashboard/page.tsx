@@ -15,6 +15,7 @@ import { Composer } from './Composer';
 import { Tracking } from './Tracking';
 import { TransferKit } from './TransferKit';
 import { CertificationCard } from './CertificationCard';
+import { useSecurityGate } from '@/lib/useSecurityGate';
 import { CertBadge } from '@/components/CertBadge';
 
 function Setup({ onCreated }: { onCreated: () => void }) {
@@ -64,6 +65,7 @@ function Setup({ onCreated }: { onCreated: () => void }) {
 export default function Dashboard() {
   const { t, locale } = useI18n();
   const session = useSession();
+  const gate = useSecurityGate();
   const [creator, setCreator] = useState<CreatorProfile | null | undefined>(undefined);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [alerts, setAlerts] = useState<Alert[]>([]);
@@ -117,7 +119,8 @@ export default function Dashboard() {
   } else if (!stats) {
     body = <p className="small center">{t('common.loading')}</p>;
   } else {
-    const verified = creator.verification_status === 'verified';
+    const verified = creator.verification_status === 'verified' || !gate;
+    const certified = creator.verification_status === 'verified';
     const limit = stats.plan.member_limit;
     const over = limit !== null && stats.members_total > limit;
     const quota = stats.plan.announcements_per_month;
@@ -127,7 +130,7 @@ export default function Dashboard() {
         <section className="stack">
           <span className="eyebrow">{t('dash.title')}</span>
           <div className="big-number">{formatCount(locale, stats.members_total)}</div>
-          <p className="muted row" style={{ gap: 8 }}>{t('dash.members')} · @{creator.handle} {verified ? <CertBadge small /> : null}</p>
+          <p className="muted row" style={{ gap: 8 }}>{t('dash.members')} · @{creator.handle} {certified ? <CertBadge small /> : null}</p>
           <div className="row">
             <button className="btn sos" disabled={!verified} onClick={() => setComposing('sos')}>{t('dash.sos')}</button>
             <a className="btn secondary" href="#transfer">{t('dash.share')}</a>
@@ -135,7 +138,7 @@ export default function Dashboard() {
           {notice ? <p className="small" role="status">{notice}</p> : null}
         </section>
 
-        <CertificationCard creator={creator} onChange={load} />
+        {gate ? <CertificationCard creator={creator} onChange={load} /> : null}
         {composing ? <Composer kind={composing} creator={creator} email={session.user.email ?? ''} onClose={() => setComposing(null)}
           onSent={(id) => { setComposing(null); setTracking(id); load(); }} /> : null}
         {tracking ? <Tracking alertId={tracking} onClose={() => setTracking(null)} /> : null}
