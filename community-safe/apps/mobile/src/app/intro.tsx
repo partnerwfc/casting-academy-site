@@ -10,7 +10,8 @@ import { useI18n } from '@/lib/i18n';
 import { appleAvailable, signInWith } from '@/lib/oauth';
 import { markIntroSeen, setRole, type Role } from '@/lib/onboarding';
 import { supabase, WEB_URL } from '@/lib/supabase';
-import { fontFor } from '@/lib/theme';
+import { DarkIntro } from '@/components/DarkIntro';
+import { fontFor, isDark } from '@/lib/theme';
 
 const LOGO_DARK = require('../../assets/images/logo-dark.png');
 const LOGO_LIGHT = require('../../assets/images/logo-light.png');
@@ -105,7 +106,7 @@ function PhoneIllustration() {
   );
 }
 
-export default function Intro() {
+function LightIntro() {
   const { t, locale } = useI18n();
   const { session } = useAuth();
   const { step: startStep } = useLocalSearchParams<{ step?: string }>();
@@ -314,4 +315,9 @@ export default function Intro() {
       </SafeAreaView>
     </View>
   );
+}
+
+export default function Intro() {
+  const { step } = useLocalSearchParams<{ step?: string }>();
+  return isDark() ? <DarkIntro startLogin={step === 'login'} /> : <LightIntro />;
 }

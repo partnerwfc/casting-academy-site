@@ -8,7 +8,7 @@ import { useAuth } from '@/lib/auth';
 import { restore as restoreIap, iapAvailable } from '@/lib/iap';
 import { useI18n } from '@/lib/i18n';
 import { supabase, WEB_URL } from '@/lib/supabase';
-import { fontFor, useColors } from '@/lib/theme';
+import { fontFor, useColors, tint } from '@/lib/theme';
 
 interface Plan { id: string; name: string; price_cents: number | null; price_month_cents: number | null; member_limit: number | null }
 interface Sub { plan_id: string; status: string; provider: string | null; cancel_at_period_end: boolean; current_period_end: string | null; created_at: string }
@@ -49,8 +49,8 @@ export default function Subscription() {
   const end = sub?.current_period_end ? long(sub.current_period_end) : '';
   const manage = () => (apple ? Linking.openURL('https://apps.apple.com/account/subscriptions') : WebBrowser.openBrowserAsync(`${WEB_URL}/dashboard/plan`));
   const link = (label: string, onPress: () => void, arrow: string, last?: boolean) => (
-    <Pressable key={label} onPress={onPress} style={{ flexDirection: 'row', alignItems: 'center', minHeight: 54, paddingHorizontal: 16, borderBottomWidth: last ? 0 : 1, borderBottomColor: '#EEEFF5' }}>
-      <Text style={{ flex: 1, fontSize: 17, color: c.primary }}>{label}</Text><Text style={{ color: '#B6B9C6', fontSize: arrow === '›' ? 22 : 16 }}>{arrow}</Text>
+    <Pressable key={label} onPress={onPress} style={{ flexDirection: 'row', alignItems: 'center', minHeight: 54, paddingHorizontal: 16, borderBottomWidth: last ? 0 : 1, borderBottomColor: tint('#EEEFF5') }}>
+      <Text style={{ flex: 1, fontSize: 17, color: c.primary }}>{label}</Text><Text style={{ color: tint('#B6B9C6'), fontSize: arrow === '›' ? 22 : 16 }}>{arrow}</Text>
     </Pressable>
   );
   const kv = (k: string, v: string) => (
@@ -62,7 +62,7 @@ export default function Subscription() {
 
   return (
     <Screen nav={{ back: t('tabs.profile'), title: t('sub.title') }}>
-      <View style={{ backgroundColor: '#fff', borderRadius: 24, padding: 18, gap: 8, shadowColor: '#170B2F', shadowOpacity: 0.08, shadowRadius: 14, shadowOffset: { width: 0, height: 5 }, elevation: 3 }}>
+      <View style={{ backgroundColor: tint('#fff'), borderRadius: 24, padding: 18, gap: 8, shadowColor: '#170B2F', shadowOpacity: 0.08, shadowRadius: 14, shadowOffset: { width: 0, height: 5 }, elevation: 3 }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
           <Pill label={sub?.status === 'past_due' ? t('sub.pastDue') : t('sub.active')} tone={sub?.status === 'past_due' ? 'warn' : 'success'} />
           <Text style={{ fontSize: 14, color: c.muted }}>{creator.display_name}</Text>
@@ -74,7 +74,7 @@ export default function Subscription() {
         </Text>
         {limit ? (
           <View style={{ gap: 6, marginTop: 4 }}>
-            <View style={{ height: 6, borderRadius: 3, backgroundColor: '#EEEFF5' }}><View style={{ width: `${Math.max(pct, 3)}%`, height: 6, borderRadius: 3, backgroundColor: c.primary }} /></View>
+            <View style={{ height: 6, borderRadius: 3, backgroundColor: tint('#EEEFF5') }}><View style={{ width: `${Math.max(pct, 3)}%`, height: 6, borderRadius: 3, backgroundColor: c.primary }} /></View>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
               <Text style={{ fontSize: 13.5, color: c.muted }}>{t('sub.membersOf', { count: formatCount(locale, creator.member_count), limit: formatCount(locale, limit) })}</Text>
               <Text style={{ fontSize: 13.5, color: c.muted }}>{pct} %</Text>
@@ -82,7 +82,7 @@ export default function Subscription() {
           </View>
         ) : null}
         {paid ? (
-          <View style={{ borderTopWidth: 1, borderTopColor: '#EEEFF5', marginTop: 10, paddingTop: 8 }}>
+          <View style={{ borderTopWidth: 1, borderTopColor: tint('#EEEFF5'), marginTop: 10, paddingTop: 8 }}>
             {kv(t('sub.start'), long(sub?.created_at ?? creator.created_at))}
             {end ? kv(t('sub.renewal'), end) : null}
             {kv(t('sub.payment'), apple ? t('sub.storeApple') : t('sub.storeWeb'))}
@@ -90,7 +90,7 @@ export default function Subscription() {
         ) : null}
       </View>
 
-      <View style={{ backgroundColor: '#fff', borderRadius: 22, overflow: 'hidden' }}>
+      <View style={{ backgroundColor: tint('#fff'), borderRadius: 22, overflow: 'hidden' }}>
         {link(t('sub.change'), () => router.push('/studio/plan'), '›', !paid)}
         {paid ? link(apple ? t('sub.manageApple') : t('sub.manageWeb'), manage, '↗', !(apple && iapAvailable)) : null}
         {paid && apple && iapAvailable ? link(t('plan.restore'), async () => {
@@ -100,7 +100,7 @@ export default function Subscription() {
 
       <Section title={t('sub.history')}>
         {pays.length ? pays.map((p, i) => (
-          <View key={p.id} style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 16, borderBottomWidth: 1, borderBottomColor: '#EEEFF5' }}>
+          <View key={p.id} style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 16, borderBottomWidth: 1, borderBottomColor: tint('#EEEFF5') }}>
             <View style={{ gap: 2 }}>
               <Text style={{ fontSize: 17, color: c.text, fontFamily: fontFor(600) }}>{short(p.created_at)}</Text>
               <Text style={{ fontSize: 13.5, color: c.muted }}>{plan ? range(plan, idx) : ''}</Text>
@@ -115,7 +115,7 @@ export default function Subscription() {
       </Section>
 
       {paid ? (
-        <View style={{ flexDirection: 'row', gap: 12, backgroundColor: '#EEEFF5', borderRadius: 18, padding: 16 }}>
+        <View style={{ flexDirection: 'row', gap: 12, backgroundColor: tint('#EEEFF5'), borderRadius: 18, padding: 16 }}>
           <Text style={{ color: c.muted, fontSize: 15 }}>ⓘ</Text>
           <Text style={{ flex: 1, fontSize: 14.5, lineHeight: 21, color: c.muted }}>{apple ? t('sub.cancelNote', { date: end }) : t('sub.cancelNoteWeb')}</Text>
         </View>

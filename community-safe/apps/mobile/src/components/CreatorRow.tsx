@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import { formatCompact, type CreatorProfile } from '@community-safe/shared';
 import { useSecurityGate } from '@/lib/gate';
 import { useI18n } from '@/lib/i18n';
-import { fontFor, useColors } from '@/lib/theme';
+import { fontFor, useColors, tint } from '@/lib/theme';
 import { Avatar, Pill, VerifiedBadge } from './ui';
 
 // Ligne de communauté des maquettes : carte blanche, avatar carré arrondi, « @pseudo · 12,4 k membres ».
@@ -17,7 +17,7 @@ export function CreatorRow({ creator, badge, trailing }: { creator: CreatorProfi
       accessibilityRole="button"
       onPress={() => router.push(`/creator/${creator.handle}`)}
       style={({ pressed }) => ({
-        flexDirection: 'row', alignItems: 'center', gap: 14, padding: 12, marginBottom: 12, backgroundColor: '#fff', borderRadius: 20, opacity: pressed ? 0.85 : 1,
+        flexDirection: 'row', alignItems: 'center', gap: 14, padding: 12, marginBottom: 12, backgroundColor: tint('#fff'), borderRadius: 20, opacity: pressed ? 0.85 : 1,
         shadowColor: '#170B2F', shadowOpacity: 0.06, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2,
       })}>
       <Avatar name={creator.display_name} url={creator.avatar_url} size={50} />
@@ -32,7 +32,7 @@ export function CreatorRow({ creator, badge, trailing }: { creator: CreatorProfi
       </View>
       {!verified && gate ? <Pill label={t('creator.unverified')} /> : null}
       {badge ? <Pill label={badge} tone="sos" /> : null}
-      {trailing === undefined || trailing === 'chevron' ? <Text style={{ color: '#B6B9C6', fontSize: 22 }}>›</Text> : trailing === 'none' ? null : trailing}
+      {trailing === undefined || trailing === 'chevron' ? <Text style={{ color: tint('#B6B9C6'), fontSize: 22 }}>›</Text> : trailing === 'none' ? null : trailing}
     </Pressable>
   );
 }

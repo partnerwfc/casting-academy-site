@@ -13,7 +13,7 @@ import { useSecurityGate } from '@/lib/gate';
 import { useI18n } from '@/lib/i18n';
 import { continueAnonymously } from '@/lib/oauth';
 import { supabase, WEB_URL } from '@/lib/supabase';
-import { fontFor, space, useColors } from '@/lib/theme';
+import { fontFor, space, useColors, tint } from '@/lib/theme';
 
 interface Social { id: string; platform: string; handle: string; url: string | null; verified_at: string | null }
 
@@ -114,7 +114,7 @@ export default function CreatorScreen() {
     </View>
   );
   const row = (key: string, icon: React.ReactNode, label: string, right: React.ReactNode, last?: boolean, onPress?: () => void) => (
-    <Pressable key={key} disabled={!onPress} onPress={onPress} style={{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 16, minHeight: 58, borderBottomWidth: last ? 0 : 1, borderBottomColor: '#EEEFF5' }}>
+    <Pressable key={key} disabled={!onPress} onPress={onPress} style={{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 16, minHeight: 58, borderBottomWidth: last ? 0 : 1, borderBottomColor: tint('#EEEFF5') }}>
       {icon}<Text style={{ flex: 1, fontSize: 17, color: c.text }}>{label}</Text>{right}
     </Pressable>
   );
@@ -144,8 +144,8 @@ export default function CreatorScreen() {
 
       {verified || !gate ? null : <Card tone="sos"><T v="muted">{t('creator.unverifiedWarning')}</T></Card>}
 
-      <View style={{ flexDirection: 'row', gap: 14, backgroundColor: '#fff', borderRadius: 22, padding: 16 }}>
-        <View style={{ width: 42, height: 42, borderRadius: 12, backgroundColor: '#F0EBFF', alignItems: 'center', justifyContent: 'center' }}>
+      <View style={{ flexDirection: 'row', gap: 14, backgroundColor: tint('#fff'), borderRadius: 22, padding: 16 }}>
+        <View style={{ width: 42, height: 42, borderRadius: 12, backgroundColor: tint('#F0EBFF'), alignItems: 'center', justifyContent: 'center' }}>
           <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke="#6D28D9" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"><Path d="M12 3l7.5 3v5.6c0 4.4-3 7.7-7.5 9.4-4.5-1.7-7.5-5-7.5-9.4V6z" /></Svg>
         </View>
         <View style={{ flex: 1, gap: 6 }}>
@@ -157,13 +157,13 @@ export default function CreatorScreen() {
       {prefs ? (
         <View style={{ gap: 10 }}>
           <Text style={{ color: c.muted, fontSize: 13, letterSpacing: 0.8, fontFamily: fontFor(700), textTransform: 'uppercase', marginLeft: 6 }}>{t('creator.forCommunity')}</Text>
-          <View style={{ backgroundColor: '#fff', borderRadius: 22, overflow: 'hidden' }}>
+          <View style={{ backgroundColor: tint('#fff'), borderRadius: 22, overflow: 'hidden' }}>
             {row('rec', <Tile tint="#6D28D9"><Path d="M6 9.4a6 6 0 1 1 12 0c0 5.6 2.4 7 2.4 7H3.6S6 15 6 9.4zM9.8 19.8a2.3 2.3 0 0 0 4.4 0" /></Tile>, t('creator.received'),
-              <>{unread > 0 ? <Pill label={unreadLabel} tone="sos" /> : null}<Text style={{ color: '#B6B9C6', fontSize: 22 }}>›</Text></>, false, () => router.push('/(tabs)/alerts'))}
+              <>{unread > 0 ? <Pill label={unreadLabel} tone="sos" /> : null}<Text style={{ color: tint('#B6B9C6'), fontSize: 22 }}>›</Text></>, false, () => router.push('/(tabs)/alerts'))}
             {row('sos', <Tile tint="#E11D48"><Path d="M12 4 2.8 20h18.4zM12 10v4.5M12 17.4v.1" /></Tile>, t('creator.sosAlerts'),
-              <Switch value={prefs.sos_enabled} onValueChange={(v) => updatePrefs({ sos: v, announcements: prefs.announcements_enabled })} trackColor={{ true: '#6D28D9' }} />)}
+              <Switch value={prefs.sos_enabled} onValueChange={(v) => updatePrefs({ sos: v, announcements: prefs.announcements_enabled })} trackColor={{ true: c.primary }} />)}
             {row('ann', <Tile tint="#7C3AED"><Path d="M3 11v3l10 5V6zM13 6l7-3v16l-7-3M6 15v4a2 2 0 0 0 4 0" /></Tile>, t('creator.annAlerts'),
-              <Switch value={prefs.announcements_enabled} onValueChange={(v) => updatePrefs({ sos: prefs.sos_enabled, announcements: v })} trackColor={{ true: '#6D28D9' }} />, true)}
+              <Switch value={prefs.announcements_enabled} onValueChange={(v) => updatePrefs({ sos: prefs.sos_enabled, announcements: v })} trackColor={{ true: c.primary }} />, true)}
           </View>
           <PushPrompt />
         </View>

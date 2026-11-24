@@ -9,7 +9,7 @@ import { useAuth } from '@/lib/auth';
 import { buy, iapAvailable, loadStorePrices, restore } from '@/lib/iap';
 import { useI18n } from '@/lib/i18n';
 import { supabase, WEB_URL } from '@/lib/supabase';
-import { fontFor, space, useColors } from '@/lib/theme';
+import { fontFor, space, useColors, tint } from '@/lib/theme';
 
 interface Plan { id: string; name: string; price_cents: number | null; price_month_cents: number | null; currency: string; member_limit: number | null; apple_product_id: string | null; apple_product_id_month: string | null }
 interface Sub { plan_id: string; status: string; provider: string | null; cancel_at_period_end: boolean; current_period_end: string | null }
@@ -129,7 +129,7 @@ export default function PlanScreen() {
 
       </>}>
       <View style={{ alignItems: 'flex-end', marginBottom: -26 }}>
-        <Pressable accessibilityRole="button" accessibilityLabel="Fermer" onPress={() => router.back()} style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: '#EEEFF5', alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: c.muted, fontSize: 15 }}>✕</Text></Pressable>
+        <Pressable accessibilityRole="button" accessibilityLabel="Fermer" onPress={() => router.back()} style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: tint('#EEEFF5'), alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: c.muted, fontSize: 15 }}>✕</Text></Pressable>
       </View>
       <View style={{ alignItems: 'center', gap: space.md }}>
         <View style={{ width: 68, height: 68, borderRadius: 20, backgroundColor: c.brand, alignItems: 'center', justifyContent: 'center', shadowColor: c.brand, shadowOpacity: 0.35, shadowRadius: 16, shadowOffset: { width: 0, height: 8 }, elevation: 6 }}>
@@ -149,8 +149,8 @@ export default function PlanScreen() {
           return (
             <Pressable key={p.id} accessibilityRole="radio" accessibilityState={{ selected: on }} onPress={() => { setSelected(p.id); setError(null); }}
               style={{ flexDirection: 'row', alignItems: 'center', gap: 14, padding: on ? 15 : 16, borderRadius: 20, borderWidth: on ? 1.5 : 1, borderColor: on ? c.primary : c.border, backgroundColor: on ? c.primarySoft : c.card }}>
-              <View style={{ width: 22, height: 22, borderRadius: 11, borderWidth: 2, borderColor: on ? c.primary : '#C9CCD8', backgroundColor: on ? c.primary : 'transparent', alignItems: 'center', justifyContent: 'center' }}>
-                {on ? <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#fff' }} /> : null}
+              <View style={{ width: 22, height: 22, borderRadius: 11, borderWidth: 2, borderColor: on ? c.primary : tint('#C9CCD8'), backgroundColor: on ? c.primary : 'transparent', alignItems: 'center', justifyContent: 'center' }}>
+                {on ? <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: tint('#fff') }} /> : null}
               </View>
               <View style={{ flex: 1, gap: 3 }}>
                 <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>

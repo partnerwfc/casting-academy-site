@@ -4,7 +4,7 @@ import Svg, { Circle, Path } from 'react-native-svg';
 import { Button, Screen } from '@/components/ui';
 import { useAuth } from '@/lib/auth';
 import { useI18n } from '@/lib/i18n';
-import { fontFor, useColors } from '@/lib/theme';
+import { fontFor, useColors, tint } from '@/lib/theme';
 
 function Ico({ kind, tint, bg }: { kind: 'join' | 'bell' | 'shield'; tint: string; bg: string }) {
   const p = { stroke: tint, strokeWidth: 1.8, fill: 'none', strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const };
@@ -33,15 +33,15 @@ export default function HowItWorks() {
   return (
     <Screen bg="#fff" scroll={false} padded={false}
       footer={<>
-        <View style={{ flexDirection: 'row', gap: 12, alignItems: 'flex-start', backgroundColor: '#EEEFF5', borderRadius: 18, padding: 16, marginBottom: 12 }}>
+        <View style={{ flexDirection: 'row', gap: 12, alignItems: 'flex-start', backgroundColor: tint('#EEEFF5'), borderRadius: 18, padding: 16, marginBottom: 12 }}>
           <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="#6B7385" strokeWidth={1.8} strokeLinecap="round"><Circle cx="12" cy="12" r="9" /><Path d="M12 11v5M12 7.8v.1" /></Svg>
-          <Text style={{ flex: 1, fontSize: 14.5, lineHeight: 21, color: '#6B7385' }}>{t('onb.how.info')}</Text>
+          <Text style={{ flex: 1, fontSize: 14.5, lineHeight: 21, color: tint('#6B7385') }}>{t('onb.how.info')}</Text>
         </View>
         <Button label={t('common.continue')} onPress={() => router.push('/notifications-intro')} />
       </>}>
       <View style={{ flex: 1, paddingHorizontal: 28, paddingTop: 58, gap: 34 }}>
         <View style={{ gap: 10 }}>
-          <Text style={{ fontSize: 13, letterSpacing: 0.6, color: '#6B7385', fontFamily: fontFor(700), textTransform: 'uppercase' }}>{first ? `${t('onb.how.kicker')} ${first}` : t('onb.how.kicker')}</Text>
+          <Text style={{ fontSize: 13, letterSpacing: 0.6, color: tint('#6B7385'), fontFamily: fontFor(700), textTransform: 'uppercase' }}>{first ? `${t('onb.how.kicker')} ${first}` : t('onb.how.kicker')}</Text>
           <Text style={{ fontSize: 33, lineHeight: 37, letterSpacing: -1, color: c.text, fontFamily: fontFor(800), width: 250 }}>{t('onb.how.title')}</Text>
         </View>
         <View style={{ gap: 26 }}>
@@ -50,7 +50,7 @@ export default function HowItWorks() {
               <Ico kind={r.k} tint={r.tint} bg={r.bg} />
               <View style={{ flex: 1, gap: 3, paddingRight: 40 }}>
                 <Text style={{ fontSize: 18.5, color: c.text, fontFamily: fontFor(700), letterSpacing: -0.3 }}>{r.t}</Text>
-                <Text style={{ fontSize: 15.5, lineHeight: 22, color: '#6B7385' }}>{r.d}</Text>
+                <Text style={{ fontSize: 15.5, lineHeight: 22, color: tint('#6B7385') }}>{r.d}</Text>
               </View>
             </View>
           ))}

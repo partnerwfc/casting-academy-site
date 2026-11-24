@@ -6,7 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "savemycommunity",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "ios": {
       "bundleIdentifier": "com.savemycommunity.app",
       "supportsTablet": false,
@@ -17,9 +17,9 @@
     "android": {
       "package": "com.savemycommunity.app",
       "adaptiveIcon": {
-        "backgroundColor": "#14082B",
+        "backgroundColor": "#000000",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundColor": "#14082B",
+        "backgroundColor": "#000000",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "intentFilters": [

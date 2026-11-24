@@ -8,7 +8,7 @@ import { useAuth } from '@/lib/auth';
 import { changeAvatar } from '@/lib/avatar';
 import { useI18n } from '@/lib/i18n';
 import { supabase } from '@/lib/supabase';
-import { fontFor, useColors } from '@/lib/theme';
+import { fontFor, useColors, tint } from '@/lib/theme';
 
 const CATEGORIES = ['creator', 'artist', 'brand', 'company', 'nonprofit', 'media'] as const;
 
@@ -65,7 +65,7 @@ export default function EditCommunity() {
         </Pressable>
         <Pressable onPress={pick}><Text style={{ color: c.primary, fontSize: 16, fontFamily: fontFor(700) }}>{t('edit.photo')}</Text></Pressable>
       </View>
-      <View style={{ backgroundColor: '#fff', borderRadius: 22, paddingHorizontal: 18 }}>
+      <View style={{ backgroundColor: tint('#fff'), borderRadius: 22, paddingHorizontal: 18 }}>
         <Field label={t('setup.displayName')} value={name} onChangeText={setName} maxLength={60} />
         <Field label={t('setup.bio')} value={bio} onChangeText={setBio} multiline maxLength={120} last counter={`${bio.length}/120`} placeholder={t('setup.bioPlaceholder')} />
       </View>

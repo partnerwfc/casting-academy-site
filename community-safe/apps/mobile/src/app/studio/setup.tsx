@@ -8,7 +8,7 @@ import { Button, Chip, Loading, Screen, T } from '@/components/ui';
 import { useAuth } from '@/lib/auth';
 import { useI18n } from '@/lib/i18n';
 import { supabase } from '@/lib/supabase';
-import { fontFor, space, useColors } from '@/lib/theme';
+import { fontFor, space, useColors, tint } from '@/lib/theme';
 
 function Field({ label, last, counter, style, ...rest }: TextInputProps & { label: string; last?: boolean; counter?: string }) {
   const c = useColors();
@@ -78,7 +78,7 @@ export default function Setup() {
       <Text style={{ fontSize: 16, lineHeight: 23, color: c.muted, marginTop: -6, paddingRight: 30 }}>{t('setup.sub')}</Text>
       <View style={{ alignItems: 'center' }}>
         <Pressable accessibilityRole="button" accessibilityLabel={t('setup.logo')} onPress={pickLogo}
-          style={{ width: 92, height: 92, borderRadius: 26, borderWidth: logo ? 0 : 2, borderStyle: 'dashed', borderColor: '#C9CCD8', backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+          style={{ width: 92, height: 92, borderRadius: 26, borderWidth: logo ? 0 : 2, borderStyle: 'dashed', borderColor: tint('#C9CCD8'), backgroundColor: tint('#fff'), alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
           {logo ? <Image source={{ uri: logo }} style={{ width: 92, height: 92 }} /> : (
             <View style={{ alignItems: 'center', gap: 4 }}>
               <Svg width={26} height={26} viewBox="0 0 24 24" fill="none" stroke={c.primary} strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><Path d="M4 8h3l2-3h6l2 3h3v11H4z" /><Circle cx="12" cy="13" r="3.2" /></Svg>
@@ -87,7 +87,7 @@ export default function Setup() {
           )}
         </Pressable>
       </View>
-      <View style={{ backgroundColor: '#fff', borderRadius: 22, paddingHorizontal: 18 }}>
+      <View style={{ backgroundColor: tint('#fff'), borderRadius: 22, paddingHorizontal: 18 }}>
         <Field label={t('setup.displayName')} value={name} onChangeText={setName} maxLength={60} placeholder={t('setup.namePlaceholder')} />
         <Field label={t('setup.handle')} value={handle} onChangeText={setHandle} autoCapitalize="none" autoCorrect={false} maxLength={31} placeholder="@icastt" />
         <Field label={t('setup.bio')} value={bio} onChangeText={setBio} multiline maxLength={120} last counter={`${bio.length}/120`} placeholder={t('setup.bioPlaceholder')} />

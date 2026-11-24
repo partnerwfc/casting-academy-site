@@ -2,11 +2,10 @@ import { Pressable, Text, View } from 'react-native';
 import Svg, { Defs, LinearGradient, Path, Rect, Stop } from 'react-native-svg';
 import { useAuth } from '@/lib/auth';
 import { useI18n } from '@/lib/i18n';
-import { fontFor } from '@/lib/theme';
+import { fontFor, tint } from '@/lib/theme';
 import { useUnreadCount } from '@/lib/unread';
 import { TabIcon } from './TabIcon';
 
-const ACTIVE = '#6D28D9', IDLE = '#6B7385';
 type Key = 'communities' | 'discover' | 'compose' | 'alerts' | 'profile';
 
 function PlusButton() {
@@ -24,6 +23,7 @@ function PlusButton() {
 // Barre d'onglets de la maquette : icône + texte, onglet actif en violet, bouton « Alerte » central, avatar sur « Profil ».
 export function TabBarView({ active, onPress, unread, initial }: { active: Key; onPress: (k: Key) => void; unread: number; initial: string }) {
   const { t } = useI18n();
+  const ACTIVE = tint('#6D28D9'), IDLE = tint('#6B7385');
   const item = (k: Exclude<Key, 'compose'>, label: string, icon: 'users' | 'search' | 'bell' | 'user') => {
     const on = active === k;
     const color = on ? ACTIVE : IDLE;
@@ -35,19 +35,19 @@ export function TabBarView({ active, onPress, unread, initial }: { active: Key; 
               <Text style={{ color: '#fff', fontSize: 12, fontFamily: fontFor(700) }}>{initial}</Text>
             </View>
           ) : <TabIcon name={icon} active={on} color={color} size={26} />}
-          {k === 'alerts' && unread > 0 ? <View style={{ position: 'absolute', top: -1, right: -3, width: 10, height: 10, borderRadius: 5, backgroundColor: '#F43F5E', borderWidth: 1.5, borderColor: '#fff' }} /> : null}
+          {k === 'alerts' && unread > 0 ? <View style={{ position: 'absolute', top: -1, right: -3, width: 10, height: 10, borderRadius: 5, backgroundColor: '#F43F5E', borderWidth: 1.5, borderColor: tint('#fff') }} /> : null}
         </View>
         <Text style={{ fontSize: 10.5, color, fontFamily: fontFor(on ? 700 : 500), width: 80, textAlign: 'center' }}>{label}</Text>
       </Pressable>
     );
   };
   return (
-    <View style={{ flexDirection: 'row', backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#EEEFF5', height: 72, paddingBottom: 6 }}>
+    <View style={{ flexDirection: 'row', backgroundColor: tint('#fff'), borderTopWidth: 1, borderTopColor: tint('#EEEFF5'), height: 72, paddingBottom: 6 }}>
       {item('communities', t('tabs.communities'), 'users')}
       {item('discover', t('tabs.discover'), 'search')}
       <Pressable accessibilityRole="button" accessibilityLabel={t('tabs.alert')} onPress={() => onPress('compose')} style={{ flex: 1, alignItems: 'center', top: -2, paddingTop: 8, gap: 5 }}>
         <PlusButton />
-        <Text style={{ fontSize: 11, color: '#170B2F', fontFamily: fontFor(700) }}>{t('tabs.alert')}</Text>
+        <Text style={{ fontSize: 11, color: tint('#170B2F'), fontFamily: fontFor(700) }}>{t('tabs.alert')}</Text>
       </Pressable>
       {item('alerts', t('tabs.alerts'), 'bell')}
       {item('profile', t('tabs.profile'), 'user')}

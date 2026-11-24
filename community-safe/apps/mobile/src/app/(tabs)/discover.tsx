@@ -10,14 +10,14 @@ import { useSecurityGate } from '@/lib/gate';
 import { useI18n } from '@/lib/i18n';
 import { continueAnonymously } from '@/lib/oauth';
 import { supabase } from '@/lib/supabase';
-import { fontFor, useColors } from '@/lib/theme';
+import { fontFor, useColors, tint } from '@/lib/theme';
 
 const PAGE = 30;
 
 function FollowToggle({ following, onPress, label }: { following: boolean; onPress: () => void; label: string }) {
   return (
     <Pressable accessibilityRole="button" accessibilityLabel={label} accessibilityState={{ selected: following }} onPress={onPress}
-      style={{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: following ? '#6D28D9' : '#fff', borderWidth: following ? 0 : 1.5, borderColor: '#DDD3F7' }}>
+      style={{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: following ? '#6D28D9' : tint('#fff'), borderWidth: following ? 0 : 1.5, borderColor: tint('#DDD3F7') }}>
       <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={following ? '#fff' : '#6D28D9'} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round">
         {following ? <Path d="m5 12.5 4.5 4.5L19 7.5" /> : <Path d="M12 5v14M5 12h14" />}
       </Svg>
@@ -91,7 +91,7 @@ export default function Discover() {
         <T v="hero">{t('tabs.discover')}</T>
         <Text style={{ fontSize: 14.5, color: c.muted, fontFamily: fontFor(400) }}>{t('discover.subtitle')}</Text>
       </View>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: '#fff', borderRadius: 18, paddingHorizontal: 16, height: 52, shadowColor: '#170B2F', shadowOpacity: 0.06, shadowRadius: 10, shadowOffset: { width: 0, height: 3 }, elevation: 2 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: tint('#fff'), borderRadius: 18, paddingHorizontal: 16, height: 52, shadowColor: '#170B2F', shadowOpacity: 0.06, shadowRadius: 10, shadowOffset: { width: 0, height: 3 }, elevation: 2 }}>
         <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={c.muted} strokeWidth={2} strokeLinecap="round"><Circle cx="10.8" cy="10.8" r="6.8" /><Path d="m20.4 20.4-4.8-4.8" /></Svg>
         <TextInput value={query} onChangeText={setQuery} placeholder={t('discover.search')} placeholderTextColor="#8B90A0" autoCapitalize="none" autoCorrect={false} returnKeyType="search"
           style={{ flex: 1, fontSize: 16, color: c.text, fontFamily: fontFor(400) }} />
@@ -112,7 +112,7 @@ export default function Discover() {
             <Text style={{ color: '#fff', fontSize: 26, fontFamily: fontFor(800), letterSpacing: -0.4 }}>{featured.display_name}</Text>
             <Text style={{ color: '#E4DAFF', fontSize: 15 }}>{t(`category.${featured.category}` as MessageKey)} · {t('creator.members', { count: formatCompact(locale, featured.member_count) })}</Text>
           </View>
-          <Pressable accessibilityRole="button" onPress={() => router.push(`/creator/${featured.handle}`)} style={{ alignSelf: 'flex-start', backgroundColor: '#fff', borderRadius: 999, paddingHorizontal: 20, paddingVertical: 11, marginTop: 14 }}>
+          <Pressable accessibilityRole="button" onPress={() => router.push(`/creator/${featured.handle}`)} style={{ alignSelf: 'flex-start', backgroundColor: tint('#fff'), borderRadius: 999, paddingHorizontal: 20, paddingVertical: 11, marginTop: 14 }}>
             <Text style={{ fontSize: 15, color: c.text, fontFamily: fontFor(700) }}>{t('tabs.discover')}</Text>
           </Pressable>
         </View>

@@ -1,7 +1,9 @@
-import { DefaultTheme, ThemeProvider, router } from 'expo-router';
+import { DarkTheme, DefaultTheme, ThemeProvider, router } from 'expo-router';
 import { Stack } from 'expo-router/stack';
 import * as Notifications from 'expo-notifications';
 import { StatusBar } from 'expo-status-bar';
+import { ThemeSwitch } from '@/components/ThemeSwitch';
+import { isDark } from '@/lib/theme';
 import { useEffect } from 'react';
 import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold, Inter_800ExtraBold, useFonts } from '@expo-google-fonts/inter';
 import { SplashScreen } from 'expo-router';
@@ -54,13 +56,15 @@ export default function RootLayout() {
   useEffect(() => { if (fontsLoaded || fontError) SplashScreen.hideAsync(); }, [fontsLoaded, fontError]);
   if (!fontsLoaded && !fontError) return null;
   return (
-    <ThemeProvider value={DefaultTheme}>
-      <LocaleProvider>
-        <AuthProvider>
-          <Navigator />
-          <StatusBar style="dark" />
-        </AuthProvider>
-      </LocaleProvider>
-    </ThemeProvider>
+    <ThemeSwitch>
+      <ThemeProvider value={isDark() ? DarkTheme : DefaultTheme}>
+        <LocaleProvider>
+          <AuthProvider>
+            <Navigator />
+            <StatusBar style={isDark() ? 'light' : 'dark'} />
+          </AuthProvider>
+        </LocaleProvider>
+      </ThemeProvider>
+    </ThemeSwitch>
   );
 }

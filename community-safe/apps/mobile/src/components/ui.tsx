@@ -3,10 +3,10 @@ import {
   ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View,
   type StyleProp, type TextInputProps, type TextStyle, type ViewStyle,
 } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
+import Svg, { Defs, LinearGradient, Path, Rect, Stop } from 'react-native-svg';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { fontFor, radius, space, useColors } from '@/lib/theme';
+import { fontFor, isDark, radius, space, useColors, tint } from '@/lib/theme';
 
 export interface NavSpec { noChevron?: boolean; close?: boolean; back?: string | false; title?: string; right?: { label: string; onPress: () => void }; onBack?: () => void }
 
@@ -15,7 +15,7 @@ export function NavBar({ nav }: { nav: NavSpec }) {
   const c = useColors();
   const back = nav.onBack ?? (() => router.back());
   return (
-    <View style={{ height: 46, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, backgroundColor: '#fff' }}>
+    <View style={{ height: 46, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, backgroundColor: tint('#fff') }}>
       <View style={{ flex: 1, alignItems: 'flex-start' }}>
         {nav.close ? <Pressable accessibilityRole="button" accessibilityLabel="Fermer" onPress={back} hitSlop={12}><Text style={{ color: c.text, fontSize: 24 }}>✕</Text></Pressable> : nav.back === false ? null : (
           <Pressable accessibilityRole="button" onPress={back} hitSlop={10} style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
@@ -73,7 +73,9 @@ export function Button({
   loading?: boolean; disabled?: boolean; style?: StyleProp<ViewStyle>;
 }) {
   const c = useColors();
-  const bg = { primary: c.primary, secondary: c.primarySoft, sos: c.sos, ghost: 'transparent', danger: 'transparent', neutral: '#EEEFF5' }[kind];
+  const dark = isDark();
+  const gradient = dark && kind === 'primary';
+  const bg = gradient ? 'transparent' : { primary: c.primary, secondary: c.primarySoft, sos: c.sos, ghost: 'transparent', danger: 'transparent', neutral: dark ? '#1A1A1F' : '#EEEFF5' }[kind];
   const fg = { primary: c.onPrimary, secondary: c.primary, sos: '#FFFFFF', ghost: c.primary, danger: c.sos, neutral: c.text }[kind];
   const off = disabled || loading;
   return (
@@ -82,7 +84,13 @@ export function Button({
       accessibilityState={{ disabled: !!off }}
       disabled={off}
       onPress={onPress}
-      style={({ pressed }) => [styles.button, { backgroundColor: bg, opacity: off ? 0.5 : pressed ? 0.85 : 1 }, style]}>
+      style={({ pressed }) => [styles.button, { backgroundColor: bg, overflow: 'hidden', opacity: off ? 0.5 : pressed ? 0.85 : 1 }, dark ? { borderRadius: 28 } : null, style]}>
+      {gradient ? (
+        <Svg style={StyleSheet.absoluteFill} width="100%" height="100%" preserveAspectRatio="none" viewBox="0 0 10 10">
+          <Defs><LinearGradient id="bg" x1="0" y1="0" x2="1" y2="0"><Stop offset="0" stopColor={c.accent} /><Stop offset="1" stopColor={c.accent2} /></LinearGradient></Defs>
+          <Rect width={10} height={10} fill="url(#bg)" />
+        </Svg>
+      ) : null}
       {loading ? <ActivityIndicator color={fg} /> : <Text style={{ color: fg, fontSize: 16, fontFamily: fontFor(700) }}>{label}</Text>}
     </Pressable>
   );
@@ -124,8 +132,8 @@ export function Avatar({ name, url, size = 48 }: { name: string; url?: string | 
   let h = 0; for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) % 997;
   const [bg, fg] = TINTS[h % TINTS.length];
   return (
-    <View style={{ width: size, height: size, borderRadius: r, backgroundColor: bg, alignItems: 'center', justifyContent: 'center' }}>
-      <Text style={{ color: fg, fontFamily: fontFor(800), fontSize: size * 0.34 }}>{initials(name)}</Text>
+    <View style={{ width: size, height: size, borderRadius: r, backgroundColor: tint(bg), alignItems: 'center', justifyContent: 'center' }}>
+      <Text style={{ color: tint(fg), fontFamily: fontFor(800), fontSize: size * 0.34 }}>{initials(name)}</Text>
     </View>
   );
 }
@@ -154,7 +162,7 @@ export function Chip({ label, selected, onPress, tone = 'violet', fill = false }
       onPress={onPress}
       style={{
         paddingHorizontal: 18, height: 38, justifyContent: 'center', borderRadius: radius.pill, borderWidth: selected || fill ? 0 : 1,
-        borderColor: '#E9E6F3', backgroundColor: selected ? on : fill ? '#EEEFF5' : '#fff',
+        borderColor: tint('#E9E6F3'), backgroundColor: selected ? on : fill ? tint('#EEEFF5') : tint('#fff'),
       }}>
       <Text style={{ color: selected ? '#fff' : c.text, fontSize: 15, fontFamily: fontFor(600) }}>{label}</Text>
     </Pressable>
@@ -163,12 +171,12 @@ export function Chip({ label, selected, onPress, tone = 'violet', fill = false }
 
 export function Segmented<T extends string | number>({ options, value, onChange }: { options: { value: T; label: string }[]; value: T; onChange: (v: T) => void }) {
   return (
-    <View style={{ flexDirection: 'row', backgroundColor: '#EEEFF5', borderRadius: 14, padding: 3 }}>
+    <View style={{ flexDirection: 'row', backgroundColor: tint('#EEEFF5'), borderRadius: 14, padding: 3 }}>
       {options.map((o) => (
         <Pressable key={String(o.value)} accessibilityRole="button" accessibilityState={{ selected: value === o.value }} onPress={() => onChange(o.value)}
-          style={{ flex: 1, paddingVertical: 8, borderRadius: 11, alignItems: 'center', backgroundColor: value === o.value ? '#fff' : 'transparent',
+          style={{ flex: 1, paddingVertical: 8, borderRadius: 11, alignItems: 'center', backgroundColor: value === o.value ? tint('#fff') : 'transparent',
             shadowColor: '#170B2F', shadowOpacity: value === o.value ? 0.1 : 0, shadowRadius: 4, shadowOffset: { width: 0, height: 1 }, elevation: value === o.value ? 1 : 0 }}>
-          <Text style={{ fontSize: 15, color: '#170B2F', fontFamily: fontFor(600) }}>{o.label}</Text>
+          <Text style={{ fontSize: 15, color: isDark() && value === o.value ? '#fff' : tint('#170B2F'), fontFamily: fontFor(600) }}>{o.label}</Text>
         </Pressable>
       ))}
     </View>
@@ -229,20 +237,20 @@ export function Section({ title, children }: { title?: string; children: ReactNo
   return (
     <View style={{ gap: 8 }}>
       {title ? <Text style={{ color: c.muted, fontSize: 13, letterSpacing: 0.8, fontFamily: fontFor(700), textTransform: 'uppercase', marginLeft: 8 }}>{title}</Text> : null}
-      <View style={{ backgroundColor: '#fff', borderRadius: 22, overflow: 'hidden' }}>{children}</View>
+      <View style={{ backgroundColor: tint('#fff'), borderRadius: 22, overflow: 'hidden' }}>{children}</View>
     </View>
   );
 }
 
-export function Row({ label, value, tint, icon, onPress, last, right }: { label: string; value?: string; tint?: string; icon?: ReactNode; onPress?: () => void; last?: boolean; right?: ReactNode }) {
+export function Row({ label, value, tint: tile, icon, onPress, last, right }: { label: string; value?: string; tint?: string; icon?: ReactNode; onPress?: () => void; last?: boolean; right?: ReactNode }) {
   const c = useColors();
   return (
     <Pressable accessibilityRole={onPress ? 'button' : undefined} onPress={onPress} disabled={!onPress}
-      style={{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 16, minHeight: 58, borderBottomWidth: last ? 0 : 1, borderBottomColor: '#EEEFF5' }}>
-      {icon ? <View style={{ width: 34, height: 34, borderRadius: 10, backgroundColor: tint ?? c.primary, alignItems: 'center', justifyContent: 'center' }}>{icon}</View> : null}
+      style={{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 16, minHeight: 58, borderBottomWidth: last ? 0 : 1, borderBottomColor: tint('#EEEFF5') }}>
+      {icon ? <View style={{ width: 34, height: 34, borderRadius: 10, backgroundColor: tile ?? c.primary, alignItems: 'center', justifyContent: 'center' }}>{icon}</View> : null}
       <Text style={{ flex: 1, color: c.text, fontSize: 17, fontFamily: fontFor(400) }}>{label}</Text>
       {value ? <Text style={{ color: c.muted, fontSize: 17 }}>{value}</Text> : null}
-      {right ? <View style={{ minWidth: 51, height: 31, justifyContent: 'center', alignItems: 'flex-end' }}>{right}</View> : (onPress ? <Text style={{ color: '#B6B9C6', fontSize: 22 }}>›</Text> : null)}
+      {right ? <View style={{ minWidth: 51, height: 31, justifyContent: 'center', alignItems: 'flex-end' }}>{right}</View> : (onPress ? <Text style={{ color: tint('#B6B9C6'), fontSize: 22 }}>›</Text> : null)}
     </Pressable>
   );
 }

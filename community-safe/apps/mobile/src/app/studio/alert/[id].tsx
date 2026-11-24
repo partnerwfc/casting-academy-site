@@ -6,7 +6,7 @@ import { formatCount, type DeliveryStats } from '@community-safe/shared';
 import { Button, Card, Loading, Pill, Screen, T } from '@/components/ui';
 import { useI18n } from '@/lib/i18n';
 import { supabase } from '@/lib/supabase';
-import { fontFor, space, useColors } from '@/lib/theme';
+import { fontFor, space, useColors, tint } from '@/lib/theme';
 
 // Écran « Alerte envoyée » : confirmation, puis suivi technique (compteurs seulement, jamais d'identité d'abonné).
 export default function AlertTracking() {
@@ -62,18 +62,18 @@ export default function AlertTracking() {
         {ok ? null : <Pill label={t(`track.status.${stats.status}`)} tone="sos" />}
       </View>
       {stats.blocked_reason ? <Card tone="sos"><T v="muted">{stats.blocked_reason}</T></Card> : null}
-      <View style={{ borderRadius: 22, borderWidth: 1, borderColor: '#E9E6F3', paddingHorizontal: 18, marginTop: 14 }}>
+      <View style={{ borderRadius: 22, borderWidth: 1, borderColor: tint('#E9E6F3'), paddingHorizontal: 18, marginTop: 14 }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 16 }}>
           <Text style={{ fontSize: 17, color: c.text }}>{t('sent.targeted')}</Text>
           <Text style={{ fontSize: 19, color: c.text, fontFamily: fontFor(800) }}>{formatCount(locale, stats.recipients_total)}</Text>
         </View>
-        <View style={{ height: 1, backgroundColor: '#E9E6F3' }} />
+        <View style={{ height: 1, backgroundColor: tint('#E9E6F3') }} />
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 16, gap: 12 }}>
           <Text style={{ flex: 1, fontSize: 17, color: c.text }}>{t('sent.acceptedBoth')}</Text>
-          <Text style={{ fontSize: 19, color: '#15803D', fontFamily: fontFor(800) }}>{formatCount(locale, stats.accepted_by_provider)}</Text>
+          <Text style={{ fontSize: 19, color: tint('#15803D'), fontFamily: fontFor(800) }}>{formatCount(locale, stats.accepted_by_provider)}</Text>
         </View>
         {more ? extra.map(([key, value]) => (
-          <View key={key} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 10, borderTopWidth: 1, borderTopColor: '#EEEFF5' }}>
+          <View key={key} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 10, borderTopWidth: 1, borderTopColor: tint('#EEEFF5') }}>
             <Text style={{ fontSize: 15, color: c.muted, flex: 1 }}>{t(key)}</Text>
             <Text style={{ fontSize: 15, color: c.text, fontFamily: fontFor(700) }}>{formatCount(locale, value)}</Text>
           </View>

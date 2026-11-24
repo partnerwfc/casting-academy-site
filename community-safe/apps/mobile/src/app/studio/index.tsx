@@ -10,7 +10,7 @@ import { useAuth } from '@/lib/auth';
 import { useSecurityGate } from '@/lib/gate';
 import { useI18n } from '@/lib/i18n';
 import { supabase } from '@/lib/supabase';
-import { fontFor, space, useColors } from '@/lib/theme';
+import { fontFor, space, useColors, tint } from '@/lib/theme';
 
 function GrowthChart({ data }: { data: DashboardStats['growth'] }) {
   const c = useColors();
@@ -100,7 +100,7 @@ export default function Studio() {
       <Modal visible={over && !sheetDismissed} transparent animationType="slide" onRequestClose={() => setSheetDismissed(true)}>
         <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(23,11,47,0.45)' }}>
           <View style={{ backgroundColor: c.bg, borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: space.xl, gap: space.md, alignItems: 'center' }}>
-            <View style={{ width: 36, height: 5, borderRadius: 3, backgroundColor: '#D7D8E2' }} />
+            <View style={{ width: 36, height: 5, borderRadius: 3, backgroundColor: tint('#D7D8E2') }} />
             <View style={{ width: 104, height: 104, borderRadius: 52, borderWidth: 9, borderColor: c.brand, alignItems: 'center', justifyContent: 'center' }}>
               <T v="heading" style={{ fontSize: 21, fontWeight: '800' }}>{formatCount(locale, stats.members_total)}</T>
               <T v="small" style={{ fontSize: 13 }}>/ {limit !== null ? formatCount(locale, limit) : ''}</T>
@@ -147,19 +147,19 @@ export default function Studio() {
         <Button label={`+  ${t('dash.sendAlert')}`} style={{ flex: 1 }} disabled={!verified} onPress={() => router.push('/studio/new')} />
       </View>
 
-      <View style={{ backgroundColor: '#fff', borderRadius: 24, padding: 18, gap: 14 }}>
+      <View style={{ backgroundColor: tint('#fff'), borderRadius: 24, padding: 18, gap: 14 }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
           <Text style={{ fontSize: 19, color: c.text, fontFamily: fontFor(800), letterSpacing: -0.3 }}>{t('dash.growth')}</Text>
-          <Text style={{ fontSize: 15.5, color: '#15803D', fontFamily: fontFor(700) }}>{t('dash.growthTotal', { count: `+${formatCount(locale, stats.growth.slice(-range).reduce((n, d) => n + d.count, 0))}`, range: t(`dash.d${range}` as 'dash.d7') })}</Text>
+          <Text style={{ fontSize: 15.5, color: tint('#15803D'), fontFamily: fontFor(700) }}>{t('dash.growthTotal', { count: `+${formatCount(locale, stats.growth.slice(-range).reduce((n, d) => n + d.count, 0))}`, range: t(`dash.d${range}` as 'dash.d7') })}</Text>
         </View>
         <Segmented value={range} onChange={setRange} options={([7, 30, 90] as const).map((r) => ({ value: r, label: t(`dash.d${r}` as 'dash.d7') }))} />
         <GrowthChart data={stats.growth.slice(-range)} />
       </View>
 
       <Text style={{ color: c.muted, fontSize: 13, letterSpacing: 0.8, fontFamily: fontFor(700), textTransform: 'uppercase', marginLeft: 6, marginBottom: -6 }}>{t('dash.newMembers')}</Text>
-      <View style={{ flexDirection: 'row', backgroundColor: '#fff', borderRadius: 22, paddingVertical: 16 }}>
+      <View style={{ flexDirection: 'row', backgroundColor: tint('#fff'), borderRadius: 22, paddingVertical: 16 }}>
         {([['dash.today', stats.members_today], ['dash.week', stats.members_week], ['dash.month', stats.members_month]] as const).map(([k, v], i) => (
-          <View key={k} style={{ flex: 1, alignItems: 'center', gap: 2, borderLeftWidth: i ? 1 : 0, borderLeftColor: '#EEEFF5' }}>
+          <View key={k} style={{ flex: 1, alignItems: 'center', gap: 2, borderLeftWidth: i ? 1 : 0, borderLeftColor: tint('#EEEFF5') }}>
             <Text style={{ fontSize: 26, color: c.text, fontFamily: fontFor(800), letterSpacing: -0.6 }}>+{formatCount(locale, v)}</Text>
             <Text style={{ fontSize: 14, color: c.muted }}>{t(k)}</Text>
           </View>

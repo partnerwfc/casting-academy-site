@@ -11,10 +11,11 @@ import Svg, { Path } from 'react-native-svg';
 import { Avatar, Button, Card, Pill, Row, Section, T } from '@/components/ui';
 import { useAuth } from '@/lib/auth';
 import { useSecurityGate } from '@/lib/gate';
+import { useThemePref } from '@/components/ThemeSwitch';
 import { useI18n } from '@/lib/i18n';
 import { runOAuth } from '@/lib/oauth';
 import { supabase, WEB_URL } from '@/lib/supabase';
-import { fontFor, space, useColors } from '@/lib/theme';
+import { fontFor, space, useColors, tint } from '@/lib/theme';
 
 const LANGUAGE_NAMES = { en: 'English', fr: 'Français', pt: 'Português', es: 'Español' } as const;
 
@@ -54,6 +55,7 @@ export default function Profile() {
   };
 
   const c = useColors();
+  const { pref, setPref } = useThemePref();
   const gate = useSecurityGate();
   const top = useSafeAreaInsets().top + 8;
   const [prefs, setPrefs] = useState<{ creator_id: string; sos_enabled: boolean; announcements_enabled: boolean }[]>([]);
@@ -79,6 +81,12 @@ export default function Profile() {
     ...LOCALES.map((l) => ({ text: LANGUAGE_NAMES[l], onPress: () => changeLocale(l) })),
     { text: t('common.cancel'), style: 'cancel' as const },
   ]);
+  const chooseTheme = () => Alert.alert(t('profile.appearance'), undefined, [
+    { text: t('profile.themeSystem'), onPress: () => setPref('system') },
+    { text: t('profile.themeLight'), onPress: () => setPref('light') },
+    { text: t('profile.themeDark'), onPress: () => setPref('dark') },
+    { text: t('common.cancel'), style: 'cancel' as const },
+  ]);
   const ic = (d: string) => <Svg width={19} height={19} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><Path d={d} /></Svg>;
   const verified = creator?.verification_status === 'verified';
   const provider = session?.user.app_metadata?.provider;
@@ -95,7 +103,7 @@ export default function Profile() {
 
         {session ? (
           <>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: '#fff', borderRadius: 22, padding: 16 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: tint('#fff'), borderRadius: 22, padding: 16 }}>
               <View style={{ width: 54, height: 54, borderRadius: 27, backgroundColor: '#A78BFA', alignItems: 'center', justifyContent: 'center' }}>
                 <Text style={{ color: '#fff', fontSize: 22, fontFamily: fontFor(800) }}>{(displayName || '?').charAt(0).toUpperCase()}</Text>
               </View>
@@ -114,7 +122,7 @@ export default function Profile() {
             ) : null}
 
             <Pressable accessibilityRole="button" onPress={() => router.push(creator ? '/studio' : '/studio/setup')}
-              style={{ flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: '#fff', borderRadius: 22, padding: 14, ...shadow }}>
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: tint('#fff'), borderRadius: 22, padding: 14, ...shadow }}>
               {creator ? <Avatar name={creator.display_name} url={creator.avatar_url} size={52} /> : (
                 <View style={{ width: 52, height: 52, borderRadius: 15, backgroundColor: c.primary, alignItems: 'center', justifyContent: 'center' }}>{ic('M12 3l7.5 3v5.6c0 4.4-3 7.7-7.5 9.4-4.5-1.7-7.5-5-7.5-9.4V6z')}</View>
               )}
@@ -125,7 +133,7 @@ export default function Profile() {
                 </View>
                 {creator ? <Text style={{ fontSize: 14.5, color: c.muted }}>{creator.display_name} · {t('profile.protectedMembers', { count: formatCompact(locale, creator.member_count) })}</Text> : null}
               </View>
-              <Text style={{ color: '#B6B9C6', fontSize: 22 }}>›</Text>
+              <Text style={{ color: tint('#B6B9C6'), fontSize: 22 }}>›</Text>
             </Pressable>
 
             {creator ? (
@@ -148,6 +156,7 @@ export default function Profile() {
 
         <Section title={t('profile.secPrefs')}>
           <Row label={t('profile.language')} value={LANGUAGE_NAMES[locale]} tint="#16B8E8" icon={ic('M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9S14.500 18.400 12 21c-2.500-2.600-3.800-5.600-3.800-9S9.500 5.600 12 3z')} onPress={chooseLanguage} />
+          <Row label={t('profile.appearance')} value={t(pref === 'dark' ? 'profile.themeDark' : pref === 'light' ? 'profile.themeLight' : 'profile.themeSystem')} tint="#FA0973" icon={ic('M12 3a9 9 0 1 0 9 9c-5 1-10-4-9-9z')} onPress={chooseTheme} />
           <Row label={t('auth.terms')} onPress={() => WebBrowser.openBrowserAsync(`${WEB_URL}/terms`)} />
           <Row label={t('auth.privacy')} last onPress={() => WebBrowser.openBrowserAsync(`${WEB_URL}/privacy`)} />
         </Section>

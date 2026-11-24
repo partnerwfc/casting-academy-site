@@ -10,7 +10,7 @@ import { Button, Card, Chip, Loading, Pill, Screen, T, VerifiedBadge } from '@/c
 import { useAuth } from '@/lib/auth';
 import { useI18n } from '@/lib/i18n';
 import { supabase } from '@/lib/supabase';
-import { fontFor, space, useColors } from '@/lib/theme';
+import { fontFor, space, useColors, tint } from '@/lib/theme';
 
 const LABEL: Record<string, string> = { instagram: 'Instagram', tiktok: 'TikTok', youtube: 'YouTube', x: 'X', twitch: 'Twitch', snapchat: 'Snapchat', facebook: 'Facebook', website: 'Web' };
 type Method = 'account' | 'website' | 'document' | 'other';
@@ -83,8 +83,8 @@ function Selfie({ onClose, onDone }: { onClose: () => void; onDone: (path: strin
           {error && !perm?.granted ? <Pressable onPress={() => Linking.openSettings()}><Text style={{ color: '#C4B5FD', fontSize: 15, fontFamily: fontFor(700) }}>Réglages</Text></Pressable> : null}
         </View>
         <Text style={{ color: '#9AA3C2', fontSize: 13.5, textAlign: 'center', marginBottom: 12 }}>🔇 {t('cert2.noSound')}</Text>
-        <Pressable accessibilityRole="button" disabled={phase !== 'idle'} onPress={start} style={{ height: 56, borderRadius: 18, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', opacity: phase === 'idle' ? 1 : 0.6 }}>
-          <Text style={{ color: '#170B2F', fontSize: 17, fontFamily: fontFor(700) }}>{phase === 'idle' ? t('cert2.record') : phase === 'uploading' ? t('cert2.uploading') : t('cert2.recording')}</Text>
+        <Pressable accessibilityRole="button" disabled={phase !== 'idle'} onPress={start} style={{ height: 56, borderRadius: 18, backgroundColor: tint('#fff'), alignItems: 'center', justifyContent: 'center', opacity: phase === 'idle' ? 1 : 0.6 }}>
+          <Text style={{ color: tint('#170B2F'), fontSize: 17, fontFamily: fontFor(700) }}>{phase === 'idle' ? t('cert2.record') : phase === 'uploading' ? t('cert2.uploading') : t('cert2.recording')}</Text>
         </Pressable>
       </SafeAreaView>
     </View>
@@ -201,8 +201,8 @@ export default function Certification() {
             const on = method === m.id;
             return (
               <Pressable key={m.id} accessibilityRole="radio" accessibilityState={{ selected: on }} onPress={() => { if (!hasCode) setMethod(m.id); }}
-                style={{ flexDirection: 'row', gap: 14, alignItems: 'flex-start', padding: 14, borderRadius: 20, borderWidth: on ? 1.5 : 1, borderColor: on ? c.primary : '#E9E6F3', backgroundColor: '#fff' }}>
-                <View style={{ width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: on ? c.primary : '#C9CCD8', alignItems: 'center', justifyContent: 'center', marginTop: 1 }}>
+                style={{ flexDirection: 'row', gap: 14, alignItems: 'flex-start', padding: 14, borderRadius: 20, borderWidth: on ? 1.5 : 1, borderColor: on ? c.primary : tint('#E9E6F3'), backgroundColor: tint('#fff') }}>
+                <View style={{ width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: on ? c.primary : tint('#C9CCD8'), alignItems: 'center', justifyContent: 'center', marginTop: 1 }}>
                   {on ? <View style={{ width: 11, height: 11, borderRadius: 6, backgroundColor: c.primary }} /> : null}
                 </View>
                 <View style={{ flex: 1, gap: 2 }}>
@@ -221,13 +221,13 @@ export default function Certification() {
                 {SOCIAL_PLATFORMS_CERT.filter((p) => p !== 'website').map((p) => <Chip key={p} label={LABEL[p]} selected={platform === p} onPress={() => setPlatform(p)} />)}
               </View>
             ) : null}
-            <View style={{ backgroundColor: '#fff', borderRadius: 18, paddingHorizontal: 16, paddingVertical: 10 }}>
+            <View style={{ backgroundColor: tint('#fff'), borderRadius: 18, paddingHorizontal: 16, paddingVertical: 10 }}>
               <Text style={{ fontSize: 13, color: c.muted, fontFamily: fontFor(700) }}>{t('cert2.account')}</Text>
               <TextInput value={url} onChangeText={setUrl} keyboardType="url" autoCapitalize="none" autoCorrect={false} placeholder="https://" placeholderTextColor={c.muted}
                 style={{ fontSize: 17, color: c.text, paddingVertical: 6, fontFamily: 'Inter_400Regular' }} />
             </View>
             {needsNote ? (
-              <View style={{ backgroundColor: '#fff', borderRadius: 18, paddingHorizontal: 16, paddingVertical: 10 }}>
+              <View style={{ backgroundColor: tint('#fff'), borderRadius: 18, paddingHorizontal: 16, paddingVertical: 10 }}>
                 <Text style={{ fontSize: 13, color: c.muted, fontFamily: fontFor(700) }}>{t('cert2.docNote')}</Text>
                 <TextInput value={note} onChangeText={setNote} multiline maxLength={500} placeholderTextColor={c.muted}
                   style={{ fontSize: 16, color: c.text, minHeight: 80, textAlignVertical: 'top', paddingVertical: 6, fontFamily: 'Inter_400Regular' }} />
@@ -235,11 +235,11 @@ export default function Certification() {
             ) : null}
           </View>
         ) : (
-          <View style={{ backgroundColor: '#fff', borderRadius: 20, padding: 16, gap: 8 }}>
+          <View style={{ backgroundColor: tint('#fff'), borderRadius: 20, padding: 16, gap: 8 }}>
             <Text style={{ fontSize: 13.5, color: c.muted, fontFamily: fontFor(700) }}>{t('cert2.codeLabel')}</Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
               <Text selectable style={{ fontSize: 27, letterSpacing: 1.5, color: c.text, fontFamily: fontFor(800) }}>{cert?.code}</Text>
-              <Pressable accessibilityRole="button" onPress={() => Clipboard.setStringAsync(cert?.code ?? '').then(() => setMessage(t('common.copied')))} style={{ backgroundColor: '#F0EBFF', borderRadius: 999, paddingHorizontal: 18, paddingVertical: 10 }}>
+              <Pressable accessibilityRole="button" onPress={() => Clipboard.setStringAsync(cert?.code ?? '').then(() => setMessage(t('common.copied')))} style={{ backgroundColor: tint('#F0EBFF'), borderRadius: 999, paddingHorizontal: 18, paddingVertical: 10 }}>
                 <Text style={{ color: c.primary, fontSize: 15, fontFamily: fontFor(700) }}>{message === t('common.copied') ? t('common.copied') : t('common.copy')}</Text>
               </Pressable>
             </View>
@@ -274,12 +274,12 @@ export default function Certification() {
 
       <View style={{ gap: 8 }}>
         <Text style={{ color: c.muted, fontSize: 13, letterSpacing: 0.8, fontFamily: fontFor(700), textTransform: 'uppercase', marginLeft: 6 }}>{t('cert2.stepsLabel')}</Text>
-        <View style={{ backgroundColor: '#fff', borderRadius: 22, overflow: 'hidden' }}>
+        <View style={{ backgroundColor: tint('#fff'), borderRadius: 22, overflow: 'hidden' }}>
           {[1, 2, 3, 4].map((n) => {
             const st = stepState(n);
             return (
-              <View key={n} style={{ flexDirection: 'row', gap: 14, padding: 16, borderBottomWidth: n < 4 ? 1 : 0, borderBottomColor: '#EEEFF5' }}>
-                <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: st === 'done' ? c.success : st === 'current' ? c.primary : '#EEEFF5', alignItems: 'center', justifyContent: 'center', marginTop: 2 }}>
+              <View key={n} style={{ flexDirection: 'row', gap: 14, padding: 16, borderBottomWidth: n < 4 ? 1 : 0, borderBottomColor: tint('#EEEFF5') }}>
+                <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: st === 'done' ? c.success : st === 'current' ? c.primary : tint('#EEEFF5'), alignItems: 'center', justifyContent: 'center', marginTop: 2 }}>
                   <Text style={{ color: st === 'todo' ? c.muted : '#fff', fontSize: 15, fontFamily: fontFor(800) }}>{st === 'done' ? '✓' : n}</Text>
                 </View>
                 <View style={{ flex: 1, gap: 2 }}>
@@ -293,7 +293,7 @@ export default function Certification() {
       </View>
 
       {inReview ? <Card tone="soft"><T v="heading">{t('cert2.inReviewTitle')}</T><T v="muted">{t('cert2.inReviewBody')}</T></Card> : null}
-      <View style={{ flexDirection: 'row', gap: 12, backgroundColor: '#fff', borderRadius: 20, padding: 16 }}>
+      <View style={{ flexDirection: 'row', gap: 12, backgroundColor: tint('#fff'), borderRadius: 20, padding: 16 }}>
         <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={c.primary} strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round"><Path d="M6 11h12v9H6zM8.5 11V8a3.5 3.5 0 0 1 7 0v3" /></Svg>
         <Text style={{ flex: 1, fontSize: 14.5, lineHeight: 21, color: c.muted }}>{t('cert2.privacy')}</Text>
       </View>

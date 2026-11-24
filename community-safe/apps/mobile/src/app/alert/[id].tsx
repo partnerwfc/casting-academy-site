@@ -6,7 +6,7 @@ import { checkLink, creatorUrl, formatDate, linkHost, type Alert, type MessageKe
 import { Avatar, Button, Loading, Pill, Screen, T, VerifiedBadge } from '@/components/ui';
 import { useI18n } from '@/lib/i18n';
 import { supabase, WEB_URL } from '@/lib/supabase';
-import { fontFor, space, useColors } from '@/lib/theme';
+import { fontFor, space, useColors, tint } from '@/lib/theme';
 
 type AlertWithCreator = Alert & { creator_profiles: { display_name: string; handle: string; avatar_url: string | null; verification_status: string } };
 
@@ -54,7 +54,7 @@ export default function AlertDetail() {
   return (
     <Screen bg="#fff" nav={{ back: t('tabs.alerts') }}>
       {sos ? (
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, padding: 14, borderRadius: 22, borderWidth: 1, borderColor: '#F8C3CF', backgroundColor: '#FFE9EE', overflow: 'hidden' }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, padding: 14, borderRadius: 22, borderWidth: 1, borderColor: tint('#F8C3CF'), backgroundColor: tint('#FFE9EE'), overflow: 'hidden' }}>
           <View style={{ position: 'absolute', left: -30, top: -30, width: 110, height: 110, borderRadius: 55, backgroundColor: 'rgba(225,29,72,0.10)' }} />
           <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: c.sos, alignItems: 'center', justifyContent: 'center' }}>
             <Svg width={24} height={24} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><Path d="M12 4 2.8 20h18.4zM12 10v4.5M12 17.4v.1" /></Svg>
@@ -78,19 +78,19 @@ export default function AlertDetail() {
       {alert.reason ? <Pill label={t(`reason.${alert.reason}` as MessageKey)} /> : null}
       <View style={{ gap: 10 }}>
         {title ? <Text style={{ fontSize: 28, lineHeight: 33, letterSpacing: -0.7, color: c.text, fontFamily: fontFor(800) }}>{title}</Text> : null}
-        {body ? <Text style={{ fontSize: 18, lineHeight: 27, color: '#3B3F4E' }}>{body}</Text> : null}
+        {body ? <Text style={{ fontSize: 18, lineHeight: 27, color: tint('#3B3F4E') }}>{body}</Text> : null}
       </View>
       {alert.link_url && linkSafe ? (
         <View style={{ gap: 14 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, padding: 14, borderRadius: 20, borderWidth: 1, borderColor: '#E9E6F3', backgroundColor: '#fff' }}>
-            <View style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#EEEFF5', alignItems: 'center', justifyContent: 'center' }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, padding: 14, borderRadius: 20, borderWidth: 1, borderColor: tint('#E9E6F3'), backgroundColor: tint('#fff') }}>
+            <View style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: tint('#EEEFF5'), alignItems: 'center', justifyContent: 'center' }}>
               <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={c.text} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><Path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" /></Svg>
             </View>
             <View style={{ flex: 1, gap: 2 }}>
               <Text style={{ fontSize: 17, color: c.text, fontFamily: fontFor(700) }}>{host}</Text>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
                 <Svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke={c.success} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round"><Path d="M6 11h12v9H6zM8.5 11V8a3.5 3.5 0 0 1 7 0v3" /></Svg>
-                <Text style={{ fontSize: 13.5, color: '#15803D', fontFamily: fontFor(600) }}>{t('detail.linkVerified')}</Text>
+                <Text style={{ fontSize: 13.5, color: tint('#15803D'), fontFamily: fontFor(600) }}>{t('detail.linkVerified')}</Text>
               </View>
             </View>
           </View>

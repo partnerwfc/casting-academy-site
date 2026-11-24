@@ -6,7 +6,7 @@ import { Avatar, Button, Card, Loading, Pill, Screen, T, VerifiedBadge } from '@
 import { useAuth } from '@/lib/auth';
 import { useSecurityGate } from '@/lib/gate';
 import { useI18n } from '@/lib/i18n';
-import { fontFor, space, useColors } from '@/lib/theme';
+import { fontFor, space, useColors, tint } from '@/lib/theme';
 
 function Option({ kind, title, desc, tag }: { kind: 'sos' | 'announcement'; title: string; desc: string; tag: string }) {
   const c = useColors();
@@ -14,7 +14,7 @@ function Option({ kind, title, desc, tag }: { kind: 'sos' | 'announcement'; titl
   const tone = sos ? c.sos : c.primary;
   return (
     <Pressable accessibilityRole="button" onPress={() => router.push({ pathname: '/studio/compose', params: { kind } })}
-      style={({ pressed }) => ({ flexDirection: 'row', gap: 14, padding: 18, borderRadius: 26, borderWidth: 1, backgroundColor: '#fff', overflow: 'hidden', borderColor: sos ? '#F8C3CF' : '#DDD3F7', opacity: pressed ? 0.9 : 1, shadowColor: tone, shadowOpacity: 0.16, shadowRadius: 18, shadowOffset: { width: 0, height: 8 }, elevation: 3 })}>
+      style={({ pressed }) => ({ flexDirection: 'row', gap: 14, padding: 18, borderRadius: 26, borderWidth: 1, backgroundColor: tint('#fff'), overflow: 'hidden', borderColor: sos ? tint('#F8C3CF') : tint('#DDD3F7'), opacity: pressed ? 0.9 : 1, shadowColor: tone, shadowOpacity: 0.16, shadowRadius: 18, shadowOffset: { width: 0, height: 8 }, elevation: 3 })}>
       {sos ? <View style={{ position: 'absolute', left: -14, top: -14, width: 100, height: 100, borderRadius: 50, backgroundColor: 'rgba(225,29,72,0.07)' }} /> : null}
       <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: tone, alignItems: 'center', justifyContent: 'center' }}>
         <Svg width={25} height={25} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
@@ -22,8 +22,8 @@ function Option({ kind, title, desc, tag }: { kind: 'sos' | 'announcement'; titl
         </Svg>
       </View>
       <View style={{ flex: 1, gap: 6, alignItems: 'flex-start' }}>
-        <Text style={{ fontSize: 21, color: '#170B2F', fontFamily: fontFor(800), letterSpacing: -0.4 }}>{title}</Text>
-        <Text style={{ fontSize: 16, lineHeight: 22, color: '#6B7385' }}>{desc}</Text>
+        <Text style={{ fontSize: 21, color: tint('#170B2F'), fontFamily: fontFor(800), letterSpacing: -0.4 }}>{title}</Text>
+        <Text style={{ fontSize: 16, lineHeight: 22, color: tint('#6B7385') }}>{desc}</Text>
         <Pill label={tag} tone={sos ? 'sos' : 'primary'} />
       </View>
     </Pressable>

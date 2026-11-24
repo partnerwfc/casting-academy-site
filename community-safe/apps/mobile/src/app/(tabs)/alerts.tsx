@@ -7,7 +7,7 @@ import { Avatar, Chip, Loading, Pill, Segmented, T } from '@/components/ui';
 import { useAuth } from '@/lib/auth';
 import { useI18n } from '@/lib/i18n';
 import { supabase } from '@/lib/supabase';
-import { fontFor, useColors } from '@/lib/theme';
+import { fontFor, useColors, tint } from '@/lib/theme';
 import { formatWhen } from '@/lib/when';
 
 interface Item {
@@ -82,7 +82,7 @@ export default function Alerts() {
             const sos = item.kind === 'sos';
             return (
               <Pressable accessibilityRole="button" onPress={() => router.push(item.href as never)}
-                style={{ flexDirection: 'row', gap: 14, padding: 14, marginBottom: 12, borderRadius: 22, borderWidth: 1, backgroundColor: sos ? '#FFF1F4' : '#fff', borderColor: sos ? '#F8C3CF' : '#E9E6F3' }}>
+                style={{ flexDirection: 'row', gap: 14, padding: 14, marginBottom: 12, borderRadius: 22, borderWidth: 1, backgroundColor: sos ? tint('#FFF1F4') : tint('#fff'), borderColor: sos ? tint('#F8C3CF') : tint('#E9E6F3') }}>
                 <Avatar name={item.name} url={item.avatar} size={50} />
                 <View style={{ flex: 1, gap: 5 }}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>

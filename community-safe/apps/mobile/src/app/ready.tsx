@@ -4,13 +4,13 @@ import Svg, { Defs, LinearGradient, Path, Stop, Circle } from 'react-native-svg'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '@/components/ui';
 import { useI18n } from '@/lib/i18n';
-import { fontFor } from '@/lib/theme';
+import { fontFor, tint } from '@/lib/theme';
 
-const V = '#6D28D9', INK = '#170B2F', MUTED = '#6B7385';
 
 // « C'est prêt ! » : confirmation après la connexion, puis autorisation des notifications.
 export default function Ready() {
   const { t } = useI18n();
+  const V = tint('#6D28D9'), INK = tint('#170B2F'), MUTED = tint('#6B7385');
   const go = () => router.replace('/notifications-intro');
   const tick = (text: string) => (
     <View key={text} style={{ flexDirection: 'row', gap: 14, alignItems: 'flex-start' }}>
@@ -19,7 +19,7 @@ export default function Ready() {
     </View>
   );
   return (
-    <View style={{ flex: 1, backgroundColor: '#fff' }}>
+    <View style={{ flex: 1, backgroundColor: tint('#fff') === '#0E0E10' ? '#000' : '#fff' }}>
       <SafeAreaView style={{ flex: 1, paddingHorizontal: 24 }}>
         <View style={{ alignItems: 'flex-end', height: 44, justifyContent: 'center' }}>
           <Pressable accessibilityRole="button" accessibilityLabel="Fermer" onPress={go} hitSlop={12}><Text style={{ fontSize: 24, color: INK }}>✕</Text></Pressable>
@@ -34,7 +34,7 @@ export default function Ready() {
           </View>
           <Text style={{ fontSize: 37, color: INK, fontFamily: fontFor(800), letterSpacing: -1, marginTop: 14 }}>{t('ob.ready')}</Text>
           <Text style={{ fontSize: 18, lineHeight: 26, color: MUTED, textAlign: 'center', paddingHorizontal: 30 }}>{t('ob.readySub')}</Text>
-          <View style={{ alignSelf: 'stretch', backgroundColor: '#fff', borderRadius: 22, padding: 22, gap: 18, marginTop: 26, shadowColor: INK, shadowOpacity: 0.08, shadowRadius: 16, shadowOffset: { width: 0, height: 6 }, elevation: 3 }}>
+          <View style={{ alignSelf: 'stretch', backgroundColor: tint('#fff'), borderRadius: 22, padding: 22, gap: 18, marginTop: 26, shadowColor: INK, shadowOpacity: 0.08, shadowRadius: 16, shadowOffset: { width: 0, height: 6 }, elevation: 3 }}>
             <Text style={{ fontSize: 19, color: INK, fontFamily: fontFor(800) }}>{t('ob.nextStep')}</Text>
             {[t('ob.n1'), t('ob.n2'), t('ob.n3')].map(tick)}
           </View>
