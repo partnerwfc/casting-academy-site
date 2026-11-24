@@ -40,7 +40,7 @@
       "expo-iap",
       ["expo-camera", { "cameraPermission": "SaveMyCommunity utilise la caméra uniquement pour la vidéo selfie de certification (sans son).", "recordAudioAndroid": false }],
       ["expo-image-picker", { "photosPermission": "Choisis le logo de ta communauté." }],
-      ["expo-splash-screen", { "backgroundColor": "#170B2F", "image": "./assets/images/logo-dark.png", "imageWidth": 210 }]
+      ["expo-splash-screen", { "backgroundColor": "#0A0316" }]
     ],
     "experiments": { "reactCompiler": true },
     "extra": {

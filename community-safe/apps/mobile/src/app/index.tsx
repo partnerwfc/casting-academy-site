@@ -2,7 +2,7 @@ import { Redirect } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { Loading } from '@/components/ui';
-import { OpeningAnimation, openingPlayed } from '@/components/OpeningAnimation';
+import { SplashAnimated, splashPlayed } from '@/screens/SplashAnimated';
 import { useAuth } from '@/lib/auth';
 import { introSeen, onboarded } from '@/lib/onboarding';
 
@@ -10,7 +10,7 @@ import { introSeen, onboarded } from '@/lib/onboarding';
 export default function Entry() {
   const { session, loading } = useAuth();
   const [flags, setFlags] = useState<{ intro: boolean; done: boolean } | null>(null);
-  const [splash, setSplash] = useState(!openingPlayed());
+  const [splash, setSplash] = useState(!splashPlayed());
   useEffect(() => { Promise.all([introSeen(), onboarded()]).then(([intro, done]) => setFlags({ intro, done })); }, []);
   let target: React.ReactNode = <Loading />;
   if (!loading && flags) {
@@ -19,9 +19,9 @@ export default function Entry() {
       : <Redirect href={flags.intro ? { pathname: '/intro', params: { step: 'login' } } : '/intro'} />;
   }
   return (
-    <View style={{ flex: 1, backgroundColor: '#170B2F' }}>
+    <View style={{ flex: 1, backgroundColor: '#0A0316' }}>
       {splash ? null : target}
-      {splash ? <OpeningAnimation onDone={() => setSplash(false)} /> : null}
+      {splash ? <SplashAnimated onDone={() => setSplash(false)} /> : null}
     </View>
   );
 }
