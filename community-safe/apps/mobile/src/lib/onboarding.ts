@@ -6,3 +6,8 @@ export const introSeen = async () => (await AsyncStorage.getItem(INTRO)) === '1'
 export const markIntroSeen = () => AsyncStorage.setItem(INTRO, '1');
 export const onboarded = async () => (await AsyncStorage.getItem(DONE)) === '1';
 export const markOnboarded = () => AsyncStorage.setItem(DONE, '1');
+
+export type Role = 'creator' | 'follower';
+const ROLE = 'smc-role';
+export const setRole = (r: Role) => AsyncStorage.setItem(ROLE, r);
+export const getRole = async (): Promise<Role> => ((await AsyncStorage.getItem(ROLE)) === 'follower' ? 'follower' : 'creator');

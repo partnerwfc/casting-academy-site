@@ -4,7 +4,7 @@ import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 import { Button, Screen } from '@/components/ui';
 import { useI18n } from '@/lib/i18n';
-import { markOnboarded } from '@/lib/onboarding';
+import { getRole, markOnboarded } from '@/lib/onboarding';
 import { syncDevice } from '@/lib/push';
 import { fontFor, useColors } from '@/lib/theme';
 
@@ -30,7 +30,7 @@ function Notif({ kind, title, body, time, label, inset }: { kind: 'sos' | 'ann';
 export default function NotificationsIntro() {
   const { t } = useI18n();
   const [busy, setBusy] = useState(false);
-  const done = async () => { await markOnboarded(); router.replace('/(tabs)/communities'); };
+  const done = async () => { await markOnboarded(); const role = await getRole(); router.replace(role === 'creator' ? '/studio/setup' : '/(tabs)/discover'); };
   return (
     <Screen bg="#F7F8FC" scroll={false} padded={false}
       footer={<>

@@ -31,6 +31,7 @@ function Navigator() {
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="intro" options={{ headerShown: false }} />
+      <Stack.Screen name="ready" options={{ headerShown: false }} />
       <Stack.Screen name="how-it-works" options={{ headerShown: false }} />
       <Stack.Screen name="notifications-intro" options={{ headerShown: false }} />
       <Stack.Screen name="sign-in" options={{ title: t('auth.title'), presentation: 'modal' }} />
