@@ -96,7 +96,7 @@ export default function Studio() {
   const curPrice = fmt(curPlan);
   const nextPrice = nextPlan ? fmt(nextPlan) : t('plan.quote');
   return (
-    <Screen bg={c.surface} nav={{ back: t('tabs.profile'), title: t('profile.creatorSpace') }}>
+    <Screen bg={c.surface} nav={{ back: t('tabs.profile'), title: t('profile.creatorSpace'), right: { label: t('edit.title'), onPress: () => router.push('/studio/edit') } }}>
       <Modal visible={over && !sheetDismissed} transparent animationType="slide" onRequestClose={() => setSheetDismissed(true)}>
         <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(23,11,47,0.45)' }}>
           <View style={{ backgroundColor: c.bg, borderTopLeftRadius: 28, borderTopRightRadius: 28, padding: space.xl, gap: space.md, alignItems: 'center' }}>
@@ -122,7 +122,7 @@ export default function Studio() {
       </Modal>
 
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-        <Avatar name={creator.display_name} url={creator.avatar_url} size={52} />
+        <Pressable accessibilityRole="button" onPress={() => router.push('/studio/edit')}><Avatar name={creator.display_name} url={creator.avatar_url} size={52} /></Pressable>
         <View style={{ gap: 2 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}><Text style={{ fontSize: 21, color: c.text, fontFamily: fontFor(800), letterSpacing: -0.4 }}>{creator.display_name}</Text>{certified ? <VerifiedBadge size={18} /> : null}</View>
           <Text style={{ fontSize: 14.5, color: c.muted }}>@{creator.handle}{certified ? ` · ${t('cert.short')}` : ''}</Text>
